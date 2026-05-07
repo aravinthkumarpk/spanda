@@ -3,6 +3,9 @@
 import {
   useCallback, useEffect, useRef, useState,
 } from "react";
+import type {
+  Dispatch, RefObject, SetStateAction,
+} from "react";
 import type { AppUpdateStatus } from "@/lib/app-update-types";
 
 export const VERSION_UPDATE_COMMAND =
@@ -16,6 +19,11 @@ type TimeoutScheduler = (
   callback: () => void,
   delay: number,
 ) => TimeoutHandle;
+type IntervalRef = RefObject<
+  ReturnType<typeof setInterval> | null
+>;
+type TimeoutRef = RefObject<TimeoutHandle | null>;
+type StatusSetter = Dispatch<SetStateAction<AppUpdateStatus>>;
 
 export function scheduleUpdateCompleteReload(
   reload: () => void = () => {
@@ -51,8 +59,18 @@ async function requestStatus(
     const res = await fetchImpl(url, init);
     const json = (await res.json()) as {
       data?: AppUpdateStatus;
+      error?: string;
     };
     if (!json.data) {
+      if (!res.ok && json.error) {
+        return {
+          ...idleUpdateStatus(),
+          phase: "failed",
+          message: "Automatic update failed",
+          error: json.error,
+          endedAt: Date.now(),
+        };
+      }
       return null;
     }
     return json.data;
@@ -107,6 +125,59 @@ function shouldAutoReloadCompletedPhase(
   );
 }
 
+function startingUpdateStatus(): AppUpdateStatus {
+  return {
+    ...idleUpdateStatus(),
+    phase: "starting",
+    message: "Launching update worker",
+    startedAt: Date.now(),
+  };
+}
+
+function clearPollTimer(pollTimerRef: IntervalRef): void {
+  if (pollTimerRef.current) {
+    clearInterval(pollTimerRef.current);
+    pollTimerRef.current = null;
+  }
+}
+
+function clearReloadTimer(reloadTimerRef: TimeoutRef): void {
+  if (reloadTimerRef.current) {
+    clearTimeout(reloadTimerRef.current);
+    reloadTimerRef.current = null;
+  }
+}
+
+function useVersionUpdateCleanup(
+  pollTimerRef: IntervalRef,
+  reloadTimerRef: TimeoutRef,
+): void {
+  useEffect(() => () => {
+    clearPollTimer(pollTimerRef);
+    clearReloadTimer(reloadTimerRef);
+  }, [pollTimerRef, reloadTimerRef]);
+}
+
+function usePersistedVersionUpdateStatus(
+  setStatus: StatusSetter,
+): void {
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      const next = await readVersionUpdateStatus();
+      if (!cancelled && next) {
+        setStatus(next);
+      }
+    };
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [setStatus]);
+}
+
 export function shouldAutoReloadCompletedUpdate(
   status: AppUpdateStatus,
   observedActiveUpdate: boolean,
@@ -130,14 +201,7 @@ export function useVersionUpdateAction() {
   const shouldReloadOnCompletionRef = useRef(false);
   const updatePhase = status.phase;
 
-  useEffect(() => () => {
-    if (pollTimerRef.current) {
-      clearInterval(pollTimerRef.current);
-    }
-    if (reloadTimerRef.current) {
-      clearTimeout(reloadTimerRef.current);
-    }
-  }, []);
+  useVersionUpdateCleanup(pollTimerRef, reloadTimerRef);
 
   const refresh = useCallback(async () => {
     const next = await readVersionUpdateStatus();
@@ -147,45 +211,23 @@ export function useVersionUpdateAction() {
     return next;
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const load = async () => {
-      const next = await readVersionUpdateStatus();
-      if (!cancelled && next) {
-        setStatus(next);
-      }
-    };
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  usePersistedVersionUpdateStatus(setStatus);
 
   useEffect(() => {
     if (!isBusy(status)) {
-      if (pollTimerRef.current) {
-        clearInterval(pollTimerRef.current);
-        pollTimerRef.current = null;
-      }
+      clearPollTimer(pollTimerRef);
       return;
     }
 
-    if (pollTimerRef.current) {
-      clearInterval(pollTimerRef.current);
-    }
+    clearPollTimer(pollTimerRef);
     pollTimerRef.current = setInterval(() => {
       void refresh();
     }, POLL_INTERVAL_MS);
 
     return () => {
-      if (pollTimerRef.current) {
-        clearInterval(pollTimerRef.current);
-        pollTimerRef.current = null;
-      }
+      clearPollTimer(pollTimerRef);
     };
-  }, [refresh, status]);
+  }, [pollTimerRef, refresh, status]);
 
   useEffect(() => {
     if (isBusyPhase(updatePhase)) {
@@ -193,10 +235,7 @@ export function useVersionUpdateAction() {
     }
 
     if (updatePhase !== "completed") {
-      if (reloadTimerRef.current) {
-        clearTimeout(reloadTimerRef.current);
-        reloadTimerRef.current = null;
-      }
+      clearReloadTimer(reloadTimerRef);
       return;
     }
 
@@ -207,10 +246,11 @@ export function useVersionUpdateAction() {
     )) {
       reloadTimerRef.current = scheduleUpdateCompleteReload();
     }
-  }, [updatePhase]);
+  }, [reloadTimerRef, updatePhase]);
 
   const startUpdate = useCallback(async () => {
     shouldReloadOnCompletionRef.current = true;
+    setStatus(startingUpdateStatus());
     const next = await triggerVersionUpdate();
     if (!next) {
       setStatus({

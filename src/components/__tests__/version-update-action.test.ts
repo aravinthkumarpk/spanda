@@ -64,6 +64,23 @@ describe("triggerVersionUpdate", () => {
     });
   });
 
+  it("surfaces backend errors when no status payload exists", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({
+        error: "Forbidden",
+      }),
+    });
+
+    await expect(
+      triggerVersionUpdate(fetchMock as unknown as typeof fetch),
+    ).resolves.toMatchObject({
+      phase: "failed",
+      message: "Automatic update failed",
+      error: "Forbidden",
+    });
+  });
+
   it("reads persisted backend update status", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
