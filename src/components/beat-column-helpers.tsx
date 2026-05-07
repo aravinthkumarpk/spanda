@@ -24,6 +24,7 @@ import {
 } from "@/lib/wave-slugs";
 
 export const PRIORITIES: BeatPriority[] = [0, 1, 2, 3, 4];
+const MAX_TITLE_DISPLAY_CHARS = 100;
 
 export type UpdateBeatFn = (
   id: string,
@@ -48,6 +49,13 @@ export function formatLabel(val: string): string {
     .split(/[_-]/)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
+}
+
+function displayTitle(title: string): string {
+  if (title.length <= MAX_TITLE_DISPLAY_CHARS) {
+    return title;
+  }
+  return `${title.slice(0, MAX_TITLE_DISPLAY_CHARS - 3)}...`;
 }
 
 const LABEL_COLORS = [
@@ -316,7 +324,7 @@ export function InlineTitleContent({
     : ChevronDown;
   return (
     <div
-      className="flex items-start gap-0.5 truncate"
+      className="flex min-w-0 items-start gap-0.5 whitespace-normal"
       style={{ paddingLeft: `${depth * 16}px` }}
     >
       {hasChildren ? (
@@ -404,6 +412,7 @@ export function TitleCell({
       [{waveSlug}]
     </span>
   ) : null;
+  const title = displayTitle(beat.title);
 
   return (
     <div
@@ -414,9 +423,10 @@ export function TitleCell({
       {onTitleClick ? (
         <button
           type="button"
-          title="Open beat details"
+          title={beat.title}
           className={
-            "text-left font-medium"
+            "max-w-full whitespace-normal"
+            + " text-left font-medium"
             + " break-words hover:underline"
           }
           onClick={(e) => {
@@ -425,12 +435,18 @@ export function TitleCell({
           }}
         >
           {wavePrefix}
-          {beat.title}
+          {title}
         </button>
       ) : (
-        <span className="font-medium break-words">
+        <span
+          className={
+            "max-w-full whitespace-normal"
+            + " font-medium break-words"
+          }
+          title={beat.title}
+        >
           {wavePrefix}
-          {beat.title}
+          {title}
         </span>
       )}
       <TitleMetaBadges

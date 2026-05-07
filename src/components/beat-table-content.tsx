@@ -298,7 +298,7 @@ function BeatTableRow({
       >
         <TableCell
           colSpan={totalCols}
-          className="pt-0 pb-1 truncate"
+          className="whitespace-normal pt-0 pb-1"
         >
           <InlineTitleContent
             beat={row.original} opts={titleRenderOpts}

@@ -225,7 +225,7 @@ describe("beats page layout: search and table content", () => {
 
   it("does not send the state filter when a search query is active", () => {
     expect(beatsQuerySource).toContain(
-      "if (!searchQuery && filters.state)",
+      "!searchQuery\n    && beatsView !== \"overview\"\n    && filters.state",
     );
     expect(beatsQuerySource).toContain(
       "if (searchQuery) params.q = searchQuery;",
@@ -286,7 +286,7 @@ describe("beats page layout: search and table content", () => {
       borderlessRowIndex,
     );
     expect(beatRowSource).toContain(
-      'className="pt-0 pb-1 truncate"',
+      'className="whitespace-normal pt-0 pb-1"',
     );
     expect(beatRowSource).toContain("colSpan={totalCols}");
     expect(titleIndex).toBeGreaterThan(-1);
