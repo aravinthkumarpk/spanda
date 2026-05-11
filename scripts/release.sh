@@ -16,6 +16,112 @@ require_cmd() {
   fi
 }
 
+current_branch() {
+  local branch
+  branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null)" || {
+    fail "Release must run from an attached branch; HEAD is detached. " \
+      "Checkout the release target branch first."
+  }
+
+  printf '%s\n' "$branch"
+}
+
+require_clean_worktree() {
+  if [[ -n "$(git status --porcelain)" ]]; then
+    fail "Release worktree is not clean. Commit, stash, or discard local changes before releasing."
+  fi
+}
+
+require_release_branch() {
+  local target="$1" branch
+  branch="$(current_branch)"
+
+  if [[ "$branch" != "$target" ]]; then
+    fail "Release target is '$target' but current branch is '$branch'. " \
+      "Checkout '$target' first or set FOOLERY_RELEASE_TARGET='$branch'."
+  fi
+}
+
+branch_upstream() {
+  local upstream
+  upstream="$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null)" || {
+    fail "Release branch has no upstream. Configure one with: " \
+      "git branch --set-upstream-to=origin/$(current_branch)"
+  }
+
+  printf '%s\n' "$upstream"
+}
+
+fetch_upstream_and_tags() {
+  local upstream="$1" remote ref
+  remote="${upstream%%/*}"
+  ref="${upstream#*/}"
+
+  if [[ -z "$remote" || -z "$ref" || "$remote" == "$ref" ]]; then
+    fail "Could not parse upstream '$upstream'. Configure the release branch " \
+      "to track a remote branch."
+  fi
+
+  git fetch --quiet --tags "$remote" "+refs/heads/${ref}:refs/remotes/${remote}/${ref}"
+}
+
+prepare_release_branch() {
+  local target="$1" dry_run="$2" upstream local_head upstream_head
+
+  require_release_branch "$target"
+  require_clean_worktree
+
+  upstream="$(branch_upstream)"
+  fetch_upstream_and_tags "$upstream"
+
+  local_head="$(git rev-parse HEAD)"
+  upstream_head="$(git rev-parse "$upstream")"
+
+  if [[ "$local_head" == "$upstream_head" ]]; then
+    log "Release branch '$target' is current with $upstream."
+    return 0
+  fi
+
+  if git merge-base --is-ancestor HEAD "$upstream"; then
+    if [[ "$dry_run" == "1" ]]; then
+      fail "Release branch '$target' is behind $upstream. Run 'git pull --ff-only' before dry-run."
+    fi
+
+    log "Fast-forwarding '$target' to $upstream before release."
+    git merge --ff-only "$upstream"
+    require_clean_worktree
+    return 0
+  fi
+
+  if git merge-base --is-ancestor "$upstream" HEAD; then
+    log "Release branch '$target' is ahead of $upstream; release will push local commits."
+    return 0
+  fi
+
+  fail "Release branch '$target' has diverged from $upstream. Rebase or merge before releasing."
+}
+
+run_quality_gates() {
+  if [[ "${FOOLERY_RELEASE_SKIP_GATES:-0}" == "1" ]]; then
+    log "Skipping release quality gates because FOOLERY_RELEASE_SKIP_GATES=1."
+    return 0
+  fi
+
+  require_cmd bun
+  require_cmd bunx
+
+  log "Running release quality gates."
+  log "Gate: bun run lint"
+  bun run lint
+  log "Gate: bunx tsc --noEmit"
+  bunx tsc --noEmit
+  log "Gate: bun run test"
+  bun run test
+  log "Gate: bun run build"
+  bun run build
+  require_clean_worktree
+}
+
 semver_triplet() {
   local raw="$1"
   raw="${raw#v}"
@@ -54,7 +160,6 @@ bump_version() {
 }
 
 read_current_version() {
-  git fetch --tags --quiet
   local latest
   latest="$(git tag --sort=-v:refname | while read -r t; do
     if [[ "$t" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -64,7 +169,8 @@ read_current_version() {
   done)"
 
   if [[ -z "$latest" ]]; then
-    fail "No semver release tags (v*.*.* ) found. Create an initial tag first (e.g. git tag v0.0.0)."
+    fail "No semver release tags (v*.*.* ) found. " \
+      "Create an initial tag first (e.g. git tag v0.0.0)."
   fi
 
   printf '%s\n' "${latest#v}"
@@ -72,7 +178,9 @@ read_current_version() {
 
 update_package_version() {
   local pkg="$1" new_version="$2"
-  sed -i.bak "s/\"version\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\"version\": \"$new_version\"/" "$pkg"
+  sed -i.bak \
+    "s/\"version\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/\"version\": \"$new_version\"/" \
+    "$pkg"
   rm -f "${pkg}.bak"
 
   local written
@@ -104,6 +212,8 @@ Environment variables:
   FOOLERY_RELEASE_WAIT_FOR_ARTIFACTS=0   Skip waiting for artifacts (default: 1)
   FOOLERY_RELEASE_POLL_INTERVAL_SECONDS  Poll interval in seconds (default: 10)
   FOOLERY_RELEASE_WAIT_TIMEOUT_SECONDS   Artifact wait timeout (default: 600)
+  FOOLERY_RELEASE_PUSH_RETRIES           Atomic push retry count (default: 2)
+  FOOLERY_RELEASE_SKIP_GATES=1           Skip final release gates (default: 0)
 
 Flags override their corresponding environment variables.
 EOF
@@ -136,13 +246,23 @@ prompt_bump_kind() {
 
 wait_for_artifact_run() {
   local tag="$1"
-  local interval timeout_seconds started_at now run_id
+  local interval timeout_seconds started_at now run_id jq_filter
   interval="${FOOLERY_RELEASE_POLL_INTERVAL_SECONDS:-10}"
   timeout_seconds="${FOOLERY_RELEASE_WAIT_TIMEOUT_SECONDS:-600}"
   started_at="$(date +%s)"
+  jq_filter=".[] | select(.displayTitle == \"$tag\") | .databaseId"
 
   while true; do
-    run_id="$(gh run list --workflow "Release Runtime Artifact" --event release --limit 20 --json databaseId,displayTitle --jq ".[] | select(.displayTitle == \"$tag\") | .databaseId" | head -n 1 || true)"
+    run_id="$(
+      gh run list \
+        --workflow "Release Runtime Artifact" \
+        --event release \
+        --limit 20 \
+        --json databaseId,displayTitle \
+        --jq "$jq_filter" \
+        | head -n 1 \
+        || true
+    )"
     if [[ "$run_id" =~ ^[0-9]+$ ]]; then
       printf '%s\n' "$run_id"
       return 0
@@ -160,8 +280,9 @@ wait_for_artifact_run() {
 
 verify_release_assets() {
   local tag="$1"
-  local tarball_count
-  tarball_count="$(gh release view "$tag" --json assets --jq '[.assets[].name | select(test("^foolery-runtime-.*\\.tar\\.gz$"))] | length' || true)"
+  local tarball_count jq_filter
+  jq_filter='[.assets[].name | select(test("^foolery-runtime-.*\.tar\.gz$"))] | length'
+  tarball_count="$(gh release view "$tag" --json assets --jq "$jq_filter" || true)"
 
   if [[ ! "$tarball_count" =~ ^[0-9]+$ ]] || ((tarball_count < 1)); then
     fail "Release $tag completed but runtime tarball assets were not found."
@@ -179,6 +300,28 @@ wait_for_artifacts() {
   log "Watching artifact workflow run $run_id (updates every ${interval}s)"
   gh run watch "$run_id" --interval "$interval" --exit-status
   verify_release_assets "$tag"
+}
+
+publish_git_refs() {
+  local target="$1" tag="$2" upstream="$3"
+  local retries attempt
+  retries="${FOOLERY_RELEASE_PUSH_RETRIES:-2}"
+
+  for ((attempt = 0; attempt <= retries; attempt += 1)); do
+    if git push --atomic origin "HEAD:refs/heads/${target}" "refs/tags/${tag}"; then
+      return 0
+    fi
+
+    if ((attempt == retries)); then
+      fail "Failed to push $target and $tag atomically after $((retries + 1)) attempt(s)."
+    fi
+
+    log "Push raced with a remote update; rebasing release commit onto $upstream and retrying."
+    fetch_upstream_and_tags "$upstream"
+    git rebase "$upstream"
+    git tag -f "$tag" HEAD
+    run_quality_gates
+  done
 }
 
 main() {
@@ -228,6 +371,8 @@ main() {
     wait_artifacts="0"
   fi
 
+  prepare_release_branch "$target" "$dry_run"
+
   local current_version
   current_version="$(read_current_version)"
 
@@ -243,12 +388,15 @@ main() {
 
   if [[ "$dry_run" == "1" ]]; then
     log "Dry run enabled. Would:"
+    log "  - Run release quality gates"
     log "  - Update package.json to $new_version"
     log "  - git commit and tag $tag"
-    log "  - git push && git push --tags"
+    log "  - git push --atomic origin HEAD:refs/heads/$target refs/tags/$tag"
     log "  - gh release create $tag --target $target --generate-notes --latest"
     return 0
   fi
+
+  run_quality_gates
 
   local pkg
   pkg="$(git rev-parse --show-toplevel)/package.json"
@@ -257,8 +405,10 @@ main() {
   git add package.json
   git commit -m "release: $tag"
   git tag "$tag"
-  git push
-  git push --tags
+
+  local upstream
+  upstream="$(branch_upstream)"
+  publish_git_refs "$target" "$tag" "$upstream"
 
   local prev_tag notes
   prev_tag="v${current_version}"
