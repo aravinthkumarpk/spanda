@@ -12,10 +12,17 @@ import type {
 
 const MAX_RECENT_EVENTS = 20;
 
+interface ActiveJobEntry extends StaleBeatGroomingJob {
+  startedAt: number;
+  agentName?: string;
+  agentVersion?: string;
+  lastOutputAt?: number;
+}
+
 interface StaleBeatGroomingWorkerState {
   running: boolean;
   workerStartedAt: number | null;
-  activeJobs: Map<number, StaleBeatGroomingJob & { startedAt: number }>;
+  activeJobs: Map<number, ActiveJobEntry>;
   totalCompleted: number;
   totalFailed: number;
   recentFailures: StaleBeatGroomingFailure[];
@@ -65,6 +72,32 @@ export function recordStaleBeatGroomingRelease(
   workerIndex: number,
 ): void {
   workerState().activeJobs.delete(workerIndex);
+}
+
+export function recordStaleBeatGroomingAgentDetails(
+  jobId: string,
+  details: { agentName?: string; agentVersion?: string },
+): void {
+  const entry = findActiveJobEntry(jobId);
+  if (!entry) return;
+  if (details.agentName) entry.agentName = details.agentName;
+  if (details.agentVersion) entry.agentVersion = details.agentVersion;
+}
+
+export function recordStaleBeatGroomingProgress(
+  jobId: string,
+  timestamp: number,
+): void {
+  const entry = findActiveJobEntry(jobId);
+  if (!entry) return;
+  entry.lastOutputAt = timestamp;
+}
+
+function findActiveJobEntry(jobId: string): ActiveJobEntry | undefined {
+  for (const entry of workerState().activeJobs.values()) {
+    if (entry.id === jobId) return entry;
+  }
+  return undefined;
 }
 
 export function recordStaleBeatGroomingWorkerCompleted(input: {
@@ -118,6 +151,9 @@ export function getStaleBeatGroomingWorkerHealth():
       agentId: job.agentId,
       startedAt: job.startedAt,
       ...(job.repoPath ? { repoPath: job.repoPath } : {}),
+      ...(job.agentName ? { agentName: job.agentName } : {}),
+      ...(job.agentVersion ? { agentVersion: job.agentVersion } : {}),
+      ...(job.lastOutputAt ? { lastOutputAt: job.lastOutputAt } : {}),
     })),
     totalCompleted: state.totalCompleted,
     totalFailed: state.totalFailed,

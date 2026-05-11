@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchStaleBeatGroomingStatus } from "@/lib/stale-beat-grooming-api";
@@ -29,7 +29,15 @@ import type {
 
 type WorkerStatus = "Idle" | "Processing" | "Slow";
 
-const SLOW_THRESHOLD_MS = 120_000;
+export const STALE_SESSION_THRESHOLD_MS = 120_000;
+
+export function isStaleSession(
+  job: StaleBeatGroomingActiveJob,
+  now: number,
+): boolean {
+  const lastActivity = job.lastOutputAt ?? job.startedAt;
+  return now - lastActivity > STALE_SESSION_THRESHOLD_MS;
+}
 
 export function StaleBeatGroomingDiagnosticsCard() {
   const { data } = useQuery({
@@ -88,10 +96,8 @@ function deriveStatus(
   now: number,
 ): WorkerStatus {
   if (worker.activeJobs.length === 0) return "Idle";
-  const maxAge = Math.max(
-    ...worker.activeJobs.map((job) => now - job.startedAt),
-  );
-  return maxAge > SLOW_THRESHOLD_MS ? "Slow" : "Processing";
+  const stale = worker.activeJobs.some((job) => isStaleSession(job, now));
+  return stale ? "Slow" : "Processing";
 }
 
 function ActiveJobsTable({
@@ -105,16 +111,117 @@ function ActiveJobsTable({
   return (
     <DiagnosticsTable title="Active Jobs" headers={["Beat", "Age", "Agent"]}>
       {jobs.map((job) => (
-        <TableRow key={job.jobId}>
-          <TableCell className="font-mono text-xs">{job.beatId}</TableCell>
-          <TableCell className="text-xs">
-            {formatAge(now - job.startedAt)}
-          </TableCell>
-          <TableCell className="font-mono text-xs">{job.agentId}</TableCell>
-        </TableRow>
+        <ActiveJobRow key={job.jobId} job={job} now={now} />
       ))}
     </DiagnosticsTable>
   );
+}
+
+function ActiveJobRow({
+  job,
+  now,
+}: {
+  job: StaleBeatGroomingActiveJob;
+  now: number;
+}) {
+  const stale = isStaleSession(job, now);
+  return (
+    <Fragment>
+      <TableRow data-testid={`stale-grooming-active-row-${job.jobId}`}>
+        <TableCell className="font-mono text-xs">{job.beatId}</TableCell>
+        <TableCell className="text-xs">
+          {formatAge(now - job.startedAt)}
+        </TableCell>
+        <TableCell className="font-mono text-xs">{job.agentId}</TableCell>
+      </TableRow>
+      {stale && (
+        <TableRow
+          data-testid={`stale-grooming-diagnostics-${job.jobId}`}
+          className="border-t-0"
+        >
+          <TableCell colSpan={3} className="pt-0">
+            <StaleSessionDiagnostics job={job} now={now} />
+          </TableCell>
+        </TableRow>
+      )}
+    </Fragment>
+  );
+}
+
+function StaleSessionDiagnostics({
+  job,
+  now,
+}: {
+  job: StaleBeatGroomingActiveJob;
+  now: number;
+}) {
+  const lastActivity = job.lastOutputAt ?? job.startedAt;
+  const staleSinceMs = Math.max(
+    0,
+    now - lastActivity - STALE_SESSION_THRESHOLD_MS,
+  );
+  return (
+    <dl className="grid gap-1 text-xs sm:grid-cols-3">
+      <DiagnosticField label="Agent">
+        <span
+          data-testid={`stale-grooming-agent-${job.jobId}`}
+          className="font-mono"
+        >
+          {formatAgentLabel(job)}
+        </span>
+      </DiagnosticField>
+      <DiagnosticField label="Last output">
+        <span data-testid={`stale-grooming-last-output-${job.jobId}`}>
+          {formatLastOutput(job.lastOutputAt)}
+        </span>
+      </DiagnosticField>
+      <DiagnosticField label="Stale for">
+        <span data-testid={`stale-grooming-stale-for-${job.jobId}`}>
+          {formatAge(staleSinceMs)}
+        </span>
+      </DiagnosticField>
+    </dl>
+  );
+}
+
+function DiagnosticField({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">
+        {label}
+      </dt>
+      <dd className="text-xs">{children}</dd>
+    </div>
+  );
+}
+
+function formatAgentLabel(job: StaleBeatGroomingActiveJob): string {
+  const name = job.agentName ?? job.agentId;
+  if (job.agentVersion) return `${name} ${job.agentVersion}`;
+  return `${name} (version unknown)`;
+}
+
+function formatLastOutput(lastOutputAt: number | undefined): string {
+  if (!lastOutputAt) return "No output yet";
+  const absolute = new Date(lastOutputAt).toLocaleTimeString();
+  const relative = formatRelativePast(Date.now() - lastOutputAt);
+  return `${absolute} (${relative})`;
+}
+
+function formatRelativePast(ms: number): string {
+  if (ms < 1_000) return "just now";
+  const secs = Math.floor(ms / 1000);
+  if (secs < 60) return `${secs}s ago`;
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  return `${hrs}h ago`;
 }
 
 function FailuresTable({

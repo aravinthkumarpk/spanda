@@ -102,6 +102,9 @@ export interface StaleBeatGroomingActiveJob {
   agentId: string;
   startedAt: number;
   repoPath?: string;
+  agentName?: string;
+  agentVersion?: string;
+  lastOutputAt?: number;
 }
 
 export interface StaleBeatGroomingFailure {

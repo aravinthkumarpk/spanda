@@ -18,6 +18,7 @@ export function runStaleBeatGroomingPrompt(
   prompt: string,
   repoPath: string | undefined,
   agent: AgentTarget,
+  onProgress?: (timestamp: number) => void,
 ): Promise<string> {
   return runAgentPrompt({
     subsystem: "stale-grooming",
@@ -27,6 +28,7 @@ export function runStaleBeatGroomingPrompt(
     prompt,
     agent,
     ...(repoPath ? { repoPath } : {}),
+    ...(onProgress ? { onProgress } : {}),
   });
 }
 

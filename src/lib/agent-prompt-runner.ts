@@ -14,6 +14,7 @@ export interface AgentPromptRunnerOptions {
   prompt: string;
   agent: AgentTarget;
   repoPath?: string;
+  onProgress?: (timestamp: number) => void;
 }
 
 interface PromptState {
@@ -31,6 +32,7 @@ interface SpawnContext {
   pid: number | string;
   subsystem: string;
   subsystemLabel: string;
+  onProgress?: (timestamp: number) => void;
   safeResolve: (value: string) => void;
   safeReject: (error: Error) => void;
   processLine: (line: string) => void;
@@ -165,6 +167,7 @@ function wireChildIo(
   });
   child.stdout?.on("data", (chunk: Buffer) => {
     noteFirstByte(ctx, "stdout");
+    ctx.onProgress?.(Date.now());
     const text = chunk.toString();
     ctx.state.rawStdout += text;
     ctx.state.ndjsonBuffer += text;
@@ -174,6 +177,7 @@ function wireChildIo(
   });
   child.stderr?.on("data", (chunk: Buffer) => {
     noteFirstByte(ctx, "stderr");
+    ctx.onProgress?.(Date.now());
     ctx.state.stderrText += chunk.toString();
   });
   child.on("close", (code) => handleClose(code, ctx));
@@ -280,6 +284,7 @@ function spawnAndWire(
     state, spawnedAt, firstByteAt, pid,
     subsystem: opts.subsystem,
     subsystemLabel: opts.subsystemLabel,
+    ...(opts.onProgress ? { onProgress: opts.onProgress } : {}),
     safeResolve: (value) => {
       if (settled) return;
       settled = true;
