@@ -25,6 +25,7 @@ import type {
   StaleBeatGroomingJob,
 } from "@/lib/stale-beat-grooming-queue";
 import type {
+  StaleBeatGroomingFailureLog,
   StaleBeatGroomingResult,
 } from "@/lib/stale-beat-grooming-types";
 import type { AgentTarget } from "@/lib/types-agent-target";
@@ -44,6 +45,7 @@ export async function processStaleBeatGroomingJob(
     ...(job.repoPath ? { repoPath: job.repoPath } : {}),
   };
   recordStaleBeatGroomingRunning(target);
+  let failureRecorded = false;
   try {
     const beat = await loadBeat(job);
     const agent = await resolveStaleBeatGroomingAgent({
@@ -54,14 +56,24 @@ export async function processStaleBeatGroomingJob(
       beat,
       ageDays: staleBeatAgeDays(beat, Date.now()) ?? 0,
     });
+    let promptLog: StaleBeatGroomingFailureLog | undefined;
     const raw = await runStaleBeatGroomingPrompt(
       prompt,
       job.repoPath,
       agent,
       (timestamp) => recordStaleBeatGroomingProgress(job.id, timestamp),
+      (log) => {
+        promptLog = log;
+      },
     );
     const result = parseStaleBeatGroomingOutput(raw);
     if (!result) {
+      recordStaleBeatGroomingFailed(
+        target,
+        "agent returned unparseable grooming output",
+        promptLog,
+      );
+      failureRecorded = true;
       throw new Error("agent returned unparseable grooming output");
     }
     await applyStaleBeatGroomingOutcome({ job, result });
@@ -71,11 +83,13 @@ export async function processStaleBeatGroomingJob(
     const message = error instanceof Error
       ? error.message
       : String(error);
-    recordStaleBeatGroomingFailed(
-      target,
-      message,
-      error instanceof AgentPromptError ? error.log : undefined,
-    );
+    if (!failureRecorded) {
+      recordStaleBeatGroomingFailed(
+        target,
+        message,
+        error instanceof AgentPromptError ? error.log : undefined,
+      );
+    }
     return { ok: false, error: message };
   }
 }

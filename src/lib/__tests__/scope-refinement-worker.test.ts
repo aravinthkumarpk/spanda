@@ -285,6 +285,7 @@ describe("processScopeRefinementJob: timeout", () => {
     });
 
     vi.advanceTimersByTime(600_001);
+    child.emit("close", null);
 
     await promise;
 
@@ -328,6 +329,7 @@ describe("processScopeRefinementJob: timeout", () => {
     expect(child.kill).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(420_000);
+    child.emit("close", null);
     await promise;
     vi.useRealTimers();
 

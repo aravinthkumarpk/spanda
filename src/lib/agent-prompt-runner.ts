@@ -15,6 +15,7 @@ export interface AgentPromptRunnerOptions {
   agent: AgentTarget;
   repoPath?: string;
   onProgress?: (timestamp: number) => void;
+  onDiagnosticLog?: (log: AgentPromptFailureLog) => void;
 }
 
 export interface AgentPromptFailureLog {
@@ -49,15 +50,19 @@ interface PromptState {
 }
 
 interface SpawnContext {
+  child: ReturnType<typeof spawn>;
   state: PromptState;
   spawnedAt: number;
   firstByteAt: { value: number | null };
+  timeoutMessage: { value: string | null };
+  timeoutRejectTimer: { value: NodeJS.Timeout | null };
   pid: number | string;
   commandLabel: string;
   cwd: string;
   subsystem: string;
   subsystemLabel: string;
   onProgress?: (timestamp: number) => void;
+  onDiagnosticLog?: (log: AgentPromptFailureLog) => void;
   safeResolve: (value: string) => void;
   safeReject: (error: Error) => void;
   processLine: (line: string) => void;
@@ -112,10 +117,23 @@ function rejectWithLog(ctx: SpawnContext, message: string): void {
   ctx.safeReject(new AgentPromptError(message, buildFailureLog(ctx)));
 }
 
+function commandLabel(
+  built: { command: string; args: string[] },
+  prompt: string,
+): string {
+  const cmdBase = built.command.split("/").pop()
+    ?? built.command;
+  return [
+    cmdBase,
+    ...built.args.map((arg) =>
+      arg === prompt ? "[prompt omitted]" : arg
+    ),
+  ].join(" ");
+}
+
 function handleParsedEvent(
   obj: Record<string, unknown>,
-  state: PromptState,
-  rejectMessage: (message: string) => void,
+  ctx: SpawnContext,
 ): void {
   if (obj.type === "stream_event") {
     const event = toObject(obj.event);
@@ -125,7 +143,7 @@ function handleParsedEvent(
       && delta?.type === "text_delta"
       && typeof delta.text === "string"
     ) {
-      state.assistantText += delta.text;
+      ctx.state.assistantText += delta.text;
     }
     return;
   }
@@ -143,20 +161,19 @@ function handleParsedEvent(
           : "";
       })
       .join("");
-    state.assistantText = appendAssistantText(
-      state.assistantText, text,
+    ctx.state.assistantText = appendAssistantText(
+      ctx.state.assistantText, text,
     );
     return;
   }
   if (obj.type === "result") {
-    handleResultEvent(obj, state, rejectMessage);
+    handleResultEvent(obj, ctx);
   }
 }
 
 function handleResultEvent(
   obj: Record<string, unknown>,
-  state: PromptState,
-  rejectMessage: (message: string) => void,
+  ctx: SpawnContext,
 ): void {
   if (obj.is_error === true) {
     const m =
@@ -165,18 +182,23 @@ function handleResultEvent(
         : typeof obj.error === "string"
           ? obj.error
           : "agent result error";
-    rejectMessage(m);
+    rejectWithLog(ctx, m);
   } else if (typeof obj.result === "string") {
-    state.resultText = obj.result;
+    ctx.state.resultText = obj.result;
+    ctx.child.kill("SIGTERM");
+    ctx.safeResolve(
+      ctx.state.resultText
+        || ctx.state.assistantText
+        || ctx.state.rawStdout,
+    );
   } else if (typeof obj.error === "string") {
-    rejectMessage(`agent result error: ${obj.error}`);
+    rejectWithLog(ctx, `agent result error: ${obj.error}`);
   }
 }
 
 function makeProcessLine(
-  state: PromptState,
   normalizeEvent: (v: unknown) => unknown,
-  rejectMessage: (message: string) => void,
+  ctx: SpawnContext,
 ): (line: string) => void {
   return (line: string) => {
     if (!line.trim()) return;
@@ -188,7 +210,7 @@ function makeProcessLine(
     }
     const obj = toObject(normalizeEvent(parsed));
     if (!obj || typeof obj.type !== "string") return;
-    handleParsedEvent(obj, state, rejectMessage);
+    handleParsedEvent(obj, ctx);
   };
 }
 
@@ -249,6 +271,10 @@ function handleClose(
       + `stdout_bytes=${ctx.state.rawStdout.length} `
       + `stderr_bytes=${ctx.state.stderrText.length}`,
   );
+  if (ctx.timeoutMessage.value) {
+    rejectWithLog(ctx, ctx.timeoutMessage.value);
+    return;
+  }
   if (code !== 0) {
     const detail = ctx.state.stderrText.trim()
       || `${ctx.subsystemLabel} agent exited with `
@@ -278,11 +304,13 @@ function startTimers(
         + `stderr_bytes=${ctx.state.stderrText.length} `
         + "sending SIGKILL",
     );
+    const message = `${ctx.subsystemLabel} agent timed out after `
+      + `${timeoutMs / 1000}s`;
+    ctx.timeoutMessage.value = message;
     child.kill("SIGKILL");
-    rejectWithLog(
-      ctx,
-      `${ctx.subsystemLabel} agent timed out after `
-        + `${timeoutMs / 1000}s`,
+    ctx.timeoutRejectTimer.value = setTimeout(
+      () => rejectWithLog(ctx, message),
+      15_000,
     );
   }, timeoutMs);
   const noOutputTimer = setTimeout(() => {
@@ -316,6 +344,7 @@ function spawnAndWire(
     assistantText: "",
     resultText: "",
   };
+  const timeoutRejectTimer = { value: null as NodeJS.Timeout | null };
 
   const cwd = opts.repoPath?.trim() || process.cwd();
   const child = spawn(built.command, built.args, {
@@ -323,25 +352,34 @@ function spawnAndWire(
     env: process.env,
   });
   const pid = child.pid ?? "?";
-  const cmdBase = built.command.split("/").pop()
-    ?? built.command;
   console.log(
-    `[${opts.subsystem}][spawn] cmd=${cmdBase} `
+    `[${opts.subsystem}][spawn] cmd=${commandLabel(built, opts.prompt)} `
       + `pid=${pid} cwd=${cwd}`,
   );
 
   const ctx: SpawnContext = {
-    state, spawnedAt, firstByteAt, pid,
-    commandLabel: [cmdBase, ...built.args].join(" "),
+    child,
+    state, spawnedAt, firstByteAt,
+    timeoutMessage: { value: null },
+    timeoutRejectTimer,
+    pid,
+    commandLabel: commandLabel(built, opts.prompt),
     cwd,
     subsystem: opts.subsystem,
     subsystemLabel: opts.subsystemLabel,
     ...(opts.onProgress ? { onProgress: opts.onProgress } : {}),
+    ...(opts.onDiagnosticLog
+      ? { onDiagnosticLog: opts.onDiagnosticLog }
+      : {}),
     safeResolve: (value) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
       clearTimeout(noOutputTimer);
+      if (timeoutRejectTimer.value) {
+        clearTimeout(timeoutRejectTimer.value);
+      }
+      opts.onDiagnosticLog?.(buildFailureLog(ctx));
       resolve(value);
     },
     safeReject: (error) => {
@@ -349,12 +387,15 @@ function spawnAndWire(
       settled = true;
       clearTimeout(timer);
       clearTimeout(noOutputTimer);
+      if (timeoutRejectTimer.value) {
+        clearTimeout(timeoutRejectTimer.value);
+      }
       reject(error);
     },
     processLine: (l) => l,
   };
   ctx.processLine = makeProcessLine(
-    state, normalizeEvent, (message) => rejectWithLog(ctx, message),
+    normalizeEvent, ctx,
   );
   const { timer, noOutputTimer } = startTimers(
     child, ctx, opts.timeoutMs, opts.noOutputWarnMs,

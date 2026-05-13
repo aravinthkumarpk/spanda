@@ -102,6 +102,9 @@ describe("processStaleBeatGroomingJob: timeout", () => {
       vi.advanceTimersByTime(
         STALE_GROOMING_PROMPT_TIMEOUT_MS + 1,
       );
+      child.stderr.emit("data", Buffer.from("late stderr"));
+      child.stdout.emit("data", Buffer.from("late stdout"));
+      child.emit("close", null);
 
       const outcome = await promise;
       vi.useRealTimers();
@@ -122,9 +125,11 @@ describe("processStaleBeatGroomingJob: timeout", () => {
       expect(recordedError).not.toMatch(/scope refinement/i);
       expect(failureLog).toMatchObject({
         command: expect.stringContaining("claude"),
-        stdoutBytes: 0,
-        stderrBytes: 0,
-        firstOutputAfterMs: null,
+        stdoutBytes: 11,
+        stderrBytes: 11,
+        firstOutputAfterMs: expect.any(Number),
+        stderr: "late stderr",
+        stdout: "late stdout",
       });
       expect(mockRecordCompleted).not.toHaveBeenCalled();
     },
@@ -155,6 +160,7 @@ describe("processStaleBeatGroomingJob: timeout", () => {
       vi.advanceTimersByTime(
         STALE_GROOMING_PROMPT_TIMEOUT_MS + 1,
       );
+      child.emit("close", null);
       await promise;
       vi.useRealTimers();
 

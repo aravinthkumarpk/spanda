@@ -1,5 +1,8 @@
 import { z } from "zod/v4";
 import { runAgentPrompt } from "@/lib/agent-prompt-runner";
+import type {
+  AgentPromptFailureLog,
+} from "@/lib/agent-prompt-runner";
 import type { AgentTarget } from "@/lib/types-agent-target";
 import type { Beat } from "@/lib/types";
 import {
@@ -19,6 +22,7 @@ export function runStaleBeatGroomingPrompt(
   repoPath: string | undefined,
   agent: AgentTarget,
   onProgress?: (timestamp: number) => void,
+  onDiagnosticLog?: (log: AgentPromptFailureLog) => void,
 ): Promise<string> {
   return runAgentPrompt({
     subsystem: "stale-grooming",
@@ -29,6 +33,7 @@ export function runStaleBeatGroomingPrompt(
     agent,
     ...(repoPath ? { repoPath } : {}),
     ...(onProgress ? { onProgress } : {}),
+    ...(onDiagnosticLog ? { onDiagnosticLog } : {}),
   });
 }
 
