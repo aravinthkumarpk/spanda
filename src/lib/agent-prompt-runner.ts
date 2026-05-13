@@ -17,6 +17,29 @@ export interface AgentPromptRunnerOptions {
   onProgress?: (timestamp: number) => void;
 }
 
+export interface AgentPromptFailureLog {
+  command: string;
+  cwd: string;
+  elapsedMs: number;
+  stdoutBytes: number;
+  stderrBytes: number;
+  firstOutputAfterMs: number | null;
+  stdout: string;
+  stderr: string;
+  assistantText: string;
+  resultText: string;
+}
+
+export class AgentPromptError extends Error {
+  readonly log: AgentPromptFailureLog;
+
+  constructor(message: string, log: AgentPromptFailureLog) {
+    super(message);
+    this.name = "AgentPromptError";
+    this.log = log;
+  }
+}
+
 interface PromptState {
   rawStdout: string;
   stderrText: string;
@@ -30,6 +53,8 @@ interface SpawnContext {
   spawnedAt: number;
   firstByteAt: { value: number | null };
   pid: number | string;
+  commandLabel: string;
+  cwd: string;
   subsystem: string;
   subsystemLabel: string;
   onProgress?: (timestamp: number) => void;
@@ -59,10 +84,38 @@ function appendAssistantText(
   return current ? `${current}\n${text}` : text;
 }
 
+function trimLogText(text: string): string {
+  const max = 24_000;
+  if (text.length <= max) return text;
+  return text.slice(text.length - max);
+}
+
+function buildFailureLog(ctx: SpawnContext): AgentPromptFailureLog {
+  const elapsedMs = Date.now() - ctx.spawnedAt;
+  return {
+    command: ctx.commandLabel,
+    cwd: ctx.cwd,
+    elapsedMs,
+    stdoutBytes: ctx.state.rawStdout.length,
+    stderrBytes: ctx.state.stderrText.length,
+    firstOutputAfterMs: ctx.firstByteAt.value === null
+      ? null
+      : ctx.firstByteAt.value - ctx.spawnedAt,
+    stdout: trimLogText(ctx.state.rawStdout),
+    stderr: trimLogText(ctx.state.stderrText),
+    assistantText: trimLogText(ctx.state.assistantText),
+    resultText: trimLogText(ctx.state.resultText),
+  };
+}
+
+function rejectWithLog(ctx: SpawnContext, message: string): void {
+  ctx.safeReject(new AgentPromptError(message, buildFailureLog(ctx)));
+}
+
 function handleParsedEvent(
   obj: Record<string, unknown>,
   state: PromptState,
-  safeReject: (e: Error) => void,
+  rejectMessage: (message: string) => void,
 ): void {
   if (obj.type === "stream_event") {
     const event = toObject(obj.event);
@@ -96,14 +149,14 @@ function handleParsedEvent(
     return;
   }
   if (obj.type === "result") {
-    handleResultEvent(obj, state, safeReject);
+    handleResultEvent(obj, state, rejectMessage);
   }
 }
 
 function handleResultEvent(
   obj: Record<string, unknown>,
   state: PromptState,
-  safeReject: (e: Error) => void,
+  rejectMessage: (message: string) => void,
 ): void {
   if (obj.is_error === true) {
     const m =
@@ -112,20 +165,18 @@ function handleResultEvent(
         : typeof obj.error === "string"
           ? obj.error
           : "agent result error";
-    safeReject(new Error(m));
+    rejectMessage(m);
   } else if (typeof obj.result === "string") {
     state.resultText = obj.result;
   } else if (typeof obj.error === "string") {
-    safeReject(
-      new Error(`agent result error: ${obj.error}`),
-    );
+    rejectMessage(`agent result error: ${obj.error}`);
   }
 }
 
 function makeProcessLine(
   state: PromptState,
   normalizeEvent: (v: unknown) => unknown,
-  safeReject: (e: Error) => void,
+  rejectMessage: (message: string) => void,
 ): (line: string) => void {
   return (line: string) => {
     if (!line.trim()) return;
@@ -137,7 +188,7 @@ function makeProcessLine(
     }
     const obj = toObject(normalizeEvent(parsed));
     if (!obj || typeof obj.type !== "string") return;
-    handleParsedEvent(obj, state, safeReject);
+    handleParsedEvent(obj, state, rejectMessage);
   };
 }
 
@@ -163,7 +214,7 @@ function wireChildIo(
       `[${ctx.subsystem}][spawn] error `
         + `pid=${ctx.pid} msg=${e.message}`,
     );
-    ctx.safeReject(e);
+    rejectWithLog(ctx, e.message);
   });
   child.stdout?.on("data", (chunk: Buffer) => {
     noteFirstByte(ctx, "stdout");
@@ -202,7 +253,7 @@ function handleClose(
     const detail = ctx.state.stderrText.trim()
       || `${ctx.subsystemLabel} agent exited with `
         + `code ${code ?? "unknown"}`;
-    ctx.safeReject(new Error(detail));
+    rejectWithLog(ctx, detail);
     return;
   }
   ctx.safeResolve(
@@ -228,11 +279,10 @@ function startTimers(
         + "sending SIGKILL",
     );
     child.kill("SIGKILL");
-    ctx.safeReject(
-      new Error(
-        `${ctx.subsystemLabel} agent timed out after `
-          + `${timeoutMs / 1000}s`,
-      ),
+    rejectWithLog(
+      ctx,
+      `${ctx.subsystemLabel} agent timed out after `
+        + `${timeoutMs / 1000}s`,
     );
   }, timeoutMs);
   const noOutputTimer = setTimeout(() => {
@@ -282,6 +332,8 @@ function spawnAndWire(
 
   const ctx: SpawnContext = {
     state, spawnedAt, firstByteAt, pid,
+    commandLabel: [cmdBase, ...built.args].join(" "),
+    cwd,
     subsystem: opts.subsystem,
     subsystemLabel: opts.subsystemLabel,
     ...(opts.onProgress ? { onProgress: opts.onProgress } : {}),
@@ -302,7 +354,7 @@ function spawnAndWire(
     processLine: (l) => l,
   };
   ctx.processLine = makeProcessLine(
-    state, normalizeEvent, ctx.safeReject,
+    state, normalizeEvent, (message) => rejectWithLog(ctx, message),
   );
   const { timer, noOutputTimer } = startTimers(
     child, ctx, opts.timeoutMs, opts.noOutputWarnMs,

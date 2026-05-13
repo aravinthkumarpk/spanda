@@ -73,6 +73,19 @@ export interface StaleBeatGroomingResult {
   suggestedAcceptance?: string;
 }
 
+export interface StaleBeatGroomingFailureLog {
+  command: string;
+  cwd: string;
+  elapsedMs: number;
+  stdoutBytes: number;
+  stderrBytes: number;
+  firstOutputAfterMs: number | null;
+  stdout: string;
+  stderr: string;
+  assistantText: string;
+  resultText: string;
+}
+
 export interface StaleBeatGroomingReviewRecord {
   key: string;
   jobId: string;
@@ -84,6 +97,7 @@ export interface StaleBeatGroomingReviewRecord {
   startedAt?: number;
   completedAt?: number;
   error?: string;
+  failureLog?: StaleBeatGroomingFailureLog;
   result?: StaleBeatGroomingResult;
 }
 

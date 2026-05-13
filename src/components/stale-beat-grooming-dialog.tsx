@@ -5,9 +5,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import type {
-  ComponentProps,
-} from "react";
 import {
   usePathname,
   useRouter,
@@ -21,7 +18,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -52,13 +48,17 @@ import {
   StaleBeatDialogList,
 } from "@/components/stale-beat-grooming-dialog-list";
 import {
+  StaleBeatDialogTrigger,
+} from "@/components/stale-beat-grooming-dialog-trigger";
+import {
   StaleBeatGroomingDispatchHelper,
 } from "@/components/stale-beat-grooming-dispatch-helper";
 import {
-  cn,
-} from "@/lib/utils";
+  StaleBeatGroomingFailureLogSheet,
+} from "@/components/stale-beat-grooming-failure-log-sheet";
 import type {
   StaleBeatGroomingAgentOption,
+  StaleBeatGroomingFailureLog,
   StaleBeatGroomingReviewRecord,
   StaleBeatSummary,
 } from "@/lib/stale-beat-grooming-types";
@@ -90,31 +90,15 @@ export function StaleBeatGroomingDialog({
     () => new Set(),
   );
   const [agentId, setAgentId] = useState("");
+  const [failureLog, setFailureLog] = useState<{
+    review: StaleBeatGroomingReviewRecord;
+    log: StaleBeatGroomingFailureLog;
+  } | null>(null);
 
   useDefaultSelection(staleBeats, setSelectedKeys);
 
-  const optionsQuery = useQuery({
-    queryKey: ["stale-beat-grooming", "options"],
-    queryFn: fetchStaleBeatGroomingOptions,
-    enabled: open,
-  });
-  const reviewsQuery = useQuery({
-    queryKey: REVIEW_QUERY_KEY,
-    queryFn: fetchStaleBeatGroomingReviews,
-    enabled: staleBeats.length > 0,
-    refetchInterval: 4000,
-  });
-  const reviewsByKey = useMemo(
-    () => reviewMap(reviewsQuery.data?.data ?? []),
-    [reviewsQuery.data],
-  );
-  const queuedCount = staleBeats.filter((summary) =>
-    isQueuedReview(reviewsByKey.get(summary.key))
-  ).length;
-
-  const options = optionsQuery.data?.data;
-  const agents = options?.agents ?? [];
-  useDefaultAgent(agents, options?.defaultAgentId, setAgentId);
+  const { agents, defaultError, queuedCount, reviewsByKey } =
+    useStaleGroomingQueries(open, staleBeats, setAgentId);
 
   const mutation = useGroomingMutation();
   const selectedCount = selectedKeys.size;
@@ -155,7 +139,7 @@ export function StaleBeatGroomingDialog({
         agentId={agentId}
         selectedKeys={selectedKeys}
         selectedCount={selectedCount}
-        defaultError={options?.defaultError}
+        defaultError={defaultError}
         pending={mutation.isPending}
         canReview={canReview}
         reviewsByKey={reviewsByKey}
@@ -167,46 +151,21 @@ export function StaleBeatGroomingDialog({
         onReview={handleReview}
         onOpenDispatchSettings={handleOpenDispatchSettings}
         onToggle={(key) => toggleSelected(key, setSelectedKeys)}
+        onOpenLog={setFailureLog}
         onOpenBeat={(beat) => {
           setOpen(false);
           onOpenBeat(beat);
         }}
       />
+      <StaleBeatGroomingFailureLogSheet
+        open={Boolean(failureLog)}
+        review={failureLog?.review ?? null}
+        log={failureLog?.log ?? null}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) setFailureLog(null);
+        }}
+      />
     </Dialog>
-  );
-}
-
-type StaleBeatDialogTriggerProps = ComponentProps<typeof Button> & {
-  staleCount: number;
-  queuedCount: number;
-};
-
-function StaleBeatDialogTrigger({
-  staleCount,
-  queuedCount,
-  className,
-  ...props
-}: StaleBeatDialogTriggerProps) {
-  return (
-    <Button
-      {...props}
-      type="button"
-      size="sm"
-      variant={staleCount > 0 ? "secondary" : "outline"}
-      className={cn("h-8 gap-1.5", className)}
-      data-testid="stale-beats-dialog-trigger"
-    >
-      <Sparkles className="size-3.5" />
-      <span>Stale Beats</span>
-      <Badge variant="outline" className="h-4 rounded-sm text-[10px]">
-        {staleCount}
-      </Badge>
-      {queuedCount > 0 && (
-        <Badge className="h-4 rounded-sm text-[10px]">
-          Queued {queuedCount}
-        </Badge>
-      )}
-    </Button>
   );
 }
 
@@ -228,6 +187,7 @@ function StaleBeatGroomingDialogContent({
   onReview,
   onOpenDispatchSettings,
   onToggle,
+  onOpenLog,
   onOpenBeat,
 }: {
   staleBeats: StaleBeatSummary[];
@@ -247,6 +207,10 @@ function StaleBeatGroomingDialogContent({
   onReview: () => void;
   onOpenDispatchSettings: () => void;
   onToggle: (key: string) => void;
+  onOpenLog: (input: {
+    review: StaleBeatGroomingReviewRecord;
+    log: StaleBeatGroomingFailureLog;
+  }) => void;
   onOpenBeat: (beat: Beat) => void;
 }) {
   return (
@@ -283,6 +247,7 @@ function StaleBeatGroomingDialogContent({
         reviewsByKey={reviewsByKey}
         isAllRepositories={isAllRepositories}
         onToggle={onToggle}
+        onOpenLog={onOpenLog}
         onOpenBeat={onOpenBeat}
       />
     </DialogContent>
@@ -393,6 +358,40 @@ function useDefaultSelection(
       return oldestKeySet(staleBeats);
     });
   }, [staleBeats, setSelectedKeys]);
+}
+
+function useStaleGroomingQueries(
+  open: boolean,
+  staleBeats: StaleBeatSummary[],
+  setAgentId: (fn: (current: string) => string) => void,
+) {
+  const optionsQuery = useQuery({
+    queryKey: ["stale-beat-grooming", "options"],
+    queryFn: fetchStaleBeatGroomingOptions,
+    enabled: open,
+  });
+  const reviewsQuery = useQuery({
+    queryKey: REVIEW_QUERY_KEY,
+    queryFn: fetchStaleBeatGroomingReviews,
+    enabled: staleBeats.length > 0,
+    refetchInterval: 4000,
+  });
+  const reviewsByKey = useMemo(
+    () => reviewMap(reviewsQuery.data?.data ?? []),
+    [reviewsQuery.data],
+  );
+  const queuedCount = staleBeats.filter((summary) =>
+    isQueuedReview(reviewsByKey.get(summary.key))
+  ).length;
+  const options = optionsQuery.data?.data;
+  const agents = options?.agents ?? [];
+  useDefaultAgent(agents, options?.defaultAgentId, setAgentId);
+  return {
+    agents,
+    defaultError: options?.defaultError,
+    queuedCount,
+    reviewsByKey,
+  };
 }
 
 function useDefaultAgent(

@@ -11,8 +11,8 @@ import type {
 
 const STALE_GROOMING_JSON_TAG = "stale_beat_grooming_json";
 
-export const STALE_GROOMING_PROMPT_TIMEOUT_MS = 600_000;
-const STALE_GROOMING_NO_OUTPUT_WARN_MS = 120_000;
+export const STALE_GROOMING_PROMPT_TIMEOUT_MS = 240_000;
+const STALE_GROOMING_NO_OUTPUT_WARN_MS = 60_000;
 
 export function runStaleBeatGroomingPrompt(
   prompt: string,

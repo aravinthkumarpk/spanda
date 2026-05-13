@@ -1,4 +1,5 @@
 import { getBackend } from "@/lib/backend-instance";
+import { AgentPromptError } from "@/lib/agent-prompt-runner";
 import { staleBeatAgeDays } from "@/lib/stale-beat-grooming";
 import {
   resolveStaleBeatGroomingAgent,
@@ -70,7 +71,11 @@ export async function processStaleBeatGroomingJob(
     const message = error instanceof Error
       ? error.message
       : String(error);
-    recordStaleBeatGroomingFailed(target, message);
+    recordStaleBeatGroomingFailed(
+      target,
+      message,
+      error instanceof AgentPromptError ? error.log : undefined,
+    );
     return { ok: false, error: message };
   }
 }

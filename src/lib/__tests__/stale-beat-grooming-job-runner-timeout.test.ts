@@ -109,17 +109,23 @@ describe("processStaleBeatGroomingJob: timeout", () => {
       expect(child.kill).toHaveBeenCalledWith("SIGKILL");
       expect(outcome.ok).toBe(false);
       expect(outcome.error).toMatch(
-        /stale grooming agent timed out after 600s/,
+        /stale grooming agent timed out after 240s/,
       );
       expect(outcome.error).not.toMatch(/scope refinement/i);
 
       expect(mockRecordFailed).toHaveBeenCalledTimes(1);
-      const [, recordedError] =
+      const [, recordedError, failureLog] =
         mockRecordFailed.mock.calls[0] ?? [];
       expect(recordedError).toMatch(
-        /stale grooming agent timed out after 600s/,
+        /stale grooming agent timed out after 240s/,
       );
       expect(recordedError).not.toMatch(/scope refinement/i);
+      expect(failureLog).toMatchObject({
+        command: expect.stringContaining("claude"),
+        stdoutBytes: 0,
+        stderrBytes: 0,
+        firstOutputAfterMs: null,
+      });
       expect(mockRecordCompleted).not.toHaveBeenCalled();
     },
   );

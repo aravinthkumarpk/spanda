@@ -4,6 +4,7 @@ import {
 import type {
   StaleBeatGroomingResult,
   StaleBeatGroomingReviewRecord,
+  StaleBeatGroomingFailureLog,
   StaleBeatReviewTarget,
 } from "@/lib/stale-beat-grooming-types";
 
@@ -75,11 +76,13 @@ export function recordStaleBeatGroomingCompleted(
 export function recordStaleBeatGroomingFailed(
   target: StaleBeatReviewTarget,
   error: string,
+  failureLog?: StaleBeatGroomingFailureLog,
 ): void {
   updateReview(target, {
     status: "failed",
     completedAt: Date.now(),
     error,
+    ...(failureLog ? { failureLog } : {}),
   });
 }
 
