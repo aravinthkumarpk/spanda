@@ -191,16 +191,17 @@ function BeatStateColumnHeader({
 }) {
   return (
     <div className={
-      "flex min-h-7 items-center justify-between gap-1.5"
+      "flex min-h-7 flex-wrap items-start justify-between gap-1.5"
       + " border-b border-border/70 bg-muted/35 px-2 py-1"
     }>
-      <div className="flex min-h-4 min-w-0 flex-1 items-center">
+      <div className="flex min-w-0 flex-1 basis-14 items-start">
         <BeatStateBadge
           state={group.state}
           label={overviewStateLabel(group.state)}
           className={
-            "h-auto max-w-full justify-start whitespace-normal"
-            + " rounded-sm px-1 py-px text-[8px] leading-3"
+            "h-auto max-w-full min-w-0 shrink justify-start"
+            + " overflow-visible whitespace-normal break-words rounded-sm"
+            + " px-1 py-px text-left text-[8px] leading-3"
           }
         />
       </div>
@@ -223,7 +224,7 @@ function BeatStateColumnCount({
   onHideEmptyColumn: (state: string) => void;
 }) {
   return (
-    <div className="flex shrink-0 items-center gap-1">
+    <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
       {showHideControl && (
         <button
           type="button"
