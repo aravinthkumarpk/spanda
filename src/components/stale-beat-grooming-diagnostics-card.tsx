@@ -203,7 +203,8 @@ function DiagnosticField({
 
 function formatAgentLabel(job: StaleBeatGroomingActiveJob): string {
   const name = job.agentName ?? job.agentId;
-  if (job.agentVersion) return `${name} ${job.agentVersion}`;
+  const details = [job.agentModel, job.agentVersion].filter(Boolean);
+  if (details.length > 0) return `${name} ${details.join(" ")}`;
   return `${name} (version unknown)`;
 }
 
@@ -233,13 +234,14 @@ function FailuresTable({
   return (
     <DiagnosticsTable
       title="Recent Failures"
-      headers={["Beat", "Reason", "When"]}
+      headers={["Beat", "Agent", "Model", "Version", "Reason", "When"]}
     >
       {failures.slice(0, 5).map((failure) => (
         <TableRow key={`${failure.jobId}-${failure.timestamp}`}>
           <TableCell className="font-mono text-xs">
             {failure.beatId}
           </TableCell>
+          <AgentTableCells record={failure} />
           <TableCell className="max-w-[300px] truncate text-xs">
             {failure.reason}
           </TableCell>
@@ -261,13 +263,14 @@ function CompletionsTable({
   return (
     <DiagnosticsTable
       title="Recent Completions"
-      headers={["Beat", "Decision", "When"]}
+      headers={["Beat", "Agent", "Model", "Version", "Decision", "When"]}
     >
       {completions.slice(0, 5).map((completion) => (
         <TableRow key={`${completion.jobId}-${completion.timestamp}`}>
           <TableCell className="font-mono text-xs">
             {completion.beatId}
           </TableCell>
+          <AgentTableCells record={completion} />
           <TableCell className="text-xs">
             {completion.decision ?? "completed"}
           </TableCell>
@@ -278,6 +281,34 @@ function CompletionsTable({
       ))}
     </DiagnosticsTable>
   );
+}
+
+function AgentTableCells({
+  record,
+}: {
+  record: {
+    agentName?: string;
+    agentModel?: string;
+    agentVersion?: string;
+  };
+}) {
+  return (
+    <>
+      <TableCell className="font-mono text-xs">
+        {formatDiagnosticValue(record.agentName)}
+      </TableCell>
+      <TableCell className="font-mono text-xs">
+        {formatDiagnosticValue(record.agentModel)}
+      </TableCell>
+      <TableCell className="font-mono text-xs">
+        {formatDiagnosticValue(record.agentVersion)}
+      </TableCell>
+    </>
+  );
+}
+
+function formatDiagnosticValue(value: string | undefined): string {
+  return value?.trim() || "unknown";
 }
 
 function DiagnosticsTable({
