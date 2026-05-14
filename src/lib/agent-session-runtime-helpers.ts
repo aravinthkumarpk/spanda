@@ -333,7 +333,14 @@ export function doResetWatchdog(
     clearTimeout(state.watchdogTimer);
   }
   state.watchdogArmedAt = Date.now();
+  state.watchdogPid = child.pid ?? null;
+  state.watchdogTimeoutMs = ms;
   state.watchdogTimer = setTimeout(() => {
     fireWatchdogTimeout(child, state, config, ms);
   }, ms);
+  console.log(
+    `[terminal-manager] [watchdog] armed ` +
+    `pid=${child.pid ?? "unknown"} ` +
+    `timeoutMs=${ms}`,
+  );
 }

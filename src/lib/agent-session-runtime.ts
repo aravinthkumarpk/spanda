@@ -212,6 +212,8 @@ function initState(
     closeInputTimer: null,
     watchdogTimer: null,
     watchdogArmedAt: null,
+    watchdogPid: null,
+    watchdogTimeoutMs: null,
     autoAnsweredToolUseIds: new Set(),
     resultObserved: false,
     exitReason: null,
@@ -284,6 +286,11 @@ export function createSessionRuntime(
       doCancelInputClose(state);
       if (state.watchdogTimer) {
         clearTimeout(state.watchdogTimer);
+        console.log(
+          `[terminal-manager] [watchdog] cancelled ` +
+          `pid=${state.watchdogPid ?? "unknown"} ` +
+          `timeoutMs=${state.watchdogTimeoutMs ?? "unknown"}`,
+        );
         state.watchdogTimer = null;
       }
       state.stdinClosed = true;
