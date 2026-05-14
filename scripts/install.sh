@@ -145,6 +145,34 @@ has_supported_runtime_cli() {
     command -v knots >/dev/null 2>&1
 }
 
+is_debian_linux() {
+  [[ "$(uname -s)" == "Linux" ]] || return 1
+
+  local os_release="${FOOLERY_OS_RELEASE_PATH:-/etc/os-release}"
+  [[ -f "$os_release" ]] || return 1
+
+  (
+    . "$os_release"
+    [[ "${ID:-}" == "debian" ]]
+  )
+}
+
+foolery_systemd_service_registered() {
+  command -v systemctl >/dev/null 2>&1 || return 1
+
+  systemctl cat foolery.service >/dev/null 2>&1 && return 0
+  systemctl --user cat foolery.service >/dev/null 2>&1 && return 0
+  return 1
+}
+
+should_recommend_manual_restart() {
+  if is_debian_linux && foolery_systemd_service_registered; then
+    return 1
+  fi
+
+  return 0
+}
+
 normalize_os() {
   case "$1" in
     Darwin) printf 'darwin\n' ;;
@@ -1630,7 +1658,9 @@ main() {
     existing_pid="$(tr -d '[:space:]' <"$STATE_DIR/run.pid" || true)"
   fi
   if [[ "$existing_pid" =~ ^[0-9]+$ ]] && kill -0 "$existing_pid" >/dev/null 2>&1; then
-    warn "Foolery is already running (pid $existing_pid). Run 'foolery restart' to pick up the new runtime."
+    if should_recommend_manual_restart; then
+      warn "Foolery is already running (pid $existing_pid). Run 'foolery restart' to pick up the new runtime."
+    fi
   else
     local existing_port_pid=""
     if command -v lsof >/dev/null 2>&1; then
