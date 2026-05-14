@@ -136,6 +136,8 @@ export interface SessionRuntimeState {
   closeInputTimer: NodeJS.Timeout | null;
   watchdogTimer: NodeJS.Timeout | null;
   watchdogArmedAt: number | null;
+  watchdogPid: number | null;
+  watchdogTimeoutMs: number | null;
   autoAnsweredToolUseIds: Set<string>;
   resultObserved: boolean;
   exitReason: SessionExitReason | null;

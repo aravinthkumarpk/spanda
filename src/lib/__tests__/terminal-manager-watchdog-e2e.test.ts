@@ -286,6 +286,53 @@ function installTestLifecycle(): void {
   });
 }
 
+// ── Tests (watchdog arm/cancel logs) ──────────────────
+
+describe("e2e: watchdog arm/cancel logs", () => {
+  installTestLifecycle();
+
+  it("logs watchdog arm with pid and timeout", () => {
+    const h = armHarness(50);
+    const line = findLogLine(
+      h.logSpy,
+      (l) =>
+        l.includes("[terminal-manager] [watchdog]") &&
+        l.includes("armed"),
+    );
+    expect(line).toBeDefined();
+    expect(line).toContain("pid=77777");
+    expect(line).toContain("timeoutMs=50");
+  });
+
+  it("logs watchdog cancel from dispose", () => {
+    const h = armHarness(50);
+    h.runtime.dispose();
+    const line = findLogLine(
+      h.logSpy,
+      (l) =>
+        l.includes("[terminal-manager] [watchdog]") &&
+        l.includes("cancelled"),
+    );
+    expect(line).toBeDefined();
+    expect(line).toContain("pid=77777");
+    expect(line).toContain("timeoutMs=50");
+  });
+
+  it("does not log watchdog cancel after timeout fired", () => {
+    const h = armHarness(50);
+    h.logSpy.mockClear();
+    vi.advanceTimersByTime(60);
+    h.runtime.dispose();
+    const line = findLogLine(
+      h.logSpy,
+      (l) =>
+        l.includes("[terminal-manager] [watchdog]") &&
+        l.includes("cancelled"),
+    );
+    expect(line).toBeUndefined();
+  });
+});
+
 // ── Tests (watchdog firing side of the chain) ─────────
 
 describe("e2e: watchdog fires -> SIGTERM", () => {
