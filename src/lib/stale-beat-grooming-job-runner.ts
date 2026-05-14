@@ -44,14 +44,19 @@ export async function processStaleBeatGroomingJob(
     beatId: job.beatId,
     ...(job.repoPath ? { repoPath: job.repoPath } : {}),
   };
-  recordStaleBeatGroomingRunning(target);
   let failureRecorded = false;
+  let details:
+    | { agentName?: string; agentModel?: string; agentVersion?: string }
+    | undefined;
+  recordStaleBeatGroomingRunning(target);
   try {
     const beat = await loadBeat(job);
     const agent = await resolveStaleBeatGroomingAgent({
       agentId: job.agentId,
     });
-    recordStaleBeatGroomingAgentDetails(job.id, agentDetails(agent));
+    details = agentDetails(agent);
+    recordStaleBeatGroomingRunning(target, details);
+    recordStaleBeatGroomingAgentDetails(job.id, details);
     const prompt = buildStaleBeatGroomingPrompt({
       beat,
       ageDays: staleBeatAgeDays(beat, Date.now()) ?? 0,
@@ -72,12 +77,13 @@ export async function processStaleBeatGroomingJob(
         target,
         "agent returned unparseable grooming output",
         promptLog,
+        details,
       );
       failureRecorded = true;
       throw new Error("agent returned unparseable grooming output");
     }
     await applyStaleBeatGroomingOutcome({ job, result });
-    recordStaleBeatGroomingCompleted(target, result);
+    recordStaleBeatGroomingCompleted(target, result, details);
     return { ok: true, result };
   } catch (error) {
     const message = error instanceof Error
@@ -88,6 +94,7 @@ export async function processStaleBeatGroomingJob(
         target,
         message,
         error instanceof AgentPromptError ? error.log : undefined,
+        details,
       );
     }
     return { ok: false, error: message };
@@ -96,12 +103,12 @@ export async function processStaleBeatGroomingJob(
 
 function agentDetails(
   agent: AgentTarget,
-): { agentName?: string; agentVersion?: string } {
+): { agentName?: string; agentModel?: string; agentVersion?: string } {
   const name = agent.label ?? agent.agent_name ?? agent.agentId;
-  const version = agent.model ?? agent.version;
   return {
     ...(name ? { agentName: name } : {}),
-    ...(version ? { agentVersion: version } : {}),
+    ...(agent.model ? { agentModel: agent.model } : {}),
+    ...(agent.version ? { agentVersion: agent.version } : {}),
   };
 }
 

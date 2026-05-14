@@ -21,6 +21,9 @@ export interface AgentPromptRunnerOptions {
 export interface AgentPromptFailureLog {
   command: string;
   cwd: string;
+  agentName?: string;
+  agentModel?: string;
+  agentVersion?: string;
   elapsedMs: number;
   stdoutBytes: number;
   stderrBytes: number;
@@ -59,6 +62,7 @@ interface SpawnContext {
   pid: number | string;
   commandLabel: string;
   cwd: string;
+  agent: AgentTarget;
   subsystem: string;
   subsystemLabel: string;
   onProgress?: (timestamp: number) => void;
@@ -100,6 +104,15 @@ function buildFailureLog(ctx: SpawnContext): AgentPromptFailureLog {
   return {
     command: ctx.commandLabel,
     cwd: ctx.cwd,
+    ...(ctx.agent.label || ctx.agent.agent_name || ctx.agent.agentId
+      ? {
+          agentName: ctx.agent.label
+            ?? ctx.agent.agent_name
+            ?? ctx.agent.agentId,
+        }
+      : {}),
+    ...(ctx.agent.model ? { agentModel: ctx.agent.model } : {}),
+    ...(ctx.agent.version ? { agentVersion: ctx.agent.version } : {}),
     elapsedMs,
     stdoutBytes: ctx.state.rawStdout.length,
     stderrBytes: ctx.state.stderrText.length,
@@ -366,6 +379,7 @@ function spawnAndWire(
     pid,
     commandLabel: commandLabel(built, opts.prompt),
     cwd,
+    agent: opts.agent,
     subsystem: opts.subsystem,
     subsystemLabel: opts.subsystemLabel,
     ...(opts.onProgress ? { onProgress: opts.onProgress } : {}),

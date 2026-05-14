@@ -1,6 +1,7 @@
 import type {
   StaleBeatGroomingCompletion,
   StaleBeatGroomingFailure,
+  StaleBeatGroomingReviewRecord,
   StaleBeatGroomingWorkerHealth,
 } from "@/lib/stale-beat-grooming-types";
 import type {
@@ -15,9 +16,15 @@ const MAX_RECENT_EVENTS = 20;
 interface ActiveJobEntry extends StaleBeatGroomingJob {
   startedAt: number;
   agentName?: string;
+  agentModel?: string;
   agentVersion?: string;
   lastOutputAt?: number;
 }
+
+type AgentDetails = Pick<
+  StaleBeatGroomingReviewRecord,
+  "agentName" | "agentModel" | "agentVersion"
+>;
 
 interface StaleBeatGroomingWorkerState {
   running: boolean;
@@ -76,11 +83,12 @@ export function recordStaleBeatGroomingRelease(
 
 export function recordStaleBeatGroomingAgentDetails(
   jobId: string,
-  details: { agentName?: string; agentVersion?: string },
+  details: AgentDetails,
 ): void {
   const entry = findActiveJobEntry(jobId);
   if (!entry) return;
   if (details.agentName) entry.agentName = details.agentName;
+  if (details.agentModel) entry.agentModel = details.agentModel;
   if (details.agentVersion) entry.agentVersion = details.agentVersion;
 }
 
@@ -111,6 +119,7 @@ export function recordStaleBeatGroomingWorkerCompleted(input: {
     beatId: input.job.beatId,
     timestamp: Date.now(),
     ...(input.job.repoPath ? { repoPath: input.job.repoPath } : {}),
+    ...agentDetailsForJob(input.job.id),
     ...(input.result?.decision
       ? { decision: input.result.decision }
       : {}),
@@ -133,6 +142,7 @@ export function recordStaleBeatGroomingWorkerFailed(input: {
     reason: input.reason,
     timestamp: Date.now(),
     ...(input.job.repoPath ? { repoPath: input.job.repoPath } : {}),
+    ...agentDetailsForJob(input.job.id),
   });
   state.recentFailures = state.recentFailures.slice(
     0,
@@ -152,6 +162,7 @@ export function getStaleBeatGroomingWorkerHealth():
       startedAt: job.startedAt,
       ...(job.repoPath ? { repoPath: job.repoPath } : {}),
       ...(job.agentName ? { agentName: job.agentName } : {}),
+      ...(job.agentModel ? { agentModel: job.agentModel } : {}),
       ...(job.agentVersion ? { agentVersion: job.agentVersion } : {}),
       ...(job.lastOutputAt ? { lastOutputAt: job.lastOutputAt } : {}),
     })),
@@ -162,6 +173,16 @@ export function getStaleBeatGroomingWorkerHealth():
     uptimeMs: state.workerStartedAt
       ? Date.now() - state.workerStartedAt
       : null,
+  };
+}
+
+function agentDetailsForJob(jobId: string): AgentDetails {
+  const job = findActiveJobEntry(jobId);
+  if (!job) return {};
+  return {
+    ...(job.agentName ? { agentName: job.agentName } : {}),
+    ...(job.agentModel ? { agentModel: job.agentModel } : {}),
+    ...(job.agentVersion ? { agentVersion: job.agentVersion } : {}),
   };
 }
 

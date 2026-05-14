@@ -5,6 +5,8 @@ import {
   recordStaleBeatGroomingPickup,
   recordStaleBeatGroomingProgress,
   recordStaleBeatGroomingRelease,
+  recordStaleBeatGroomingWorkerCompleted,
+  recordStaleBeatGroomingWorkerFailed,
   recordStaleBeatGroomingWorkerStarted,
   resetStaleBeatGroomingWorkerState,
 } from "@/lib/stale-beat-grooming-worker-state";
@@ -39,6 +41,7 @@ describe("stale-beat-grooming worker state diagnostics", () => {
       agentId: "codex",
     });
     expect(activeJob?.agentName).toBeUndefined();
+    expect(activeJob?.agentModel).toBeUndefined();
     expect(activeJob?.agentVersion).toBeUndefined();
     expect(activeJob?.lastOutputAt).toBeUndefined();
   });
@@ -48,26 +51,57 @@ describe("stale-beat-grooming worker state diagnostics", () => {
 
     recordStaleBeatGroomingAgentDetails("job-1", {
       agentName: "Codex",
-      agentVersion: "gpt-5.4",
+      agentModel: "gpt-5.4",
+      agentVersion: "2026.05",
     });
 
     const [activeJob] = getStaleBeatGroomingWorkerHealth().activeJobs;
     expect(activeJob?.agentName).toBe("Codex");
-    expect(activeJob?.agentVersion).toBe("gpt-5.4");
+    expect(activeJob?.agentModel).toBe("gpt-5.4");
+    expect(activeJob?.agentVersion).toBe("2026.05");
   });
 
   it("preserves prior agent details when the next update omits a field", () => {
     recordStaleBeatGroomingPickup(0, baseJob);
     recordStaleBeatGroomingAgentDetails("job-1", {
       agentName: "Codex",
-      agentVersion: "gpt-5.4",
+      agentModel: "gpt-5.4",
+      agentVersion: "2026.05",
     });
 
     recordStaleBeatGroomingAgentDetails("job-1", { agentName: "Codex 2" });
 
     const [activeJob] = getStaleBeatGroomingWorkerHealth().activeJobs;
     expect(activeJob?.agentName).toBe("Codex 2");
-    expect(activeJob?.agentVersion).toBe("gpt-5.4");
+    expect(activeJob?.agentModel).toBe("gpt-5.4");
+    expect(activeJob?.agentVersion).toBe("2026.05");
+  });
+
+  it("copies agent details into recent completion and failure rows", () => {
+    recordStaleBeatGroomingPickup(0, baseJob);
+    recordStaleBeatGroomingAgentDetails("job-1", {
+      agentName: "Codex",
+      agentModel: "gpt-5.4",
+      agentVersion: "2026.05",
+    });
+
+    recordStaleBeatGroomingWorkerCompleted({ job: baseJob });
+    recordStaleBeatGroomingWorkerFailed({
+      job: baseJob,
+      reason: "boom",
+    });
+
+    const health = getStaleBeatGroomingWorkerHealth();
+    expect(health.recentCompletions[0]).toMatchObject({
+      agentName: "Codex",
+      agentModel: "gpt-5.4",
+      agentVersion: "2026.05",
+    });
+    expect(health.recentFailures[0]).toMatchObject({
+      agentName: "Codex",
+      agentModel: "gpt-5.4",
+      agentVersion: "2026.05",
+    });
   });
 
   it("ignores progress and agent updates for unknown job ids", () => {

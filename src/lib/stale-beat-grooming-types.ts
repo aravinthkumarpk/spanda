@@ -76,6 +76,9 @@ export interface StaleBeatGroomingResult {
 export interface StaleBeatGroomingFailureLog {
   command: string;
   cwd: string;
+  agentName?: string;
+  agentModel?: string;
+  agentVersion?: string;
   elapsedMs: number;
   stdoutBytes: number;
   stderrBytes: number;
@@ -93,6 +96,9 @@ export interface StaleBeatGroomingReviewRecord {
   status: StaleBeatReviewStatus;
   queuedAt: number;
   agentId: string;
+  agentName?: string;
+  agentModel?: string;
+  agentVersion?: string;
   repoPath?: string;
   startedAt?: number;
   completedAt?: number;
@@ -117,6 +123,7 @@ export interface StaleBeatGroomingActiveJob {
   startedAt: number;
   repoPath?: string;
   agentName?: string;
+  agentModel?: string;
   agentVersion?: string;
   lastOutputAt?: number;
 }
@@ -127,6 +134,9 @@ export interface StaleBeatGroomingFailure {
   reason: string;
   timestamp: number;
   repoPath?: string;
+  agentName?: string;
+  agentModel?: string;
+  agentVersion?: string;
 }
 
 export interface StaleBeatGroomingCompletion {
@@ -135,6 +145,9 @@ export interface StaleBeatGroomingCompletion {
   timestamp: number;
   decision?: StaleGroomingDecision;
   repoPath?: string;
+  agentName?: string;
+  agentModel?: string;
+  agentVersion?: string;
 }
 
 export interface StaleBeatGroomingWorkerHealth {

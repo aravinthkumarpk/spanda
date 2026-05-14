@@ -13,6 +13,11 @@ type ReviewInput = StaleBeatReviewTarget & {
   agentId: string;
 };
 
+type AgentDetails = Pick<
+  StaleBeatGroomingReviewRecord,
+  "agentName" | "agentModel" | "agentVersion"
+>;
+
 const g = globalThis as typeof globalThis & {
   __staleBeatGroomingReviews?: Map<
     string,
@@ -53,23 +58,27 @@ export function recordStaleBeatGroomingQueued(
 
 export function recordStaleBeatGroomingRunning(
   target: StaleBeatReviewTarget,
+  agentDetails?: AgentDetails,
 ): void {
   updateReview(target, {
     status: "running",
     startedAt: Date.now(),
     error: undefined,
+    ...agentDetails,
   });
 }
 
 export function recordStaleBeatGroomingCompleted(
   target: StaleBeatReviewTarget,
   result: StaleBeatGroomingResult,
+  agentDetails?: AgentDetails,
 ): void {
   updateReview(target, {
     status: "completed",
     completedAt: Date.now(),
     result,
     error: undefined,
+    ...agentDetails,
   });
 }
 
@@ -77,12 +86,14 @@ export function recordStaleBeatGroomingFailed(
   target: StaleBeatReviewTarget,
   error: string,
   failureLog?: StaleBeatGroomingFailureLog,
+  agentDetails?: AgentDetails,
 ): void {
   updateReview(target, {
     status: "failed",
     completedAt: Date.now(),
     error,
     ...(failureLog ? { failureLog } : {}),
+    ...agentDetails,
   });
 }
 

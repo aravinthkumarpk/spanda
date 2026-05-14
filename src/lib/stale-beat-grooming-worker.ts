@@ -76,7 +76,6 @@ async function drainQueue(): Promise<void> {
     if (!job) continue;
     recordStaleBeatGroomingPickup(0, job);
     const outcome = await processStaleBeatGroomingJob(job);
-    recordStaleBeatGroomingRelease(0);
     if (outcome.ok) {
       recordStaleBeatGroomingWorkerCompleted({
         job,
@@ -88,6 +87,7 @@ async function drainQueue(): Promise<void> {
         reason: outcome.error ?? "unknown failure",
       });
     }
+    recordStaleBeatGroomingRelease(0);
   }
   g.__staleBeatGroomingWorkerRunning = false;
   recordStaleBeatGroomingWorkerStopped();

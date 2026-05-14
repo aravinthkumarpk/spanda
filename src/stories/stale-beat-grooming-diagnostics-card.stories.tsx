@@ -6,6 +6,8 @@ import {
 } from "@/components/stale-beat-grooming-diagnostics-card";
 import type {
   StaleBeatGroomingActiveJob,
+  StaleBeatGroomingCompletion,
+  StaleBeatGroomingFailure,
   StaleBeatGroomingStatus,
 } from "@/lib/stale-beat-grooming-types";
 import "@/app/globals.css";
@@ -17,6 +19,9 @@ interface Fixtures {
   staleJob: StaleBeatGroomingActiveJob;
   staleJobWithoutVersion: StaleBeatGroomingActiveJob;
   staleJobNoOutput: StaleBeatGroomingActiveJob;
+  failure: StaleBeatGroomingFailure;
+  completion: StaleBeatGroomingCompletion;
+  missingAgentCompletion: StaleBeatGroomingCompletion;
 }
 
 function buildFixtures(now: number): Fixtures {
@@ -27,7 +32,8 @@ function buildFixtures(now: number): Fixtures {
       agentId: "codex",
       startedAt: now - 30_000,
       agentName: "Codex",
-      agentVersion: "gpt-5.4",
+      agentModel: "gpt-5.4",
+      agentVersion: "2026.05",
       lastOutputAt: now - 5_000,
     },
     staleJob: {
@@ -36,7 +42,8 @@ function buildFixtures(now: number): Fixtures {
       agentId: "claude",
       startedAt: now - FIVE_MIN,
       agentName: "Claude",
-      agentVersion: "opus-4.7",
+      agentModel: "opus-4.7",
+      agentVersion: "2026.04",
       lastOutputAt: now - FIVE_MIN,
     },
     staleJobWithoutVersion: {
@@ -53,13 +60,42 @@ function buildFixtures(now: number): Fixtures {
       agentId: "opencode",
       startedAt: now - 6 * 60 * 1000,
       agentName: "OpenCode",
+      agentModel: "qwen3",
       agentVersion: "v0.3.1",
+    },
+    failure: {
+      jobId: "job-failure",
+      beatId: "foolery-eeee",
+      reason: "agent returned unparseable grooming output",
+      timestamp: now - 15_000,
+      agentName: "Codex",
+      agentModel: "gpt-5.4",
+      agentVersion: "2026.05",
+    },
+    completion: {
+      jobId: "job-completion",
+      beatId: "foolery-ffff",
+      timestamp: now - 5_000,
+      decision: "reshape",
+      agentName: "Claude",
+      agentModel: "opus-4.7",
+      agentVersion: "2026.04",
+    },
+    missingAgentCompletion: {
+      jobId: "job-missing-agent",
+      beatId: "foolery-gggg",
+      timestamp: now - 2_000,
+      decision: "still_do",
     },
   };
 }
 
 function statusFixture(
   jobs: StaleBeatGroomingActiveJob[],
+  events?: {
+    failures?: StaleBeatGroomingFailure[];
+    completions?: StaleBeatGroomingCompletion[];
+  },
 ): StaleBeatGroomingStatus {
   return {
     queueSize: 1,
@@ -69,8 +105,8 @@ function statusFixture(
       activeJobs: jobs,
       totalCompleted: 4,
       totalFailed: 1,
-      recentFailures: [],
-      recentCompletions: [],
+      recentFailures: events?.failures ?? [],
+      recentCompletions: events?.completions ?? [],
       uptimeMs: 30 * 60 * 1000,
     },
   };
@@ -78,6 +114,10 @@ function statusFixture(
 
 function storyQueryClient(
   jobs: StaleBeatGroomingActiveJob[],
+  events?: {
+    failures?: StaleBeatGroomingFailure[];
+    completions?: StaleBeatGroomingCompletion[];
+  },
 ): QueryClient {
   const client = new QueryClient({
     defaultOptions: {
@@ -86,7 +126,7 @@ function storyQueryClient(
   });
   client.setQueryData(["stale-beat-grooming-status"], {
     ok: true,
-    data: statusFixture(jobs),
+    data: statusFixture(jobs, events),
   });
   return client;
 }
@@ -138,6 +178,7 @@ export const StaleSessionDiagnostics: Story = {
     const agent = within(panel).getByTestId("stale-grooming-agent-job-stale");
     expect(agent.textContent ?? "").toContain("Claude");
     expect(agent.textContent ?? "").toContain("opus-4.7");
+    expect(agent.textContent ?? "").toContain("2026.04");
 
     const lastOutput = within(panel).getByTestId(
       "stale-grooming-last-output-job-stale",
@@ -149,6 +190,45 @@ export const StaleSessionDiagnostics: Story = {
       "stale-grooming-stale-for-job-stale",
     );
     expect((staleFor.textContent ?? "").trim().length).toBeGreaterThan(0);
+  },
+};
+
+export const RecentEvents: Story = {
+  render: () => {
+    const { failure, completion, missingAgentCompletion } = buildFixtures(
+      Date.now(),
+    );
+    return (
+      <QueryClientProvider
+        client={storyQueryClient([], {
+          failures: [failure],
+          completions: [completion, missingAgentCompletion],
+        })}
+      >
+        <StaleBeatGroomingDiagnosticsCard />
+      </QueryClientProvider>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const failureRow = await canvas.findByText("foolery-eeee");
+    const failureText =
+      failureRow.closest("tr")?.textContent ?? "";
+    expect(failureText).toContain("Codex");
+    expect(failureText).toContain("gpt-5.4");
+    expect(failureText).toContain("2026.05");
+
+    const completionRow = await canvas.findByText("foolery-ffff");
+    const completionText =
+      completionRow.closest("tr")?.textContent ?? "";
+    expect(completionText).toContain("Claude");
+    expect(completionText).toContain("opus-4.7");
+    expect(completionText).toContain("2026.04");
+
+    const missingRow = await canvas.findByText("foolery-gggg");
+    const missingText =
+      missingRow.closest("tr")?.textContent ?? "";
+    expect(missingText.match(/unknown/g)?.length).toBe(3);
   },
 };
 
