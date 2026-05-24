@@ -5,143 +5,216 @@
 @custom-variant dark (&:is(.dark *));
 
 /* =====================================================================
-   Earth-tone raw palette — exposed as Tailwind utilities.
-   Values copied verbatim from the design-system `colors_and_type.css`.
+   Spanda design tokens — re-pointed from the legacy earth-tone palette
+   (clay / paper / moss / ochre / rust / lake / walnut) to the
+   Wise-inspired Spanda palette (lime + sage + ink).
+
+   Color strategy: RESTRAINED. One saturated accent (spanda lime) carries
+   < 10% of any surface. The rest is sage canvas + warm-tinted ink.
+
+   Token NAMES are unchanged so every existing Tailwind utility
+   (bg-paper-100, text-ink-900, bg-clay-500, etc.) keeps working —
+   only the resolved VALUES shift to the new palette. This is the
+   minimum-diff path: no component touches required to flip the brand.
+
+   Spec source: src/design-system/colors_and_type.css + DESIGN.md.
    ===================================================================== */
+
 @theme {
-  /* Fonts — bound through to next/font CSS variables wired in layout.tsx. */
-  --font-sans: var(--font-manrope), "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-space-grotesk), "Space Grotesk", "Manrope", ui-sans-serif, sans-serif;
+  /* ----- FONTS ----- */
+  /* Display: Manrope 900 (substitute for proprietary Wise Sans).
+     Sub-display + body: Inter 400 / 600.
+     Mono: IBM Plex Mono.
+     Bound to next/font CSS variables wired in layout.tsx. */
+  --font-sans: var(--font-inter), "Inter", "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-manrope), "Manrope", "Wise Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-ibm-plex-mono), "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* Paper / stone — backgrounds & surfaces */
-  --color-paper-50: oklch(0.985 0.006 80);
-  --color-paper-100: oklch(0.968 0.010 78);
-  --color-paper-200: oklch(0.942 0.014 76);
-  --color-paper-300: oklch(0.895 0.018 74);
-  --color-paper-400: oklch(0.820 0.020 72);
-  --color-paper-500: oklch(0.705 0.018 70);
+  /* ----- PAPER (sage canvas family) -----
+     Re-points the existing "paper" utility scale to the spanda surface
+     palette. Old: warm-paper #f7f3ed. New: sage canvas #e8ebe6.
+     `paper-50` is the pure white card; `paper-100` is the page sage;
+     `paper-200` is the pressed sage / divider.
+     Values declared as oklch matching colors_and_type.css. */
+  --color-paper-50:  oklch(1 0 0);                /* #ffffff   card interior */
+  --color-paper-100: oklch(0.924 0.005 130);      /* #e8ebe6   sage canvas (page bg) */
+  --color-paper-200: oklch(0.870 0.006 130);      /* #d8dcd3   sage-deep (pressed / divider) */
+  --color-paper-300: oklch(0.820 0.008 130);      /*           one step deeper sage for sub-divider */
+  --color-paper-400: oklch(0.730 0.010 130);      /*           muted sage for placeholder strokes */
+  --color-paper-500: oklch(0.585 0.001 100);      /* #868685   spanda mute */
 
-  /* Ink — foregrounds. ink-900/ink-700 nudged darker than the
-     design-system spec (0.215/0.395 → 0.185/0.355) because warm paper
-     + warm ink reads washed out; the extra step crisps up table rows. */
-  --color-ink-500: oklch(0.615 0.014 68);
-  --color-ink-600: oklch(0.505 0.016 66);
-  --color-ink-700: oklch(0.355 0.014 64);
-  --color-ink-800: oklch(0.285 0.014 62);
-  --color-ink-900: oklch(0.185 0.012 60);
+  /* ----- INK (warm-tinted near-black) -----
+     Spanda ink tints toward olive warm (not pure #000). The 4-step walk
+     follows the canonical lightness staircase 0.143 → 0.366 → 0.585. */
+  --color-ink-500: oklch(0.585 0.001 100);        /* #868685   spanda mute (captions, placeholder) */
+  --color-ink-600: oklch(0.478 0.003 120);        /*           between mute and body */
+  --color-ink-700: oklch(0.366 0.004 150);        /* #454745   spanda body (secondary text) */
+  --color-ink-800: oklch(0.245 0.005 130);        /*           between body and ink */
+  --color-ink-900: oklch(0.143 0.006 120);        /* #0e0f0c   spanda ink (default text + headings) */
 
-  /* Clay — primary accent */
-  --color-clay-50: oklch(0.968 0.020 48);
-  --color-clay-100: oklch(0.928 0.042 46);
-  --color-clay-200: oklch(0.870 0.072 44);
-  --color-clay-300: oklch(0.790 0.105 42);
-  --color-clay-400: oklch(0.710 0.135 38);
-  --color-clay-500: oklch(0.635 0.148 36);
-  --color-clay-600: oklch(0.548 0.138 34);
-  --color-clay-700: oklch(0.452 0.115 32);
-  --color-clay-800: oklch(0.360 0.088 30);
+  /* ----- CLAY (brand accent slot — RE-POINTED TO SPANDA LIME) -----
+     This is the big swap: every `bg-clay-500` / `text-clay-500` /
+     `--primary: var(--color-clay-500)` now resolves to the Wise-inspired
+     spanda lime. Lime is the ONLY brand accent per DESIGN.md ("one
+     accent, always one accent"). The pale and pale-soft steps walk
+     down chroma as lightness climbs. */
+  --color-clay-50:  oklch(0.978 0.020 132);       /*           extra-pale lime tint */
+  --color-clay-100: oklch(0.948 0.068 132.0);     /* #e2f6d5   primary-pale, soft surface / badge bg */
+  --color-clay-200: oklch(0.920 0.090 132.2);     /*           between pale and neutral */
+  --color-clay-300: oklch(0.890 0.110 132.4);     /* #c5edab   primary-neutral, selected-row fill */
+  --color-clay-400: oklch(0.953 0.135 135.9);     /* #cdffad   primary-active, hover lift */
+  --color-clay-500: oklch(0.873 0.193 132.5);     /* #9fe870   SPANDA LIME, universal CTA */
+  --color-clay-600: oklch(0.760 0.175 134);       /*           pressed lime (rarely used) */
+  --color-clay-700: oklch(0.626 0.184 144);       /*           reused as semantic positive */
+  --color-clay-800: oklch(0.310 0.092 152);       /* #054d28   positive-deep (text on positive) */
 
-  /* Moss — success / supporting green */
-  --color-moss-100: oklch(0.938 0.028 128);
-  --color-moss-200: oklch(0.880 0.048 126);
-  --color-moss-400: oklch(0.680 0.080 130);
-  --color-moss-500: oklch(0.585 0.082 132);
-  --color-moss-600: oklch(0.488 0.075 134);
-  --color-moss-700: oklch(0.402 0.065 136);
+  /* ----- MOSS (semantic positive — distinct from brand lime per DESIGN.md) -----
+     Reserved for in-product status. NEVER repurpose the brand lime for
+     "success". Spanda positive #2ead4b is a deeper, less-saturated
+     green so it doesn't compete with the CTA color. */
+  --color-moss-100: oklch(0.948 0.068 132.0);     /* #e2f6d5   reused primary-pale (positive surface) */
+  --color-moss-200: oklch(0.890 0.110 132.4);     /*           soft positive */
+  --color-moss-400: oklch(0.740 0.150 138);       /*           between pale and main */
+  --color-moss-500: oklch(0.626 0.184 144);       /* #2ead4b   spanda positive */
+  --color-moss-600: oklch(0.508 0.150 148);       /*           pressed positive */
+  --color-moss-700: oklch(0.310 0.092 152);       /* #054d28   positive-deep (text on positive) */
 
-  /* Ochre — warnings / in-progress */
-  --color-ochre-100: oklch(0.945 0.038 88);
-  --color-ochre-400: oklch(0.762 0.115 82);
-  --color-ochre-500: oklch(0.678 0.128 78);
-  --color-ochre-700: oklch(0.458 0.105 72);
+  /* ----- OCHRE (semantic warning) ----- */
+  --color-ochre-100: oklch(0.972 0.082 92);       /* #fff4cc   warning-pale */
+  --color-ochre-400: oklch(0.875 0.171 92);       /*           between pale and main */
+  --color-ochre-500: oklch(0.875 0.171 92);       /* #ffd11a   spanda warning */
+  --color-ochre-700: oklch(0.330 0.045 75);       /* #4a3b1c   warning-content (text on warning) */
 
-  /* Rust — destructive / errors */
-  --color-rust-100: oklch(0.938 0.038 28);
-  --color-rust-400: oklch(0.668 0.168 28);
-  --color-rust-500: oklch(0.568 0.188 28);
-  --color-rust-700: oklch(0.402 0.135 28);
+  /* ----- RUST (semantic negative) ----- */
+  --color-rust-100: oklch(0.948 0.030 22);        /* #fce8e9   negative-pale */
+  --color-rust-400: oklch(0.575 0.198 22);        /*           between pale and main */
+  --color-rust-500: oklch(0.575 0.198 22);        /* #d03238   spanda negative */
+  --color-rust-700: oklch(0.470 0.180 22);        /* #a72027   negative-deep */
 
-  /* Lake — info (muted blue-teal) */
-  --color-lake-100: oklch(0.928 0.028 220);
-  --color-lake-400: oklch(0.665 0.075 218);
-  --color-lake-500: oklch(0.555 0.082 216);
-  --color-lake-700: oklch(0.398 0.062 214);
+  /* ----- LAKE (illustrative accent — NOT a brand accent) -----
+     Re-mapped to spanda's illustrative cyan. Used inside cards /
+     illustrations only, never as a primary surface or CTA. */
+  --color-lake-100: oklch(0.952 0.040 220);
+  --color-lake-400: oklch(0.838 0.080 220);
+  --color-lake-500: oklch(0.760 0.110 222);       /* #38c8ff   spanda accent-cyan */
+  --color-lake-700: oklch(0.520 0.090 222);
 
-  /* Walnut — dark-mode surface scale (derived from design-system `.dark` block) */
-  --color-walnut-100: oklch(0.275 0.014 62);
-  --color-walnut-200: oklch(0.225 0.012 62);
-  --color-walnut-300: oklch(0.185 0.010 60);
-  --color-walnut-400: oklch(0.155 0.008 58);
+  /* ----- WALNUT (dark-surface family) -----
+     Used by the dark-mode surfaces (terminal panel, polarity-flipped
+     dark cards). Re-mapped to the spanda ink family. */
+  --color-walnut-100: oklch(0.270 0.008 130);     /*           lifted ink (subdued dark surface) */
+  --color-walnut-200: oklch(0.210 0.008 130);     /*           default dark surface */
+  --color-walnut-300: oklch(0.165 0.006 120);     /*           deep dark surface */
+  --color-walnut-400: oklch(0.143 0.006 120);     /* #0e0f0c   spanda ink */
 
-  /* Bespoke type-badge tints — copied from preview/badges-type.html.
-     Expose as Tailwind colors so `bg-feature-100 text-feature-700` works. */
-  --color-feature-100: oklch(0.942 0.045 86);
-  --color-feature-400: oklch(0.840 0.055 86);
-  --color-feature-700: oklch(0.438 0.100 72);
+  /* ----- TYPE-BADGE TINTS (kept for badges.html consumers) -----
+     Bespoke per-type badge backgrounds; left close to the original hues
+     so existing badge components still read distinct.
+     Slightly desaturated to sit politely on sage. */
+  --color-feature-100: oklch(0.945 0.035 92);
+  --color-feature-400: oklch(0.835 0.045 92);
+  --color-feature-700: oklch(0.430 0.075 88);
 
-  --color-epic-100: oklch(0.935 0.030 300);
-  --color-epic-400: oklch(0.842 0.040 300);
-  --color-epic-700: oklch(0.418 0.080 298);
+  --color-epic-100: oklch(0.935 0.025 300);
+  --color-epic-400: oklch(0.835 0.035 300);
+  --color-epic-700: oklch(0.420 0.070 298);
 
-  --color-mr-100: oklch(0.930 0.035 180);
-  --color-mr-400: oklch(0.832 0.042 180);
-  --color-mr-700: oklch(0.408 0.072 184);
+  --color-mr-100: oklch(0.928 0.030 184);
+  --color-mr-400: oklch(0.830 0.038 184);
+  --color-mr-700: oklch(0.410 0.065 184);
 
-  --color-molecule-100: oklch(0.932 0.035 200);
-  --color-molecule-400: oklch(0.832 0.042 200);
-  --color-molecule-700: oklch(0.418 0.070 206);
+  --color-molecule-100: oklch(0.928 0.030 200);
+  --color-molecule-400: oklch(0.830 0.038 200);
+  --color-molecule-700: oklch(0.418 0.062 200);
 
-  --color-gate-100: oklch(0.932 0.028 260);
-  --color-gate-400: oklch(0.830 0.035 260);
-  --color-gate-700: oklch(0.408 0.070 260);
+  --color-gate-100: oklch(0.928 0.022 260);
+  --color-gate-400: oklch(0.830 0.030 260);
+  --color-gate-700: oklch(0.410 0.062 260);
 
-  /* Type scale — integer pixels only. Design-system spec has 12.5px for
-     text-sm; snapped to 13px because half-pixel sizes hint awkwardly on
-     Manrope. Each size is paired with a line-height so Tailwind's
-     `text-<size>` still resolves to a compound utility. */
-  --text-xs: 11px;
-  --text-xs--line-height: 1.4;
-  --text-sm: 13px;
-  --text-sm--line-height: 1.45;
-  --text-base: 14px;
-  --text-base--line-height: 1.55;
-  --text-md: 15px;
-  --text-md--line-height: 1.55;
-  --text-lg: 17px;
-  --text-lg--line-height: 1.45;
-  --text-xl: 20px;
-  --text-xl--line-height: 1.35;
-  --text-2xl: 24px;
-  --text-2xl--line-height: 1.3;
-  --text-3xl: 30px;
-  --text-3xl--line-height: 1.2;
-  --text-4xl: 38px;
-  --text-4xl--line-height: 1.15;
-  --text-5xl: 52px;
-  --text-5xl--line-height: 1.05;
+  /* ----- DIRECT SPANDA TOKENS -----
+     Direct hex aliases so new code can read the spanda palette without
+     going through the legacy utility names. These mirror
+     src/design-system/colors_and_type.css exactly. */
+  --color-primary:           #9fe870;
+  --color-primary-active:    #cdffad;
+  --color-primary-neutral:   #c5edab;
+  --color-primary-pale:      #e2f6d5;
+  --color-on-primary:        #0e0f0c;
 
-  /* Radii — tighter than default shadcn */
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
-  --radius-2xl: 18px;
-  --radius-3xl: 22px;
-  --radius-4xl: 28px;
+  --color-canvas:            #ffffff;
+  --color-canvas-soft:       #e8ebe6;
+  --color-canvas-sage-deep:  #d8dcd3;
+  --color-hover-sage:        #f5f7f3;
 
-  /* Warm-tinted shadows (not harsh black drop-shadows) */
-  --shadow-xs: 0 1px 0 0 oklch(0.3 0.02 60 / 0.05);
-  --shadow-sm: 0 1px 2px 0 oklch(0.3 0.02 60 / 0.06), 0 1px 1px 0 oklch(0.3 0.02 60 / 0.04);
-  --shadow-md: 0 2px 4px -1px oklch(0.3 0.02 60 / 0.08), 0 4px 8px -2px oklch(0.3 0.02 60 / 0.06);
-  --shadow-lg: 0 4px 10px -2px oklch(0.3 0.02 60 / 0.10), 0 8px 20px -4px oklch(0.3 0.02 60 / 0.08);
-  --shadow-xl: 0 12px 32px -8px oklch(0.3 0.02 60 / 0.14), 0 2px 8px -2px oklch(0.3 0.02 60 / 0.08);
+  --color-ink:               #0e0f0c;
+  --color-ink-deep:          #163300;
+  --color-body:              #454745;
+  --color-mute:              #868685;
+  --color-on-ink:            #e8ebe6;
 
-  /* Motion */
-  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
-  --ease-in: cubic-bezier(0.55, 0.06, 0.68, 0.19);
+  --color-positive:          #2ead4b;
+  --color-positive-deep:     #054d28;
+  --color-positive-pale:     #e2f6d5;
+
+  --color-warning:           #ffd11a;
+  --color-warning-deep:      #b86700;
+  --color-warning-content:   #4a3b1c;
+  --color-warning-pale:      #fff4cc;
+
+  --color-negative:          #d03238;
+  --color-negative-deep:     #a72027;
+  --color-negative-bg:       #320707;
+  --color-negative-pale:     #fce8e9;
+
+  /* ----- TYPE SCALE -----
+     Integer pixels. Spanda spec adds canonical display scales for
+     editorial moments alongside the Tailwind text-* utility names. */
+  --text-xs: 11px;        --text-xs--line-height: 1.4;
+  --text-sm: 13px;        --text-sm--line-height: 1.45;
+  --text-base: 14px;      --text-base--line-height: 1.55;
+  --text-md: 15px;        --text-md--line-height: 1.55;
+  --text-lg: 17px;        --text-lg--line-height: 1.45;
+  --text-xl: 20px;        --text-xl--line-height: 1.35;
+  --text-2xl: 24px;       --text-2xl--line-height: 1.3;
+  --text-3xl: 32px;       --text-3xl--line-height: 1.2;
+  --text-4xl: 40px;       --text-4xl--line-height: 1.15;
+  --text-5xl: 64px;       --text-5xl--line-height: 1.05;
+
+  /* Spanda display scale tokens (consumed by .spanda-display-* classes
+     and by new editorial layouts). */
+  --text-display-mega:  126px;   --lh-display-mega:  107.1px;
+  --text-display-xxl:   96px;    --lh-display-xxl:   81.6px;
+  --text-display-xl:    64px;    --lh-display-xl:    54.4px;
+  --text-display-md:    40px;    --lh-display-md:    34px;
+  --text-display-sm:    32px;    --lh-display-sm:    38.4px;
+  --text-display-xs:    24px;    --lh-display-xs:    31.2px;
+
+  /* ----- RADII -----
+     Bumped to the spanda canonical: 24px = friendliness cue, the
+     non-negotiable button + card radius. Existing utilities
+     (rounded-md / rounded-lg / rounded-xl) all shift. */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 24px;
+  --radius-3xl: 24px;
+  --radius-4xl: 9999px;
+
+  /* ----- SHADOWS -----
+     Warm-tinted, applied to ink (not pure black) so floated surfaces
+     don't read as cold. Aligned to spanda's two-stop convention. */
+  --shadow-xs: 0 1px 0 0 rgba(14, 15, 12, 0.04);
+  --shadow-sm: 0 1px 2px 0 rgba(14, 15, 12, 0.04), 0 1px 1px 0 rgba(14, 15, 12, 0.03);
+  --shadow-md: 0 4px 12px -2px rgba(14, 15, 12, 0.08), 0 2px 4px -1px rgba(14, 15, 12, 0.06);
+  --shadow-lg: 0 12px 32px -8px rgba(14, 15, 12, 0.14), 0 4px 12px -4px rgba(14, 15, 12, 0.08);
+  --shadow-xl: 0 18px 48px -12px rgba(14, 15, 12, 0.18), 0 6px 18px -4px rgba(14, 15, 12, 0.10);
+
+  /* ----- MOTION ----- */
+  --ease-out:    cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in:     cubic-bezier(0.55, 0.06, 0.68, 0.19);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --ease-soft: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-soft:   cubic-bezier(0.25, 0.1, 0.25, 1);
 
   --dur-instant: 80ms;
   --dur-fast: 140ms;
@@ -150,9 +223,10 @@
 }
 
 /* =====================================================================
-   Shadcn semantic tokens — remapped to the earth-tone palette.
-   `@theme inline` passes the CSS variable through to Tailwind's utility
-   classes so `bg-background`, `text-foreground`, etc. theme via class swap.
+   Shadcn semantic tokens — remapped to the new spanda palette.
+   `@theme inline` passes the CSS variable through to Tailwind's
+   utility classes so `bg-background`, `text-foreground`, etc. theme
+   via class swap.
    ===================================================================== */
 @theme inline {
   --color-background: var(--background);
@@ -161,7 +235,9 @@
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
+  /* NOTE: --color-primary already declared above to point at the spanda
+     lime (#9fe870). Shadcn's --color-primary alias reuses the same
+     name — keep them coherent. */
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -191,88 +267,114 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* =====================================================================
+   Shadcn / runtime semantic bindings — remapped to the spanda palette.
+
+   `--background` now resolves to sage canvas; `--primary` to spanda
+   lime; `--foreground` to spanda ink. Components that read these
+   tokens (Button, Card, Input, etc.) reskin without code changes.
+   ===================================================================== */
 :root {
   --terminal-viewport-inset: 0px;
 
-  --background: var(--color-paper-100);
-  --foreground: var(--color-ink-900);
-  --card: var(--color-paper-50);
-  --card-foreground: var(--color-ink-900);
-  --popover: var(--color-paper-50);
-  --popover-foreground: var(--color-ink-900);
-  --primary: var(--color-clay-500);
-  --primary-foreground: var(--color-paper-50);
-  --secondary: var(--color-paper-200);
-  --secondary-foreground: var(--color-ink-800);
-  --muted: var(--color-paper-200);
-  --muted-foreground: var(--color-ink-600);
-  --accent: var(--color-paper-200);
-  --accent-foreground: var(--color-ink-900);
-  --destructive: var(--color-rust-500);
+  --background:            var(--color-paper-100);  /* sage canvas */
+  --foreground:            var(--color-ink-900);    /* spanda ink */
+  --card:                  var(--color-paper-50);   /* white card */
+  --card-foreground:       var(--color-ink-900);
+  --popover:               var(--color-paper-50);
+  --popover-foreground:    var(--color-ink-900);
+
+  /* Primary = spanda lime. Foreground on lime is ink (per --color-on-primary). */
+  --primary:               var(--color-clay-500);   /* #9fe870 */
+  --primary-foreground:    var(--color-ink-900);    /* ink on lime */
+
+  /* Secondary = sage (deeper than the page bg, lighter than ink). */
+  --secondary:             var(--color-paper-200);  /* sage-deep */
+  --secondary-foreground:  var(--color-ink-900);
+
+  --muted:                 var(--color-paper-200);
+  --muted-foreground:      var(--color-ink-700);    /* spanda body */
+
+  --accent:                var(--color-paper-200);
+  --accent-foreground:     var(--color-ink-900);
+
+  --destructive:           var(--color-rust-500);   /* spanda negative */
   --destructive-foreground: var(--color-paper-50);
-  --border: oklch(0.872 0.018 72);
-  --input: oklch(0.872 0.018 72);
-  --ring: oklch(0.635 0.148 36 / 0.45);
+
+  /* Borders: spanda hairline = full ink at 1px (used on inputs, tertiary
+     buttons). Soft border = 10% ink (default chrome). */
+  --border: rgba(14, 15, 12, 0.10);
+  --input:  rgba(14, 15, 12, 0.10);
+  --ring:   rgba(159, 232, 112, 0.45);              /* lime ring focus */
+
+  /* Charts — series semantics per DESIGN.md: ink for primary, positive
+     for affirmative, mute for secondary; NEVER reserve brand lime for a
+     series. Brand lime only fills the hero chart point/fill. */
+  --chart-1: var(--color-ink-900);                  /* primary track */
+  --chart-2: var(--color-moss-500);                 /* positive trend */
+  --chart-3: var(--color-ink-500);                  /* secondary / muted */
+  --chart-4: var(--color-ochre-500);                /* warning */
+  --chart-5: var(--color-rust-500);                 /* negative */
+
+  --sidebar:                  var(--color-paper-50);
+  --sidebar-foreground:       var(--color-ink-900);
+  --sidebar-primary:          var(--color-clay-500);
+  --sidebar-primary-foreground: var(--color-ink-900);
+  --sidebar-accent:           var(--color-paper-200);
+  --sidebar-accent-foreground: var(--color-ink-900);
+  --sidebar-border:           rgba(14, 15, 12, 0.10);
+  --sidebar-ring:             rgba(159, 232, 112, 0.45);
+}
+
+/* =====================================================================
+   Dark mode — kept narrowly for the terminal panel and any explicit
+   `.dark` subtree per DESIGN.md ("Dark mode is not the default for
+   spanda. Dark mode exists only for the terminal panel where the
+   operator IS reading code output.").
+
+   Surfaces here are spanda ink family with lime-on-ink for primary.
+   ===================================================================== */
+.dark {
+  --background:            var(--color-walnut-300); /* deep ink surface */
+  --foreground:            var(--color-paper-100);  /* sage text on ink */
+  --card:                  var(--color-walnut-200);
+  --card-foreground:       var(--color-paper-100);
+  --popover:               var(--color-walnut-200);
+  --popover-foreground:    var(--color-paper-100);
+  --primary:               var(--color-clay-500);   /* lime stays lime in dark */
+  --primary-foreground:    var(--color-walnut-300); /* ink on lime */
+  --secondary:             var(--color-walnut-100);
+  --secondary-foreground:  var(--color-paper-100);
+  --muted:                 var(--color-walnut-100);
+  --muted-foreground:      var(--color-paper-400);
+  --accent:                var(--color-walnut-100);
+  --accent-foreground:     var(--color-paper-100);
+  --destructive:           var(--color-rust-500);
+  --destructive-foreground: var(--color-paper-50);
+  --border:                rgba(232, 235, 230, 0.10);
+  --input:                 rgba(232, 235, 230, 0.18);
+  --ring:                  rgba(159, 232, 112, 0.55);
 
   --chart-1: var(--color-clay-500);
   --chart-2: var(--color-moss-500);
-  --chart-3: var(--color-lake-500);
+  --chart-3: var(--color-paper-400);
   --chart-4: var(--color-ochre-500);
   --chart-5: var(--color-rust-500);
 
-  --sidebar: var(--color-paper-50);
-  --sidebar-foreground: var(--color-ink-900);
-  --sidebar-primary: var(--color-clay-500);
-  --sidebar-primary-foreground: var(--color-paper-50);
-  --sidebar-accent: var(--color-paper-200);
-  --sidebar-accent-foreground: var(--color-ink-900);
-  --sidebar-border: oklch(0.872 0.018 72);
-  --sidebar-ring: oklch(0.635 0.148 36 / 0.45);
-}
-
-.dark {
-  --background: oklch(0.185 0.010 60);
-  --foreground: oklch(0.952 0.008 78);
-  --card: oklch(0.225 0.012 62);
-  --card-foreground: oklch(0.952 0.008 78);
-  --popover: oklch(0.225 0.012 62);
-  --popover-foreground: oklch(0.952 0.008 78);
-  --primary: oklch(0.715 0.128 38);
-  --primary-foreground: oklch(0.175 0.010 60);
-  --secondary: oklch(0.275 0.014 62);
-  --secondary-foreground: oklch(0.952 0.008 78);
-  --muted: oklch(0.275 0.014 62);
-  --muted-foreground: oklch(0.695 0.014 72);
-  --accent: oklch(0.275 0.014 62);
-  --accent-foreground: oklch(0.952 0.008 78);
-  --destructive: oklch(0.712 0.165 28);
-  --destructive-foreground: oklch(0.185 0.010 60);
-  --border: oklch(1 0.01 70 / 0.10);
-  --input: oklch(1 0.01 70 / 0.18);
-  --ring: oklch(0.715 0.128 38 / 0.55);
-
-  --chart-1: oklch(0.715 0.128 38);
-  --chart-2: oklch(0.680 0.080 130);
-  --chart-3: oklch(0.665 0.075 218);
-  --chart-4: oklch(0.762 0.115 82);
-  --chart-5: oklch(0.668 0.168 28);
-
-  --sidebar: oklch(0.155 0.008 58);
-  --sidebar-foreground: oklch(0.952 0.008 78);
-  --sidebar-primary: oklch(0.715 0.128 38);
-  --sidebar-primary-foreground: oklch(0.175 0.010 60);
-  --sidebar-accent: oklch(0.275 0.014 62);
-  --sidebar-accent-foreground: oklch(0.952 0.008 78);
-  --sidebar-border: oklch(1 0.01 70 / 0.10);
-  --sidebar-ring: oklch(0.715 0.128 38 / 0.55);
+  --sidebar:                  var(--color-walnut-400);
+  --sidebar-foreground:       var(--color-paper-100);
+  --sidebar-primary:          var(--color-clay-500);
+  --sidebar-primary-foreground: var(--color-walnut-300);
+  --sidebar-accent:           var(--color-walnut-100);
+  --sidebar-accent-foreground: var(--color-paper-100);
+  --sidebar-border:           rgba(232, 235, 230, 0.10);
+  --sidebar-ring:             rgba(159, 232, 112, 0.55);
 }
 
 @layer base {
   html {
     font-size: calc(100% + 1px);
     scrollbar-gutter: stable both-edges;
-    /* Sharper anti-alias on warm paper; stop the browser from faking
-       bold/italic when a requested weight/style isn't in the font. */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -285,9 +387,10 @@
 
   body {
     @apply bg-background text-foreground;
-    /* Manrope at 400 on paper looks washed out at small sizes; 450
-       leans into the variable axis without tipping into semibold. */
-    font-weight: 450;
+    /* Inter at 400 is the spec body weight; the old codebase ran Manrope
+       at 450 to compensate for warm-paper haze. Sage canvas is paler and
+       Inter 400 reads crisp. */
+    font-weight: 400;
     padding-bottom: var(--terminal-viewport-inset);
     scroll-padding-bottom: var(--terminal-viewport-inset);
   }

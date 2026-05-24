@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Manrope, Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
+import { Manrope, Inter, IBM_Plex_Mono } from "next/font/google";
 import { Suspense } from "react";
 import { Providers } from "@/components/providers";
 import { AppHeader } from "@/components/app-header";
@@ -9,14 +9,22 @@ import { TerminalConnectionSync } from "@/components/terminal-connection-sync";
 import { UrlStateSync } from "@/components/url-state-sync";
 import "./globals.css";
 
+// Manrope = the spanda display face (substitute for proprietary Wise Sans).
+// Loaded as a variable font (no explicit weight array) so the full 200-800
+// axis is available; DESIGN.md mandates weight 900 on display lines, which
+// Google's Manrope reaches through the variable axis. CSS `font-weight: 900`
+// hits the heaviest available cut.
 const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+// Inter = spanda sub-display + body face per DESIGN.md. Variable font.
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const ibmPlexMono = IBM_Plex_Mono({
@@ -36,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${manrope.variable} ${spaceGrotesk.variable} ${ibmPlexMono.variable}`}>
+    <html lang="en" className={`${manrope.variable} ${inter.variable} ${ibmPlexMono.variable}`}>
       <head>
         {/* Flash-free theme init: mirror the `theme` localStorage choice onto
             `<html>` before first paint so dark-mode surfaces never flash light.

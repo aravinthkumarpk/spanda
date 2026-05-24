@@ -22,6 +22,11 @@ const eslintConfig = defineConfig([
     ".claude/worktrees/**",
     ".worktrees/**",
     ".knots/_worktree/**",
+    // Design-system reference UI kits — third-party JSX prototypes from
+    // claude.ai/design handoff, kept for visual reference only. They are
+    // not part of the build, not imported anywhere, and intentionally
+    // use a different React idiom than the production components.
+    "src/design-system/reference/**",
   ]),
   ...storybook.configs["flat/recommended"],
   // Code style constraints: file, function, and line length limits.
