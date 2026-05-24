@@ -197,7 +197,7 @@ table.inner tr:last-child td { border-bottom: none; }
   </div>
   <div class="meta">
     <div><strong>generated</strong> 24 may 2026</div>
-    <div>7 P0 (system) + 1 manual + 2 deferred</div>
+    <div>8 P0 (system) + 1 manual + 2 deferred</div>
   </div>
 </header>
 
@@ -309,6 +309,16 @@ table.inner tr:last-child td { border-bottom: none; }
       <td>Token loop extended to walk <code>src/components/*.tsx</code> + structural snapshot per critical component vs <code>ui_kits/*.jsx</code>. Compliance % = passing components / total.</td>
       <td><code>ds-compliance-token-loop.test.ts</code> + 7× <code>{component}-structure.test.tsx</code></td>
       <td class="eff"><span class="eff-tag M">M</span>~150+200 LOC</td>
+    </tr>
+
+    <tr>
+      <td class="num">0b</td>
+      <td><span class="pri p0">P0</span></td>
+      <td class="title">Logo swap — FooleryWordmark → spanda lockup
+        <small>in-app header brand swap to the DS lockup SVG</small></td>
+      <td>Replace <code>FooleryWordmark</code> import in <code>app-header-parts.tsx</code> with new <code>SpandaLockup</code> component that inlines <code>src/design-system/assets/spanda_lockup.svg</code>. Colour via <code>currentColor</code>, sized 42px high. Also swap the "New Foolery version" version-banner string via the vocab layer (lands fully in #6).</td>
+      <td><code>spanda-lockup.test.tsx</code> + extend <code>app-header-structure.test.tsx</code></td>
+      <td class="eff"><span class="eff-tag S">S</span>~50+50 LOC</td>
     </tr>
 
     <tr>
@@ -464,6 +474,46 @@ beats-sync-diagnostics-card.tsx        <span class="comment">// zinc/amber → p
 scope-refinement-diagnostics-card.tsx  <span class="comment">// emerald/sky → moss/lake</span></pre>
   </div>
   <div class="ship-gate"><strong>Ship gate.</strong> All snapshot tests green. Compliance summary reports ≥90%. <code>bun run lint && test && tsc --noEmit && build</code> green. Ship runtime. Visually walk the live app to confirm.</div>
+</div>
+
+<div class="item">
+  <div class="item-head"><span class="num">#0b</span><h4>Logo swap — FooleryWordmark → spanda lockup</h4><span class="effort">S · ~50+50 LOC</span></div>
+  <p class="pain"><strong>Pain.</strong> The in-app header still renders <code>FooleryWordmark</code> (text "Foolery" in clay-600). The design system ships the spanda mark + lockup at <code>src/design-system/assets/spanda_lockup.svg</code> — pearl body with two lime eyes + Manrope 900 "spanda" wordmark. Visible at the very top of every page; the most identity-carrying pixel in the whole app.</p>
+  <div class="tdd-block">
+    <div class="tdd-label">red — test first</div>
+    <pre>// src/components/__tests__/spanda-lockup.test.tsx
+describe(<span class="ok">"SpandaLockup"</span>, () => {
+  it(<span class="ok">"renders an SVG with role='img' and aria-label='spanda'"</span>);
+  it(<span class="ok">"includes the pearl body (circle) with the two lime eyes (rect ×2 #9fe870)"</span>);
+  it(<span class="ok">"includes the Manrope 900 'spanda' text node"</span>);
+  it(<span class="ok">"inherits ink color via currentColor (no hard-coded fill on the text)"</span>);
+  it(<span class="ok">"renders at the prop-supplied height (default 42px)"</span>);
+});
+
+// extends src/components/__tests__/app-header-structure.test.tsx (from #0)
+describe(<span class="ok">"AppHeader: spanda branding"</span>, () => {
+  it(<span class="ok">"renders &lt;SpandaLockup/&gt; (not FooleryWordmark)"</span>);
+  it(<span class="ok">"the version banner says 'New spanda version' (via vocab), not 'New Foolery'"</span>);
+});</pre>
+  </div>
+  <div class="tdd-block">
+    <div class="tdd-label green">green — impl</div>
+    <pre>new src/components/spanda-lockup.tsx
+   ↳ inline the lockup SVG from src/design-system/assets/spanda_lockup.svg
+   ↳ accept className + height props; default 42px
+   ↳ <code>aria-label="spanda"</code>, role="img"
+   ↳ wordmark text node uses <code>fill="currentColor"</code> so the consumer
+     controls colour via Tailwind text-ink-900 (or text-paper-100 in dark mode)
+
+src/components/app-header-parts.tsx
+   ↳ replace <code>import { FooleryWordmark }</code> with <code>import { SpandaLockup }</code>
+   ↳ swap the JSX site (line ~190): &lt;SpandaLockup className="h-[42px] w-auto text-ink-900 dark:text-paper-100" /&gt;
+   ↳ "New Foolery version" → useVocab() lookup (lands fully in #6, scaffold here)
+
+DELETE src/components/foolery-wordmark.tsx after the swap lands and
+       no consumer references it. (grep first.)</pre>
+  </div>
+  <div class="ship-gate"><strong>Ship gate.</strong> Snapshot tests green. Refresh <code>foolery.onyourdevice.ai</code> — header shows the spanda pearl mark + Manrope 900 wordmark; no "Foolery" text anywhere except in version-banner copy that gets fixed by #6.</div>
 </div>
 
 <div class="item">
@@ -664,6 +714,7 @@ bd update &lt;id&gt; --labels-add <span class="ok">work:decide</span>
   <p>I build out the system in P0 order. <strong>#1b is yours</strong> — manual pass after the system is in place. Telegram + spanda init stay deferred.</p>
   <ol>
     <li><code>#0</code> — DS-compliance hybrid loop. Smallest, lowest risk, establishes the snapshot test pattern.</li>
+    <li><code>#0b</code> — logo swap. <code>FooleryWordmark</code> → <code>SpandaLockup</code> in app header. ~30 min, immediate visual confirmation.</li>
     <li><code>#1</code> — 4 workflow profiles + people-tag lint. Biggest semantic unlock.</li>
     <li><code>#6</code> — vocabulary layer. Single source of truth; touches ~25 components mechanically.</li>
     <li><code>#2</code> — label filter checkboxes. Lights up the new label namespace visually.</li>
