@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>spanda phase 2 — TDD plan</title>
+<meta name="description" content="Comprehensive TDD plan for 9 follow-up items: design-system compliance, workflow profiles, label filter, today view, quick capture, vocabulary, stale beads, Telegram, onboarding."/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='34' fill='%230e0f0c'/%3E%3Crect x='29' y='32' width='6' height='14' rx='3' fill='%239fe870'/%3E%3Crect x='45' y='32' width='6' height='14' rx='3' fill='%239fe870'/%3E%3C/svg%3E"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --color-primary:           #9fe870;
+  --color-primary-active:    #cdffad;
+  --color-primary-pale:      #e2f6d5;
+  --color-on-primary:        #0e0f0c;
+  --color-canvas:            #ffffff;
+  --color-canvas-soft:       #e8ebe6;
+  --color-canvas-sage-deep:  #d8dcd3;
+  --color-hover-sage:        #f5f7f3;
+  --color-ink:               #0e0f0c;
+  --color-body:              #454745;
+  --color-mute:              #868685;
+  --color-on-ink:            #e8ebe6;
+  --color-positive:          #2ead4b;
+  --color-positive-deep:     #054d28;
+  --color-positive-pale:     #e2f6d5;
+  --color-warning:           #ffd11a;
+  --color-warning-deep:      #b86700;
+  --color-warning-content:   #4a3b1c;
+  --color-warning-pale:      #fff4cc;
+  --color-negative:          #d03238;
+  --color-negative-deep:     #a72027;
+  --color-negative-pale:     #fce8e9;
+  --color-border:            #0e0f0c;
+  --color-border-soft:       rgba(14, 15, 12, 0.10);
+  --color-border-faint:      rgba(14, 15, 12, 0.06);
+  --font-display: "Manrope", "Wise Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:    "Inter", "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --space-xs: 4px; --space-sm: 8px; --space-md: 12px; --space-lg: 16px;
+  --space-xl: 24px; --space-2xl: 32px; --space-3xl: 48px; --space-4xl: 64px; --space-5xl: 96px;
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 24px; --radius-pill: 9999px;
+  --shadow-md: 0 4px 12px -2px rgba(14,15,12,0.08), 0 2px 4px -1px rgba(14,15,12,0.06);
+  --shadow-lg: 0 12px 32px -8px rgba(14,15,12,0.14), 0 4px 12px -4px rgba(14,15,12,0.08);
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur-fast: 140ms; --dur-normal: 220ms;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--color-canvas-soft); color: var(--color-ink); }
+body { font: 400 16px/24px var(--font-sans); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+::selection { background: var(--color-primary); color: var(--color-on-primary); }
+.wrap { max-width: 1200px; margin: 0 auto; padding: var(--space-3xl) var(--space-xl) var(--space-5xl); }
+
+/* Header */
+header.top { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-xl); margin-bottom: var(--space-2xl); padding-bottom: var(--space-xl); border-bottom: 1px solid var(--color-border-soft); }
+header.top .brand { display: flex; flex-direction: column; gap: var(--space-md); }
+header.top .lockup { color: var(--color-ink); height: 56px; }
+header.top .lockup svg { height: 100%; width: auto; display: block; }
+header.top .sub { color: var(--color-body); font-size: 14px; line-height: 20px; }
+header.top .sub code { font: 12px var(--font-mono); padding: 1px 6px; background: var(--color-canvas); border: 1px solid var(--color-border-soft); border-radius: var(--radius-sm); }
+header.top .sub a { color: var(--color-ink); text-decoration: none; border-bottom: 1px solid var(--color-primary); padding-bottom: 1px; }
+header.top .meta { text-align: right; font-size: 13px; color: var(--color-mute); }
+header.top .meta strong { color: var(--color-body); font-weight: 600; }
+
+/* Eyebrow + section heads */
+.eyebrow { display: inline-flex; align-items: center; gap: var(--space-sm); font: 600 12px/16px var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-mute); margin-bottom: var(--space-lg); }
+.eyebrow::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--color-primary); flex-shrink: 0; }
+h2.section-head { font: 900 40px/1 var(--font-display); letter-spacing: -1.5px; color: var(--color-ink); margin: var(--space-3xl) 0 var(--space-lg); }
+h2.section-head:first-of-type { margin-top: 0; }
+h3.subsection { font: 900 28px/1.05 var(--font-display); letter-spacing: -0.8px; color: var(--color-ink); margin: var(--space-2xl) 0 var(--space-md); }
+
+/* Intro card */
+.intro { background: var(--color-canvas); border-radius: var(--radius-xl); padding: var(--space-xl); margin-bottom: var(--space-2xl); }
+.intro p { font: 400 15px/24px var(--font-sans); color: var(--color-body); margin: 0; }
+.intro p + p { margin-top: var(--space-md); }
+.intro strong { color: var(--color-ink); font-weight: 600; }
+.intro code { font: 12.5px var(--font-mono); background: var(--color-canvas-soft); padding: 1px 5px; border-radius: var(--radius-sm); color: var(--color-ink); }
+
+/* Snapshot table */
+.snapshot { background: var(--color-canvas); border-radius: var(--radius-xl); overflow: hidden; }
+table.snap { width: 100%; border-collapse: collapse; }
+table.snap th { background: transparent; font: 600 11px/16px var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-mute); text-align: left; padding: var(--space-md) var(--space-lg); border-bottom: 1px solid var(--color-border-soft); }
+table.snap td { font: 400 13.5px/19px var(--font-sans); color: var(--color-ink); padding: var(--space-lg); border-bottom: 1px solid var(--color-border-faint); vertical-align: top; }
+table.snap td.num { font: 600 14px/19px var(--font-mono); color: var(--color-mute); width: 36px; }
+table.snap td.title { font: 600 13.5px/19px var(--font-sans); color: var(--color-ink); }
+table.snap td.title small { display: block; font: 400 12.5px/18px var(--font-sans); color: var(--color-body); margin-top: 3px; }
+table.snap td.eff { white-space: nowrap; font: 400 12.5px/18px var(--font-mono); color: var(--color-mute); }
+table.snap td code { font: 11.5px var(--font-mono); background: var(--color-canvas-soft); padding: 1px 5px; border-radius: var(--radius-sm); color: var(--color-ink); }
+table.snap tr:last-child td { border-bottom: none; }
+table.snap tr:hover td { background: var(--color-hover-sage); }
+table.snap tr.divider td { background: var(--color-canvas-soft); padding: var(--space-sm) var(--space-lg); border-bottom: 1px solid var(--color-border-soft); font: 600 11px/16px var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-mute); }
+
+/* Priority chips */
+.pri { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: var(--radius-pill); font: 600 10.5px/14px var(--font-mono); letter-spacing: 0.04em; }
+.pri.p0 { background: var(--color-negative-pale); color: var(--color-negative-deep); }
+.pri.p1 { background: var(--color-warning-pale); color: var(--color-warning-content); }
+.pri.p2 { background: var(--color-canvas-sage-deep); color: var(--color-body); }
+
+/* Effort tags */
+.eff-tag { display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm); font: 600 11px/14px var(--font-mono); margin-right: 6px; }
+.eff-tag.S { background: var(--color-primary-pale); color: var(--color-positive-deep); }
+.eff-tag.M { background: var(--color-warning-pale); color: var(--color-warning-content); }
+.eff-tag.L { background: var(--color-negative-pale); color: var(--color-negative-deep); }
+
+/* Brainstorm card grid */
+.bs-card { background: var(--color-canvas); border-radius: var(--radius-xl); padding: var(--space-xl); margin-bottom: var(--space-md); transition: background var(--dur-fast) var(--ease-out); }
+.bs-card.rec { background: var(--color-primary-pale); }
+.bs-card.rejected { background: var(--color-canvas); opacity: 0.7; }
+.bs-card-head { display: flex; align-items: baseline; gap: var(--space-md); margin-bottom: var(--space-sm); }
+.bs-card-head .opt { font: 600 11px/16px var(--font-mono); padding: 3px 8px; background: var(--color-canvas-soft); color: var(--color-body); border-radius: var(--radius-pill); text-transform: uppercase; letter-spacing: 0.04em; }
+.bs-card.rec .opt { background: var(--color-primary); color: var(--color-on-primary); }
+.bs-card-head .title { font: 700 17px/24px var(--font-sans); color: var(--color-ink); flex: 1; }
+.bs-card-head .verdict { font: 600 11px/16px var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-mute); }
+.bs-card.rec .verdict { color: var(--color-positive-deep); }
+.bs-card .body { color: var(--color-body); font-size: 14px; line-height: 22px; margin: 0; }
+.bs-card .body p { margin: 0 0 var(--space-sm); }
+.bs-card .body p:last-child { margin-bottom: 0; }
+.bs-card .body code { font: 12.5px var(--font-mono); background: var(--color-canvas-soft); padding: 1px 5px; border-radius: var(--radius-sm); color: var(--color-ink); }
+.bs-card.rec .body code { background: rgba(14,15,12,0.06); }
+
+/* Inner tables (Option D profile table, action verbs) */
+.inner-table-wrap { background: var(--color-canvas); border-radius: var(--radius-lg); padding: 4px; margin-top: var(--space-md); }
+table.inner { width: 100%; border-collapse: collapse; }
+table.inner th { font: 600 11px/16px var(--font-sans); text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-mute); text-align: left; padding: var(--space-sm) var(--space-md); border-bottom: 1px solid var(--color-border-soft); background: transparent; }
+table.inner td { font: 400 13px/18px var(--font-sans); color: var(--color-ink); padding: var(--space-sm) var(--space-md); border-bottom: 1px solid var(--color-border-faint); vertical-align: top; }
+table.inner td.profile { font: 600 12px/18px var(--font-mono); color: var(--color-positive-deep); white-space: nowrap; }
+table.inner td.states { font: 400 12.5px/18px var(--font-mono); color: var(--color-body); }
+table.inner tr:last-child td { border-bottom: none; }
+
+/* Per-item TDD section */
+.item { background: var(--color-canvas); border-radius: var(--radius-xl); padding: var(--space-xl); margin-bottom: var(--space-md); }
+.item-head { display: flex; align-items: baseline; gap: var(--space-md); margin-bottom: var(--space-md); flex-wrap: wrap; }
+.item-head .num { font: 600 12px/16px var(--font-mono); padding: 3px 10px; background: var(--color-ink); color: var(--color-primary); border-radius: var(--radius-pill); }
+.item-head h4 { font: 600 18px/24px var(--font-sans); letter-spacing: -0.2px; color: var(--color-ink); margin: 0; flex: 1; }
+.item-head .effort { font: 400 12px/16px var(--font-mono); color: var(--color-mute); }
+.item .pain { color: var(--color-body); font-size: 14px; line-height: 22px; margin: 0 0 var(--space-md); }
+.item .pain strong { color: var(--color-ink); font-weight: 600; }
+
+/* TDD code blocks: ink fill, lime mono (polarity flip per DESIGN.md) */
+.tdd-block { background: var(--color-ink); color: var(--color-on-ink); border-radius: var(--radius-lg); padding: var(--space-lg); margin: var(--space-md) 0; }
+.tdd-block .tdd-label { font: 600 10.5px/14px var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-mute); margin-bottom: var(--space-sm); }
+.tdd-block .tdd-label.green { color: var(--color-primary); }
+.tdd-block pre { font: 12.5px/18px var(--font-mono); background: rgba(255,255,255,0.04); padding: var(--space-md); border-radius: var(--radius-sm); margin: 0; overflow-x: auto; color: var(--color-on-ink); white-space: pre; }
+.tdd-block pre .comment { color: rgba(232, 235, 230, 0.55); font-style: italic; }
+.tdd-block pre .ok { color: var(--color-primary); }
+.tdd-block code, .item code { font: 12.5px var(--font-mono); background: var(--color-canvas-soft); padding: 1px 5px; border-radius: var(--radius-sm); color: var(--color-ink); }
+.tdd-block code { background: rgba(255,255,255,0.08); color: var(--color-primary); }
+.ship-gate { font: 13.5px/22px var(--font-sans); color: var(--color-body); margin: var(--space-md) 0 0; padding-top: var(--space-md); border-top: 1px solid var(--color-border-faint); }
+.ship-gate strong { color: var(--color-ink); font-weight: 600; }
+.ship-gate code { font: 12.5px var(--font-mono); background: var(--color-canvas-soft); padding: 1px 5px; border-radius: var(--radius-sm); color: var(--color-ink); }
+
+/* CTA card at the bottom */
+.cta { background: var(--color-ink); color: var(--color-on-ink); border-radius: var(--radius-xl); padding: var(--space-2xl); margin-top: var(--space-3xl); }
+.cta h2 { font: 900 32px/1.05 var(--font-display); letter-spacing: -1px; color: var(--color-primary); margin: 0 0 var(--space-md); }
+.cta p { font: 400 15px/24px var(--font-sans); color: var(--color-on-ink); margin: 0 0 var(--space-sm); }
+.cta ol { font: 400 15px/26px var(--font-sans); color: var(--color-on-ink); margin: var(--space-md) 0 0; padding-left: var(--space-xl); }
+.cta ol code { font: 13px var(--font-mono); background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: var(--radius-sm); color: var(--color-primary); }
+.cta strong { color: var(--color-primary); font-weight: 700; }
+
+/* Buttons */
+.btn { font: 600 14px/20px var(--font-sans); padding: 10px 20px; border-radius: var(--radius-xl); border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; gap: var(--space-sm); transition: background var(--dur-fast) var(--ease-out); text-decoration: none; }
+.btn.primary { background: var(--color-primary); color: var(--color-on-primary); border-color: var(--color-primary); }
+.btn.primary:hover { background: var(--color-primary-active); }
+.btn.tertiary { background: transparent; color: var(--color-on-ink); border-color: var(--color-on-ink); }
+.btn.tertiary:hover { background: rgba(255,255,255,0.06); }
+
+/* Audit number badges */
+.audit-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); margin: var(--space-md) 0 var(--space-2xl); }
+.audit-cell { background: var(--color-canvas); border-radius: var(--radius-xl); padding: var(--space-lg); }
+.audit-cell .num { font: 900 40px/1 var(--font-display); letter-spacing: -1.5px; color: var(--color-ink); font-variant-numeric: tabular-nums; }
+.audit-cell .label { font: 600 11px/16px var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-mute); margin-top: var(--space-sm); }
+.audit-cell .sub { font: 400 13px/18px var(--font-sans); color: var(--color-body); margin-top: var(--space-xs); }
+
+@media (max-width: 720px) {
+  .wrap { padding: var(--space-xl) var(--space-md) var(--space-5xl); }
+  header.top { flex-direction: column; align-items: flex-start; }
+  header.top .meta { text-align: left; }
+  header.top .lockup { height: 44px; }
+  h2.section-head { font-size: 28px; }
+  h3.subsection { font-size: 22px; }
+  .audit-row { grid-template-columns: 1fr; }
+  table.snap td { padding: var(--space-md); font-size: 12.5px; }
+  table.snap th { padding: var(--space-sm) var(--space-md); }
+  .item-head { flex-direction: column; gap: var(--space-sm); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: opacity var(--dur-fast) var(--ease-out) !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="brand">
+    <div class="lockup" aria-label="spanda">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 150" role="img" aria-label="spanda">
+        <g transform="translate(8, 38)">
+          <defs>
+            <radialGradient id="lockupPearl" cx="35%" cy="32%" r="65%">
+              <stop offset="0%" stop-color="#2a2c28"></stop>
+              <stop offset="55%" stop-color="#15170f"></stop>
+              <stop offset="100%" stop-color="#0a0b07"></stop>
+            </radialGradient>
+          </defs>
+          <circle cx="38" cy="38" r="34" fill="url(#lockupPearl)"></circle>
+          <ellipse cx="27" cy="22" rx="9" ry="5" fill="#fff" opacity="0.08"></ellipse>
+          <rect x="27" y="31" width="6" height="14" rx="3" fill="#9fe870"></rect>
+          <rect x="43" y="31" width="6" height="14" rx="3" fill="#9fe870"></rect>
+        </g>
+        <text x="106" y="118" font-family="Manrope, 'Wise Sans', system-ui, sans-serif" font-weight="900" font-size="138" letter-spacing="-6" style="fill: currentColor;">spanda</text>
+      </svg>
+    </div>
+    <div class="sub">phase 2 plan · TDD · branch <code>spanda/design-system</code> @ <code>48666852</code> · <a href="/">execution review</a></div>
+  </div>
+  <div class="meta">
+    <div><strong>generated</strong> 24 may 2026</div>
+    <div>9 follow-up items · 7 P0 · 1 P1 · 1 P2</div>
+  </div>
+</header>
+
+<div class="intro">
+  <p><strong>What this is.</strong> Comprehensive TDD plan for the 9 follow-up items raised after the design-system + reskin work landed. Snapshot table on top, brainstorms for items that called for them (workflow profiles, vocabulary), then per-item TDD breakdown with test files, impl files, and ship gates.</p>
+  <p><strong>State when authored.</strong> <code>spanda/design-system</code> branch at <code>48666852</code>. Foundation + globals.css token swap + execution.html reskin + <code>ship-spanda.sh</code> + design-preview diff verifier all green and live at <code>foolery.onyourdevice.ai</code> and <code>spanda-dev.onyourdevice.ai</code>.</p>
+</div>
+
+<h2 class="section-head"><span class="eyebrow">audit numbers</span>backing the effort estimates</h2>
+<div class="audit-row">
+  <div class="audit-cell">
+    <div class="num">11</div>
+    <div class="label">off-palette utilities</div>
+    <div class="sub">occurrences in 2-4 files. zinc, stone, amber, emerald, sky, green focus rings on diagnostics cards.</div>
+  </div>
+  <div class="audit-cell">
+    <div class="num">17</div>
+    <div class="label">inline hex literals</div>
+    <div class="sub">4 are legacy <code style="font:12px var(--font-mono);background:var(--color-canvas-soft);padding:1px 4px;border-radius:4px">#f4efe6</code> to swap, 6 are spanda canonicals, 3 are pearl-gradient stops in the mark SVG, rest are neutrals.</div>
+  </div>
+  <div class="audit-cell">
+    <div class="num">17</div>
+    <div class="label">user-facing vocab strings</div>
+    <div class="sub"><code style="font:12px var(--font-mono);background:var(--color-canvas-soft);padding:1px 4px;border-radius:4px">"Take!"</code> ×5, <code style="font:12px var(--font-mono);background:var(--color-canvas-soft);padding:1px 4px;border-radius:4px">"Beat"</code> ×5, <code style="font:12px var(--font-mono);background:var(--color-canvas-soft);padding:1px 4px;border-radius:4px">"Scene!"</code> ×3, others ×1. across ~8 files.</div>
+  </div>
+</div>
+
+<h2 class="section-head"><span class="eyebrow">snapshot</span>9 items at a glance</h2>
+<div class="snapshot">
+<table class="snap">
+  <thead>
+    <tr>
+      <th>#</th><th>Pri</th><th>Item</th><th>Approach (recommended)</th><th>Test-first</th><th>Effort</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="divider"><td colspan="6">P0 — ship this week</td></tr>
+
+    <tr>
+      <td class="num">0</td>
+      <td><span class="pri p0">P0</span></td>
+      <td class="title">DS-compliance lint
+        <small>kill off-palette utilities + inline <code>#f4efe6</code></small></td>
+      <td>Replace <code>zinc / stone / amber / emerald / sky / green</code> with <code>paper / clay / moss / lake / ochre</code>. Add lint rule preventing regression.</td>
+      <td><code>no-off-palette-utilities.test.ts</code></td>
+      <td class="eff"><span class="eff-tag S">S</span>~50+40 LOC</td>
+    </tr>
+
+    <tr>
+      <td class="num">1</td>
+      <td><span class="pri p0">P0</span></td>
+      <td class="title">Per-category workflow profiles
+        <small>4 profiles: code / coord / followup / decision (brainstorm Option D below)</small></td>
+      <td>Add to <code>BUILTIN_PROFILE_CATALOG</code> with <code>customStates</code>; label-based routing; fail-loud on ambiguous labels.</td>
+      <td><code>workflows-spanda-profiles.test.ts</code></td>
+      <td class="eff"><span class="eff-tag M">M</span>~200+120 LOC</td>
+    </tr>
+
+    <tr>
+      <td class="num">2</td>
+      <td><span class="pri p0">P0</span></td>
+      <td class="title">Label filter
+        <small>checkbox group in filter-bar; URL state; OR semantics</small></td>
+      <td>Zustand store for selection; auto-populate checkboxes from observed labels.</td>
+      <td><code>filter-bar-labels.test.tsx</code></td>
+      <td class="eff"><span class="eff-tag S">S</span>~80+60 LOC</td>
+    </tr>
+
+    <tr>
+      <td class="num">3</td>
+      <td><span class="pri p0">P0</span></td>
+      <td class="title">"Today" view — HTML, date-driven
+        <small>new <code>/today</code> route; daily HTML link points here</small></td>
+      <td>Server component, due-today + P0/P1 ready + in-progress; renders sage cards, no lifecycle columns.</td>
+      <td><code>app/today/page.test.tsx</code> + <code>render.test.tsx</code></td>
+      <td class="eff"><span class="eff-tag M">M</span>~180+100 LOC</td>
+    </tr>
+
+    <tr>
+      <td class="num">4</td>
+      <td><span class="pri p0">P0</span></td>
+      <td class="title">Quick capture + inline edit
+        <small>modal opens on <code>/</code>; click title → edit-in-place</small></td>
+      <td>Modal POSTs to <code>/api/beats</code> with acceptance-criteria lint. Inline edit PATCHes on blur.</td>
+      <td><code>quick-capture-modal.test.tsx</code> + <code>inline-edit.test.tsx</code></td>
+      <td class="eff"><span class="eff-tag M">M</span>~160+120 LOC</td>
+    </tr>
+
+    <tr>
+      <td class="num">6</td>
+      <td><span class="pri p0">P0</span></td>
+      <td class="title">Vocabulary — Beat/Take/Scene foreign
+        <small>UI-only label translation, "plain" default (brainstorm Option B below)</small></td>
+      <td>New <code>src/lib/ui-vocab.ts</code> + <code>useVocab()</code> hook. Internal types/APIs unchanged.</td>
+      <td><code>ui-vocab.test.ts</code> + <code>ui-strings-no-direct-vocab.test.tsx</code></td>
+      <td class="eff"><span class="eff-tag S">S</span>~70+100+25 LOC</td>
+    </tr>
+
+    <tr>
+      <td class="num">8</td>
+      <td><span class="pri p0">P0</span></td>
+      <td class="title">Stale beads
+        <small>configure <code>stale_grooming</code> pool + badge</small></td>
+      <td>Wire claude into <code>[pools.stale_grooming]</code>. Badge cell reading <code>updated_at</code>.</td>
+      <td><code>stale-badge.test.tsx</code></td>
+      <td class="eff"><span class="eff-tag S">S</span>~30+40 LOC + 5 cfg</td>
+    </tr>
+
+    <tr class="divider"><td colspan="6">P1 — within 2 weeks</td></tr>
+
+    <tr>
+      <td class="num">—</td>
+      <td><span class="pri p1">P1</span></td>
+      <td class="title">Telegram intake + Take-complete notify
+        <small>Hermes webhook for both directions; Spanda fires fetch on terminal-complete</small></td>
+      <td>Spanda hooks <code>use-terminal-stream.ts</code>; Hermes adds <code>telegram-intake.py</code>.</td>
+      <td><code>telegram-intake.test.py</code> + <code>use-terminal-stream-notify.test.ts</code></td>
+      <td class="eff"><span class="eff-tag M">M</span>~150 LOC cross-repo</td>
+    </tr>
+
+    <tr class="divider"><td colspan="6">P2 — when calendar opens</td></tr>
+
+    <tr>
+      <td class="num">—</td>
+      <td><span class="pri p2">P2</span></td>
+      <td class="title">Onboarding <code>spanda init</code> CLI
+        <small>one-command bootstrap for fresh installs</small></td>
+      <td>Bash CLI writes <code>settings.toml</code> + claude pool + personal-os repo. Idempotent.</td>
+      <td><code>spanda-init.test.sh</code> (manual)</td>
+      <td class="eff"><span class="eff-tag S">S</span>~80 bash + 40 LOC</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p style="font-size:13px; color:var(--color-mute); margin-top:var(--space-md);">
+Total Phase 2 estimate: <strong style="color:var(--color-body)">~1000 LOC new code + ~700 LOC tests</strong> across 7 P0 + 2 P1/P2 items. Realistic: 2-3 focused days. Each P0 ships independently via <code style="font:12px var(--font-mono);background:var(--color-canvas);padding:1px 6px;border-radius:6px">ship-spanda.sh</code>.
+</p>
+
+<h2 class="section-head"><span class="eyebrow">brainstorm 1</span>workflow profiles (item #1)</h2>
+<p style="font-size:14.5px; color:var(--color-body); line-height:22px; max-width:75ch;">The fork already supports custom <code style="font:12.5px var(--font-mono);background:var(--color-canvas);padding:1px 5px;border-radius:6px">BuiltinProfileConfig</code> with <code style="font:12.5px var(--font-mono);background:var(--color-canvas);padding:1px 5px;border-radius:6px">customStates</code>. Question: which set of profiles is the right one?</p>
+
+<div class="bs-card rejected">
+  <div class="bs-card-head"><span class="opt">option a</span><span class="title">Minimum split — 3 profiles (code, coord, followup)</span><span class="verdict">rejected</span></div>
+  <div class="body">
+    <p>Covers ~95% of corpus. Simplest mental model.</p>
+    <p>But: doesn't differentiate "decision pending" beads from coord beads. Both go through <code>scheduled → done</code>, but a decision has a different texture (you wait for someone to decide, then act).</p>
+  </div>
+</div>
+
+<div class="bs-card rejected">
+  <div class="bs-card-head"><span class="opt">option b</span><span class="title">Fine-grained — 8 to 10 profiles</span><span class="verdict">rejected — overkill</span></div>
+  <div class="body">
+    <p><code>code-review</code>, <code>doc-review</code>, <code>meeting</code>, <code>chase</code>, <code>decision</code>, <code>read</code>, <code>write</code>, <code>purchase</code>, <code>personal</code>…</p>
+    <p>Too many profiles to mentally track. Settings UI would have 8+ profile dropdowns. Most categories collapse into 3-4 in practice.</p>
+  </div>
+</div>
+
+<div class="bs-card rejected">
+  <div class="bs-card-head"><span class="opt">option c</span><span class="title">Domain-driven — per MISSION.md goals (G0/G1/G2/G3)</span><span class="verdict">rejected — wrong axis</span></div>
+  <div class="body">
+    <p>Each mission goal gets its own workflow.</p>
+    <p>But: workflows describe <em>how work flows</em>, not <em>what it's about</em>. G1 work can be code (autopilot fits) or coord (autopilot doesn't fit).</p>
+  </div>
+</div>
+
+<div class="bs-card rec">
+  <div class="bs-card-head"><span class="opt">option d</span><span class="title">Moderate split — 4 profiles (code / coord / followup / decision)</span><span class="verdict">recommended</span></div>
+  <div class="body">
+    <p>Each profile has 2-4 columns max → board stays scannable. <code>decision</code> vs <code>coord</code> vs <code>followup</code> are textures of human work that need different next-action verbs (decide vs attend vs ping). The default <code>code</code> profile keeps the existing IC workflow unchanged so nothing breaks for agent-dispatchable beads.</p>
+    <div class="inner-table-wrap">
+      <table class="inner">
+        <thead><tr><th>Profile</th><th>States</th><th>When to use</th><th>Owner</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="profile">code</td>
+            <td class="states">ready_for_impl → impl → ready_for_review → review → shipped</td>
+            <td>IC work an agent can do</td>
+            <td>agent</td>
+          </tr>
+          <tr>
+            <td class="profile">coord</td>
+            <td class="states">scheduled → done / cancelled</td>
+            <td>Meetings, calls, alignment</td>
+            <td>human</td>
+          </tr>
+          <tr>
+            <td class="profile">followup</td>
+            <td class="states">waiting → nudged → escalated → done / closed</td>
+            <td>Chasing someone external</td>
+            <td>human (+ nudge agent later)</td>
+          </tr>
+          <tr>
+            <td class="profile">decision</td>
+            <td class="states">deciding → decided → executed / dropped</td>
+            <td>Choice YOU need to make</td>
+            <td>human</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:var(--space-md);"><strong>Routing.</strong> Labels <code>work:code</code> / <code>work:coord</code> / <code>work:followup</code> / <code>work:decision</code>. No label = <code>code</code> (backwards-compat with existing 50 beads). Two <code>work:</code> labels = fail-loudly per CLAUDE.md.</p>
+    <p><strong>Action verbs per profile</strong> (drives item #8 row-action work):</p>
+    <div class="inner-table-wrap">
+      <table class="inner">
+        <thead><tr><th>Profile</th><th>Non-terminal action</th><th>Terminal action</th></tr></thead>
+        <tbody>
+          <tr><td class="profile">code</td><td>Run agent <em>(was "Take!")</em></td><td>Ship</td></tr>
+          <tr><td class="profile">coord</td><td>Mark scheduled / Reschedule</td><td>Mark done / Cancel</td></tr>
+          <tr><td class="profile">followup</td><td>Mark nudged / Escalate</td><td>Mark done / Close</td></tr>
+          <tr><td class="profile">decision</td><td>Mark deciding</td><td>Record decision / Drop</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<h2 class="section-head"><span class="eyebrow">brainstorm 2</span>vocabulary (item #6)</h2>
+<p style="font-size:14.5px; color:var(--color-body); line-height:22px; max-width:75ch;">DESIGN.md says the musical metaphor is "intentional and distinctive." User has decided in favor of accessibility for any knowledge worker. Remaining question is HOW.</p>
+
+<div class="bs-card rejected">
+  <div class="bs-card-head"><span class="opt">option a</span><span class="title">Full rename across the codebase</span><span class="verdict">rejected — fork-tax trap</span></div>
+  <div class="body">
+    <p>Touch every internal symbol: <code>Beat → Task</code>, <code>useBeats → useTasks</code>, <code>/api/beats → /api/tasks</code>.</p>
+    <p>~500-1000 LOC of churn across hundreds of files. Every upstream Foolery rebase becomes a mess. Breaks the API contract.</p>
+  </div>
+</div>
+
+<div class="bs-card rec">
+  <div class="bs-card-head"><span class="opt">option b</span><span class="title">UI-only label-translation layer</span><span class="verdict">recommended</span></div>
+  <div class="body">
+    <p>Single source of truth at <code>src/lib/ui-vocab.ts</code>. Two vocabularies registered: <code>plain</code> (default) and <code>verbose</code> (musical originals, opt-in).</p>
+    <p>Components consume via <code>useVocab()</code>. All 17 user-facing strings swap from literal <code>"Take!"</code> to <code>vocab["Take!"]</code>. Internal types, API routes, file names stay on the musical names → zero upstream Foolery diff, zero API churn.</p>
+    <p><strong>Plain mode mapping:</strong> Beat→Task, Take!→Run, Scene!→Plan it, Setlist→Plan board, ReTakes→Reviews, Escalations→Blockers, Capsule→Context.</p>
+    <p><strong>Reversible</strong> (toggle to verbose in 1 click). <strong>Opens door to multi-language</strong> later (any vocab is a swap-in dictionary).</p>
+  </div>
+</div>
+
+<div class="bs-card rejected">
+  <div class="bs-card-head"><span class="opt">option c</span><span class="title">Glossary tooltips, no rename</span><span class="verdict">rejected — fails the bar</span></div>
+  <div class="body">
+    <p>Keep "Take!" / "Scene!" labels but add a <code>?</code> tooltip explaining each.</p>
+    <p>Doesn't actually fix the problem. New users still have to learn jargon BEFORE they can act.</p>
+  </div>
+</div>
+
+<div class="bs-card rejected">
+  <div class="bs-card-head"><span class="opt">option d</span><span class="title">Settings toggle — plain is opt-in</span><span class="verdict">rejected — defaults matter</span></div>
+  <div class="body">
+    <p>Same as B but user has to flip a switch to get plain mode.</p>
+    <p>Discovery problem — new users won't find the switch.</p>
+  </div>
+</div>
+
+<h2 class="section-head"><span class="eyebrow">per-item TDD</span>test-first breakdown</h2>
+
+<div class="item">
+  <div class="item-head"><span class="num">#0</span><h4>Design-system compliance lint</h4><span class="effort">S · ~50+40 LOC</span></div>
+  <p class="pain"><strong>Pain.</strong> A handful of components still use off-palette Tailwind utilities (<code>bg-amber-50</code>, <code>text-emerald-600</code>, <code>border-zinc-300</code>) and inline <code>#f4efe6</code>. The token swap missed literals.</p>
+  <div class="tdd-block">
+    <div class="tdd-label">red — test first</div>
+    <pre>// src/app/__tests__/no-off-palette-utilities.test.ts
+describe(<span class="ok">"no off-palette Tailwind utilities in app source"</span>, () => {
+  it(<span class="ok">"zero (bg|text|border|ring)-(amber|emerald|sky|red|blue|green|...)-N"</span>, () => {
+    <span class="comment">// walk src/, filter allowlist, grep regex, expect zero offenders</span>
+    expect(offenders).toEqual([]);
+  });
+  it(<span class="ok">"zero inline hex codes outside the spanda palette + #fff/#000"</span>, () => { ... });
+});</pre>
+  </div>
+  <div class="tdd-block">
+    <div class="tdd-label green">green — impl</div>
+    <pre>// 30-minute mechanical pass:
+//   beats-sync-diagnostics-card.tsx        zinc-300 → paper-200, amber-600 → ochre-700
+//   scope-refinement-diagnostics-card.tsx  emerald-600 → moss-700, sky-500 → lake-500
+//   ~2 other files surfaced by the audit
+//
+// Swap 4 occurrences of <span class="ok">#f4efe6</span> → <span class="ok">var(--color-canvas-soft)</span></pre>
+  </div>
+  <div class="ship-gate"><strong>Ship gate.</strong> test green; <code>bun run lint && test && tsc --noEmit && build</code> green; ship runtime; spot-check the two diagnostics cards visually.</div>
+</div>
+
+<div class="item">
+  <div class="item-head"><span class="num">#1</span><h4>Workflow profiles — 4 lifecycles</h4><span class="effort">M · ~200+120 LOC</span></div>
+  <p class="pain"><strong>Pain.</strong> Every bead lands in autopilot's 15-state lifecycle. "Call with Khilan" sits between Plan Review and Shipment columns. Nonsensical.</p>
+  <div class="tdd-block">
+    <div class="tdd-label">red — test first</div>
+    <pre>// src/lib/__tests__/workflows-spanda-profiles.test.ts
+describe(<span class="ok">"BUILTIN_PROFILE_CATALOG: spanda profile set"</span>, () => {
+  it(<span class="ok">"includes 'code' (renamed autopilot_no_planning)"</span>, () => { ... });
+  it(<span class="ok">"includes 'coord' with states scheduled → done"</span>, () => { ... });
+  it(<span class="ok">"includes 'followup' with waiting → nudged → escalated → done"</span>, () => { ... });
+  it(<span class="ok">"includes 'decision' with deciding → decided → executed / dropped"</span>, () => { ... });
+  it(<span class="ok">"descriptorFromProfileConfig respects customStates for each"</span>, () => { ... });
+});
+
+describe(<span class="ok">"resolveProfileForBeat: label-based routing"</span>, () => {
+  it(<span class="ok">"work:code → code, work:coord → coord, ..."</span>, () => { ... });
+  it(<span class="ok">"no work: label → code (default, backwards-compat)"</span>, () => { ... });
+  it(<span class="ok">"two work: labels → FOOLERY DISPATCH FAILURE"</span>, () => { ... });
+});</pre>
+  </div>
+  <div class="tdd-block">
+    <div class="tdd-label green">green — impl</div>
+    <pre>src/lib/workflows.ts
+   ↳ extend BuiltinProfileConfig with customStates / customTerminal / customInitial
+   ↳ teach buildStates() to honor customs
+   ↳ add 3 new entries: coord, followup, decision
+
+src/lib/workflows-runtime.ts
+   ↳ new exported function resolveProfileForBeat(beat, settings): string
+
+src/lib/profile-defaults.ts
+   ↳ wire resolveProfileForBeat into the per-bead resolution path</pre>
+  </div>
+  <div class="ship-gate"><strong>Ship gate.</strong> All tests green. Create 4 throwaway beads (one per work-type label), refresh app, confirm each renders in its own column set.</div>
+</div>
+
+<div class="item">
+  <div class="item-head"><span class="num">#2</span><h4>Label filter — checkbox group in filter-bar</h4><span class="effort">S · ~80+60 LOC</span></div>
+  <p class="pain"><strong>Pain.</strong> Can't isolate <code>work:ic</code> from <code>work:coord</code>.</p>
+  <div class="tdd-block">
+    <div class="tdd-label">red — test first</div>
+    <pre>// src/components/__tests__/filter-bar-labels.test.tsx
+describe(<span class="ok">"FilterBar: label filtering"</span>, () => {
+  it(<span class="ok">"renders one checkbox per unique label in the current set"</span>, () => { ... });
+  it(<span class="ok">"selecting work:code hides coord and followup beats"</span>, () => { ... });
+  it(<span class="ok">"selecting two labels uses OR semantics"</span>, () => { ... });
+  it(<span class="ok">"URL state persists across navigation"</span>, () => { ... });
+  it(<span class="ok">"clearing all checkboxes restores the full list"</span>, () => { ... });
+});</pre>
+  </div>
+  <div class="tdd-block">
+    <div class="tdd-label green">green — impl</div>
+    <pre>src/components/filter-bar.tsx    checkbox group, auto-populated from observed labels
+src/stores/filter-store.ts        Zustand state for the selection
+                                  URL sync via useSearchParams</pre>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item-head"><span class="num">#3</span><h4>"Today" view — HTML, date-driven</h4><span class="effort">M · ~180+100 LOC</span></div>
+  <p class="pain"><strong>Pain.</strong> No date-based slice. Mornings need a bookmarkable URL that answers "what now?"</p>
+  <div class="tdd-block">
+    <div class="tdd-label">red — test first (two files)</div>
+    <pre>// src/app/today/__tests__/page.test.tsx  (pure filter logic)
+describe(<span class="ok">"getTodayBeats: filter logic"</span>, () => {
+  it(<span class="ok">"includes beats due today"</span>, () => { ... });
+  it(<span class="ok">"includes P0/P1 beats with status=ready (regardless of due)"</span>, () => { ... });
+  it(<span class="ok">"includes in_progress beats"</span>, () => { ... });
+  it(<span class="ok">"excludes beats due tomorrow / closed beats"</span>, () => { ... });
+  it(<span class="ok">"sorts by priority then due-date"</span>, () => { ... });
+});
+
+// src/app/today/__tests__/render.test.tsx  (storybook + vitest snapshot)
+describe(<span class="ok">"TodayPage rendering"</span>, () => {
+  it(<span class="ok">"renders sage canvas, no lifecycle columns"</span>, () => { ... });
+  it(<span class="ok">"groups by work-type label"</span>, () => { ... });
+  it(<span class="ok">"renders empty state when no beats today"</span>, () => { ... });
+});</pre>
+  </div>
+  <div class="tdd-block">
+    <div class="tdd-label green">green — impl</div>
+    <pre>new src/app/today/page.tsx         server component, reads bd via backend port
+new src/components/today-list.tsx  card grid, spanda design-system tokens
+update daily-dashboard-synth/SKILL.md  daily HTML link points at /today</pre>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item-head"><span class="num">#4</span><h4>Quick capture + inline edit</h4><span class="effort">M · ~160+120 LOC</span></div>
+  <p class="pain"><strong>Pain.</strong> Must shell out to <code>bd create</code> to add a bead; must <code>bd update</code> to edit. Breaks flow.</p>
+  <div class="tdd-block">
+    <div class="tdd-label">red — test first</div>
+    <pre>// src/components/__tests__/quick-capture-modal.test.tsx
+describe(<span class="ok">"QuickCaptureModal"</span>, () => {
+  it(<span class="ok">"opens on '/' keypress when no input is focused"</span>, () => { ... });
+  it(<span class="ok">"does NOT open on '/' when typing in an input"</span>, () => { ... });
+  it(<span class="ok">"submits POST /api/beats with the form data"</span>, () => { ... });
+  it(<span class="ok">"validates acceptance criteria inline; rejects missing"</span>, () => { ... });
+  it(<span class="ok">"ESC closes; click outside closes; focus-trap on tab"</span>, () => { ... });
+});
+
+// src/components/__tests__/inline-edit.test.tsx
+describe(<span class="ok">"InlineEditField"</span>, () => {
+  it(<span class="ok">"renders as plain text by default"</span>, () => { ... });
+  it(<span class="ok">"becomes contenteditable on click"</span>, () => { ... });
+  it(<span class="ok">"saves on blur via PATCH /api/beats/:id"</span>, () => { ... });
+  it(<span class="ok">"reverts on ESC"</span>, () => { ... });
+});</pre>
+  </div>
+  <div class="tdd-block">
+    <div class="tdd-label green">green — impl</div>
+    <pre>new src/components/quick-capture-modal.tsx  Radix Dialog primitive
+new src/components/inline-edit-field.tsx
+src/app/layout.tsx                          register the '/' global shortcut</pre>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item-head"><span class="num">#6</span><h4>Vocabulary translation layer</h4><span class="effort">S · ~70+100 LOC + ~25 component edits</span></div>
+  <p class="pain"><strong>Pain.</strong> Beat / Take / Scene / Setlist / ReTakes are foreign to non-developers. Per brainstorm: Option B above.</p>
+  <div class="tdd-block">
+    <div class="tdd-label">red — test first</div>
+    <pre>// src/lib/__tests__/ui-vocab.test.ts
+describe(<span class="ok">"ui-vocab"</span>, () => {
+  it(<span class="ok">"plain mode maps Take! → Run"</span>, () => { ... });
+  it(<span class="ok">"plain mode maps Beat → Task and Beats → Tasks"</span>, () => { ... });
+  it(<span class="ok">"plain mode maps Setlist → Plan board"</span>, () => { ... });
+  it(<span class="ok">"verbose mode preserves all originals"</span>, () => { ... });
+  it(<span class="ok">"missing key falls back to the input string (fail-soft)"</span>, () => { ... });
+});
+
+// architectural lint: no JSX uses raw musical vocab
+describe(<span class="ok">"no JSX uses raw musical vocab"</span>, () => {
+  it(<span class="ok">"zero literal Take!/Scene!/Beat/Setlist in src/components/*.tsx"</span>, () => { ... });
+});</pre>
+  </div>
+  <div class="tdd-block">
+    <div class="tdd-label green">green — impl</div>
+    <pre>new src/lib/ui-vocab.ts    plain + verbose vocabularies (single source of truth)
+new src/hooks/use-vocab.ts  returns active vocab from localStorage.spanda_vocab
+~8 component files          swap inline "Take!" / "Beat" → useVocab()["Take!"]</pre>
+  </div>
+</div>
+
+<div class="item">
+  <div class="item-head"><span class="num">#8</span><h4>Stale beads — pool + badge</h4><span class="effort">S · ~30+40 LOC + 5 cfg</span></div>
+  <p class="pain"><strong>Pain.</strong> <code>w9o</code> has been in_progress since Feb. Nothing flags it. <code>stale_grooming</code> pool is empty.</p>
+  <div class="tdd-block">
+    <div class="tdd-label">red — test first</div>
+    <pre>// src/components/__tests__/stale-badge.test.tsx
+describe(<span class="ok">"StaleBadge"</span>, () => {
+  it(<span class="ok">"renders 'stale Nd' when updated_at > 7 days ago"</span>, () => { ... });
+  it(<span class="ok">"renders nothing when updated_at < 7 days ago"</span>, () => { ... });
+  it(<span class="ok">"renders nothing on closed beads regardless of age"</span>, () => { ... });
+  it(<span class="ok">"uses --color-warning-pale bg and --color-warning-content text"</span>, () => { ... });
+});</pre>
+  </div>
+  <div class="tdd-block">
+    <div class="tdd-label green">green — impl</div>
+    <pre>src/components/beat-table-columns.tsx        badge cell
+~/.config/foolery/settings.toml              [pools.stale_grooming] populated</pre>
+  </div>
+</div>
+
+<h2 class="section-head"><span class="eyebrow">P1 + P2</span>follow the P0 set after a week of real use</h2>
+
+<div class="item">
+  <div class="item-head"><span class="num">P1</span><h4>Telegram intake + Take-complete notify</h4><span class="effort">M · ~150 LOC cross-repo</span></div>
+  <p class="pain">Hermes-side adds <code>telegram-intake.py</code> webhook that creates beads via <code>bd create --no-lint --labels work:capture</code>. Spanda-side adds <code>use-terminal-stream.ts</code> hook that fires fetch on terminal complete to a Hermes endpoint that DMs Telegram. Tests on both sides (signature validation, idempotency, fail-soft when webhook URL absent — this is the rare opt-in NOT-fail-loudly case).</p>
+</div>
+
+<div class="item">
+  <div class="item-head"><span class="num">P2</span><h4>Onboarding <code>spanda init</code> CLI</h4><span class="effort">S · ~80 bash + 40 LOC test</span></div>
+  <p class="pain">Bash CLI. <code>scripts/spanda-init.sh --target $HOME/.config/foolery/settings.toml</code> writes a template TOML with claude pool + personal-os repo + default profile. Manual test confirms dry-run produces valid TOML, idempotent, refuses to clobber non-default without <code>--force</code>.</p>
+</div>
+
+<div class="cta">
+  <h2>what to do right now</h2>
+  <p><strong>Approve the brainstorm picks</strong> (Option D for #1, Option B for #6) or push back on them. Then I start.</p>
+  <ol>
+    <li>Item <code>#0</code> first — smallest, lowest risk, sets the test pattern.</li>
+    <li>Then <code>#1</code> — biggest semantic unlock (workflow profiles).</li>
+    <li>Items <code>#2</code>, <code>#3</code>, <code>#4</code>, <code>#6</code>, <code>#8</code> in priority order, each shipped before the next starts.</li>
+  </ol>
+  <p style="margin-top:var(--space-lg);"><a class="btn primary" href="/">← execution review</a> <a class="btn tertiary" href="#" onclick="navigator.clipboard.writeText('approve D and B').then(()=>this.textContent='copied ✓')" style="margin-left:8px">copy "approve D and B"</a></p>
+</div>
+
+</div>
+</body>
+</html>
