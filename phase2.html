@@ -103,7 +103,8 @@ table.snap tr.deferred td { opacity: 0.65; }
 .pri.p0 { background: var(--color-negative-pale); color: var(--color-negative-deep); }
 .pri.p1 { background: var(--color-warning-pale); color: var(--color-warning-content); }
 .pri.p2 { background: var(--color-canvas-sage-deep); color: var(--color-body); }
-.pri.mig { background: var(--color-primary-pale); color: var(--color-positive-deep); }
+.pri.mig { background: var(--color-canvas-sage-deep); color: var(--color-body); }
+.pri.manual { background: var(--color-canvas-sage-deep); color: var(--color-body); }
 
 .eff-tag { display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm); font: 600 11px/14px var(--font-mono); margin-right: 6px; }
 .eff-tag.S { background: var(--color-primary-pale); color: var(--color-positive-deep); }
@@ -196,14 +197,14 @@ table.inner tr:last-child td { border-bottom: none; }
   </div>
   <div class="meta">
     <div><strong>generated</strong> 24 may 2026</div>
-    <div>7 P0 + 1 migration + 2 deferred</div>
+    <div>7 P0 (system) + 1 manual + 2 deferred</div>
   </div>
 </header>
 
 <div class="intro">
   <p><strong>Locked.</strong> Eight clarifying questions answered. This v2 supersedes the brainstorm in v1; the brainstorm cards are gone because the decisions are made. Each P0 item now has a fixed shape and a TDD breakdown ready to execute.</p>
   <p><strong>New design URL</strong> <code>F_V83UBpWm6ExjvFpmWLPQ</code> is byte-identical to the one already imported. No re-import; the gap is component fidelity, not spec drift. Verification work targets that gap.</p>
-  <p><strong>Scope.</strong> 7 P0 items + 1 migration script + 2 deferred. ~1100 LOC new code + ~800 LOC tests + ~120 LOC bash. Realistic: 2-3 focused days for P0, +half a day for the migration.</p>
+  <p><strong>Scope.</strong> I build out the 7 P0 system items. You do the bead migration manually afterward (you know context better than any LLM). ~1000 LOC new code + ~750 LOC tests, no migration script. Realistic: 2-3 focused days for the system, then ~30-60 min of your time to walk the 50 beads.</p>
 </div>
 
 <h2 class="section-head"><span class="eyebrow">decisions locked</span>8 questions, 8 answers</h2>
@@ -235,8 +236,8 @@ table.inner tr:last-child td { border-bottom: none; }
   </div>
   <div class="locked-cell">
     <div class="q">Bead migration approach</div>
-    <div class="a">LLM-assisted; dry-run TSV review; <code>--apply</code> to commit</div>
-    <div class="why">Claude classifies each of the 50 beads with confidence + suggested with:/chasing:. You review/edit the TSV. Re-run with --apply to execute <code>bd update</code>.</div>
+    <div class="a">Manual — you, after the P0 system ships</div>
+    <div class="why">You'll classify the 50 beads by hand using <code>bd update</code> + the new label-filter UI. You know context better than an LLM. I just build out the system, then hand it over.</div>
   </div>
   <div class="locked-cell">
     <div class="q">P1 + P2 status</div>
@@ -321,16 +322,6 @@ table.inner tr:last-child td { border-bottom: none; }
     </tr>
 
     <tr>
-      <td class="num">1b</td>
-      <td><span class="pri mig">MIG</span></td>
-      <td class="title">Migrate 50 existing beads to new profiles
-        <small>LLM-assisted, dry-run TSV review, then --apply</small></td>
-      <td>Script reads beads, claude classifies (profile + with:/chasing: tag + confidence), writes TSV. User reviews. Re-run with <code>--apply</code> executes <code>bd update</code> calls.</td>
-      <td><code>scripts/__manual_tests__/migrate-beads.test.sh</code></td>
-      <td class="eff"><span class="eff-tag S">S</span>~120 bash + 60 LOC</td>
-    </tr>
-
-    <tr>
       <td class="num">2</td>
       <td><span class="pri p0">P0</span></td>
       <td class="title">Label filter — checkbox group
@@ -378,6 +369,18 @@ table.inner tr:last-child td { border-bottom: none; }
       <td>Settings.toml: <code>[pools.stale_grooming]</code> populated. Component: badge cell reading <code>updated_at</code>, warning-pale bg.</td>
       <td><code>stale-badge.test.tsx</code></td>
       <td class="eff"><span class="eff-tag S">S</span>~30+40 LOC + 5 cfg</td>
+    </tr>
+
+    <tr class="divider"><td colspan="6">Last — after P0 ships, you'll do this manually</td></tr>
+
+    <tr>
+      <td class="num">1b</td>
+      <td><span class="pri manual">YOU</span></td>
+      <td class="title">Migrate 50 existing beads to the 4 new profiles
+        <small>manual pass by Aravinth, not scripted; uses the new label UI from P0</small></td>
+      <td>After P0 lands, the new <code>work:*</code> labels exist, the lint enforces them on create, and the filter UI lets you triage. You walk the 50 open beads with <code>bd update</code> + the UI; classify by hand because you know the context better than any LLM.</td>
+      <td>—</td>
+      <td class="eff">manual</td>
     </tr>
 
     <tr class="divider"><td colspan="6">Deferred — schedule after P0 ships</td></tr>
@@ -511,41 +514,6 @@ scripts/bd-lint-wrapper.sh
 </div>
 
 <div class="item">
-  <div class="item-head"><span class="num">#1b</span><h4>Migrate 50 existing beads to the 4 profiles (LLM-assisted)</h4><span class="effort">S · ~120 bash + 60 LOC</span></div>
-  <p class="pain"><strong>Pain.</strong> Existing 50 beads all default to <code>do</code> after the rename. Many of them are coord ("Call with Pratul"), followup ("Confirm cash flow forecaster"), or decide ("Decide UPI POC closure"). Need to reclassify cleanly with people tags.</p>
-  <div class="tdd-block">
-    <div class="tdd-label">red — test first (manual, runs via test:manual)</div>
-    <pre>// scripts/__manual_tests__/migrate-beads.test.sh
-describe(<span class="ok">"migrate-beads.sh"</span>, () => {
-  it(<span class="ok">"--dry-run produces TSV with: bead_id, current_labels, suggested_profile,"</span>);
-  it(<span class="ok">"  suggested_person_tag, confidence (0-1), claude_reasoning"</span>);
-  it(<span class="ok">"--dry-run does NOT call bd update"</span>);
-  it(<span class="ok">"--apply reads the (possibly-edited) TSV and runs bd update per row"</span>);
-  it(<span class="ok">"--apply skips rows with confidence &lt; 0.5 unless --force"</span>);
-  it(<span class="ok">"is idempotent: re-running --apply with the same TSV makes zero changes"</span>);
-});</pre>
-  </div>
-  <div class="tdd-block">
-    <div class="tdd-label green">green — impl</div>
-    <pre>scripts/migrate-beads.sh
-  --dry-run [--target out.tsv]
-       Reads `bd list --status open --format &lt;template&gt;`
-       For each bead, sends to claude with the locked classification prompt
-       Writes TSV: id | current_labels | profile | person_tag | confidence | reasoning
-
-  --apply [--input out.tsv] [--force]
-       Parses TSV; for each row at confidence ≥ 0.5 (or --force),
-       runs: bd update &lt;id&gt; --labels-add work:&lt;profile&gt; --labels-add &lt;person_tag&gt;
-       Logs every action to scripts/__manual_tests__/migrate-beads.audit.log
-
-scripts/__fixtures__/migration-prompt.md
-  The locked classification prompt that goes to claude. Anchored to the 4 profiles
-  + people-tag conventions. Returns strict JSON for parsing.</pre>
-  </div>
-  <div class="ship-gate"><strong>Ship gate.</strong> Run <code>bash scripts/migrate-beads.sh --dry-run --target /tmp/migration.tsv</code>; review the TSV (expect ~10-15 coord, ~10-15 followup, ~3-5 decide, ~20 do); edit any low-confidence rows; <code>--apply --input /tmp/migration.tsv</code>. Confirm every bead now carries a <code>work:*</code> label and (where applicable) <code>with:</code>/<code>chasing:</code>.</div>
-</div>
-
-<div class="item">
   <div class="item-head"><span class="num">#2</span><h4>Label filter — checkbox group in filter-bar</h4><span class="effort">S · ~80+60 LOC</span></div>
   <p class="pain"><strong>Pain.</strong> Can't isolate <code>work:do</code> from <code>work:coordinate</code>. Locked: simplest path is a checkbox group, auto-populated from observed labels.</p>
   <div class="tdd-block">
@@ -655,7 +623,30 @@ describe(<span class="ok">"StaleBadge"</span>, () => {
   </div>
 </div>
 
-<h3 class="subsection">Deferred — schedule after P0 ships</h3>
+<h3 class="subsection">After P0 ships — your manual migration pass</h3>
+
+<div class="item">
+  <div class="item-head"><span class="num">#1b</span><h4>Migrate the 50 existing beads manually (you, not the system)</h4><span class="effort">manual · ~30-60 min</span></div>
+  <p class="pain"><strong>Why manual.</strong> You know the context per bead better than any LLM can infer from a title. After P0 lands, every primitive you need exists: the 4 profile labels exist, <code>bd-lint</code> enforces the people-tag rule on new beads, the filter UI lets you triage by label, and quick-edit lets you change labels inline without a context switch.</p>
+  <div class="tdd-block">
+    <div class="tdd-label green">your flow (no test, no script)</div>
+    <pre><span class="comment"># 1. list the 50 open beads with their current titles</span>
+cd ~/personal-os && bd list --status open --flat
+
+<span class="comment"># 2. walk top-down, classifying each in one of four bd update calls:</span>
+bd update &lt;id&gt; --labels-add <span class="ok">work:do</span>
+bd update &lt;id&gt; --labels-add <span class="ok">work:coordinate,with:khilan</span>
+bd update &lt;id&gt; --labels-add <span class="ok">work:followup,chasing:pratul</span>
+bd update &lt;id&gt; --labels-add <span class="ok">work:decide</span>
+
+<span class="comment"># 3. open Spanda; use the new label-checkbox filter (item #2) to verify
+#    each category is populated correctly. Tweak labels in-place via the
+#    quick-edit (item #4).</span></pre>
+  </div>
+  <p class="pain" style="margin:var(--space-md) 0 0;">Aim: every open bead has a <code>work:*</code> label after the pass. Beads without one default to <code>do</code>, but explicit is better.</p>
+</div>
+
+<h3 class="subsection">Deferred — schedule after manual migration</h3>
 
 <div class="item deferred">
   <div class="item-head"><span class="num">P1</span><h4>Telegram intake + Take-complete notify</h4><span class="effort">M · ~150 LOC cross-repo</span></div>
@@ -669,16 +660,17 @@ describe(<span class="ok">"StaleBadge"</span>, () => {
 
 <div class="cta">
   <h2>execution order (when you say go)</h2>
-  <p><strong>One ship per item.</strong> Each shipped before the next starts. Backup retained per ship-spanda.sh; rollback in 60s.</p>
+  <p><strong>One ship per item.</strong> Each shipped before the next starts. Backup retained per <code>ship-spanda.sh</code>; rollback in 60s.</p>
+  <p>I build out the system in P0 order. <strong>#1b is yours</strong> — manual pass after the system is in place. Telegram + spanda init stay deferred.</p>
   <ol>
     <li><code>#0</code> — DS-compliance hybrid loop. Smallest, lowest risk, establishes the snapshot test pattern.</li>
     <li><code>#1</code> — 4 workflow profiles + people-tag lint. Biggest semantic unlock.</li>
-    <li><code>#1b</code> — migrate 50 existing beads (dry-run TSV → you review → <code>--apply</code>).</li>
     <li><code>#6</code> — vocabulary layer. Single source of truth; touches ~25 components mechanically.</li>
     <li><code>#2</code> — label filter checkboxes. Lights up the new label namespace visually.</li>
     <li><code>#3</code> — Today view (server-side daily read).</li>
     <li><code>#4</code> — quick capture + inline edit.</li>
     <li><code>#8</code> — stale badge + pool config.</li>
+    <li><strong style="color:var(--color-primary)">#1b</strong> — <strong style="color:var(--color-primary)">YOU</strong>, manual migration pass once the system above is live.</li>
   </ol>
   <p style="margin-top:var(--space-lg);"><a class="btn primary" href="/">← execution review</a> <a class="btn tertiary" href="#" onclick="navigator.clipboard.writeText('go').then(()=>this.textContent='copied ✓')" style="margin-left:8px">copy "go"</a></p>
 </div>
