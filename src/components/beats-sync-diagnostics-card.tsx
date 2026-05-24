@@ -61,7 +61,7 @@ export function BeatsSyncDiagnosticsCard() {
               Latest completed synchronization data and result.
             </CardDescription>
           </div>
-          <Icon className={successful ? "size-5 text-emerald-600" : "size-5 text-muted-foreground"} />
+          <Icon className={successful ? "size-5 text-moss-700" : "size-5 text-muted-foreground"} />
         </div>
       </CardHeader>
       <CardContent>

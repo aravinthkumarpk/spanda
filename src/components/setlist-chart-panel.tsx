@@ -351,8 +351,8 @@ function ChartCell({
               className={
                 "w-full border-t px-[4px] py-[2px] whitespace-normal break-words text-[11px] leading-tight"
                 + (isTerminal
-                  ? " border-zinc-200 bg-stone-50/55 text-foreground/55 italic"
-                  : " border-zinc-300 bg-stone-50/85 text-foreground/80")
+                  ? " border-paper-200 bg-paper-50/55 text-foreground/55 italic"
+                  : " border-paper-300 bg-paper-50/85 text-foreground/80")
               }
             >
               {cell.title}
@@ -375,8 +375,8 @@ function buildChartCellClass(
     + (isActiveLease
       ? " border-paper-500/85 shadow-[0_0_0_1px_rgba(51,65,85,0.18),0_4px_14px_rgba(51,65,85,0.14)]"
       : isTerminal
-      ? " border-zinc-300/90 opacity-85"
-      : " border-zinc-400")
+      ? " border-paper-300/90 opacity-85"
+      : " border-paper-400")
   );
 }
 

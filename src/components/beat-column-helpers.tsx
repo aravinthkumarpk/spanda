@@ -165,7 +165,7 @@ function AddLabelDropdown({
             className={
               "w-full px-2 py-1 text-xs border"
               + " rounded mb-1 outline-none"
-              + " focus:ring-1 focus:ring-green-500"
+              + " focus:ring-1 focus:ring-moss-500"
             }
           />
         </div>

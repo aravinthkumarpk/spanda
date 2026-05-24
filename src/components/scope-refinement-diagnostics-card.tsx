@@ -131,7 +131,7 @@ function ActiveJobsTable({
                     + (isStalled
                       ? "text-destructive font-medium"
                       : isSlow
-                        ? "text-amber-600 font-medium"
+                        ? "text-ochre-700 font-medium"
                         : "")
                   }
                 >

@@ -152,7 +152,7 @@ function BeatListPanel({
         className={
           "overflow-y-auto outline-none"
           + " focus-visible:ring-1"
-          + " focus-visible:ring-sky-500/70"
+          + " focus-visible:ring-lake-500/70"
         }
       >
         <BeatListContent
