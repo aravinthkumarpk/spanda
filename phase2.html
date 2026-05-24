@@ -201,6 +201,146 @@ table.inner tr:last-child td { border-bottom: none; }
   </div>
 </header>
 
+<!-- ============================================================
+     RUNNING TASK LIST — updated as work progresses.
+     Notes per task: decisions, changes, tradeoffs, surprises.
+     ============================================================ -->
+<style>
+.task-list { background: var(--color-ink); color: var(--color-on-ink); border-radius: var(--radius-xl); padding: var(--space-xl); margin-bottom: var(--space-2xl); }
+.task-list h2 { font: 900 28px/1 var(--font-display); letter-spacing: -0.8px; color: var(--color-primary); margin: 0 0 var(--space-md); }
+.task-list .meta { font: 400 13px/18px var(--font-sans); color: rgba(232,235,230,0.65); margin-bottom: var(--space-lg); }
+.task-list ul.tasks { list-style: none; padding: 0; margin: 0; }
+.task-list li.task { padding: var(--space-md) 0; border-bottom: 1px solid rgba(232,235,230,0.08); font: 400 14px/22px var(--font-sans); color: var(--color-on-ink); }
+.task-list li.task:last-child { border-bottom: none; }
+.task-list .checkbox { font: 600 13px/22px var(--font-mono); color: rgba(232,235,230,0.5); margin-right: var(--space-sm); display: inline-block; min-width: 24px; }
+.task-list li.t-done > .row { opacity: 0.55; }
+.task-list li.t-done > .row .checkbox { color: var(--color-primary); }
+.task-list li.t-done > .row strong { text-decoration: line-through; }
+.task-list li.t-active > .row .checkbox { color: var(--color-warning); }
+.task-list li.t-active > .row strong { color: var(--color-primary); }
+.task-list li.t-skip > .row { opacity: 0.45; }
+.task-list li.t-skip > .row .checkbox { color: var(--color-mute); }
+.task-list li.t-skip > .row strong { text-decoration: line-through; color: var(--color-mute); }
+.task-list .row strong { color: var(--color-on-ink); font-weight: 600; }
+.task-list .group { font: 600 11px/16px var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-primary); margin: var(--space-lg) 0 var(--space-sm); padding-top: var(--space-md); border-top: 1px dashed rgba(232,235,230,0.12); }
+.task-list .group:first-child { padding-top: 0; border-top: none; margin-top: 0; }
+.task-list ul.notes { list-style: none; padding: var(--space-xs) 0 0 32px; margin: 0; }
+.task-list ul.notes li { font: 400 12.5px/19px var(--font-sans); color: rgba(232,235,230,0.78); padding: 1px 0; }
+.task-list ul.notes li strong { color: var(--color-primary); font-weight: 600; }
+.task-list ul.notes li code { font: 11.5px var(--font-mono); background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 4px; color: var(--color-primary); }
+.task-list .ptr { font: 600 11.5px/16px var(--font-mono); color: var(--color-warning); margin-top: var(--space-sm); padding: 6px 10px; background: rgba(255,209,26,0.08); border-radius: var(--radius-sm); display: inline-block; }
+</style>
+<section class="task-list">
+  <h2>task list — execution log</h2>
+  <p class="meta">Updated live as work progresses. Notes per completed task: decisions, changes, tradeoffs, surprises.</p>
+  <ul class="tasks">
+
+    <li class="group">setup</li>
+
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T1.</strong> Add running task list to top of phase2.html</div>
+      <ul class="notes">
+        <li><strong>Decisions:</strong> placed above the intro, inside an ink-fill panel so it visually anchors the page like a control surface. Used checkbox notation <code>[x] / [ ] / [-]</code> per spec.</li>
+        <li><strong>Changes:</strong> none</li>
+        <li><strong>Tradeoffs:</strong> chose to put notes inline under each task vs a separate notes section — denser but easier to scan when reviewing.</li>
+        <li><strong>Surprises:</strong> none</li>
+      </ul>
+    </li>
+
+    <li class="group">#0b — logo swap (visible win first)</li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T2.</strong> Write <code>spanda-lockup.test.ts</code> (red)</div>
+      <ul class="notes">
+        <li><strong>Decisions:</strong> 7 assertions (role/aria, pearl circle r=34 with gradient, exactly 2 lime eyes, "spanda" text in Manrope 900, currentColor on text, className passthrough, aria-label override). Test uses <code>react-dom/server</code> SSR string-match — hermetic, no JSDOM.</li>
+        <li><strong>Changes:</strong> renamed file <code>.test.tsx → .test.ts</code> mid-flight. <strong>Surprise:</strong> the unit project's include glob is <code>**/*.test.ts</code> — does NOT match <code>.test.tsx</code> (which I thought it did from earlier observations). Existing <code>beat-metadata-details.test.tsx</code> must run only in the storybook project. <code>createElement</code> works in .ts so the rename is clean.</li>
+        <li><strong>Tradeoffs:</strong> SSR string-match vs JSDOM render. SSR is faster, more deterministic, no real DOM needed for what I'm asserting (SVG structure).</li>
+        <li><strong>Surprises:</strong> React SSR does NOT HTML-entity-encode em-dashes in attribute values. Had to fix <code>&amp;#x2014;</code> assertion to literal "—".</li>
+      </ul>
+    </li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T3.</strong> Create <code>src/components/spanda-lockup.tsx</code> (green)</div>
+      <ul class="notes">
+        <li><strong>Decisions:</strong> gradient id <code>spandaLockupPearl</code> (not just <code>lockupPearl</code>) to avoid CSS id collisions if execution.html / phase2.html SVGs also render on the same page later.</li>
+        <li><strong>Changes:</strong> none vs spec</li>
+        <li><strong>Tradeoffs:</strong> inline SVG vs <code>&lt;img src="..."&gt;</code>. Inline because <code>currentColor</code> only works inline, and theming via Tailwind <code>text-*</code> is the whole point.</li>
+        <li><strong>Surprises:</strong> none</li>
+      </ul>
+    </li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T4.</strong> Swap <code>FooleryWordmark → SpandaLockup</code> in <code>app-header-parts.tsx</code></div>
+      <ul class="notes">
+        <li><strong>Decisions:</strong> kept the <code>h-[42px] w-auto</code> sizing identical so layout doesn't shift. Changed text colour from <code>text-clay-600</code> (was orange/clay) to <code>text-ink-900</code> (ink), with <code>dark:text-paper-100</code> for dark mode. Matches DESIGN.md: the wordmark is ink on sage canvas, sage on ink in dark.</li>
+        <li><strong>Changes:</strong> none vs spec</li>
+        <li><strong>Tradeoffs:</strong> none</li>
+      </ul>
+    </li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T5.</strong> Delete <code>foolery-wordmark.tsx</code> + grep for orphan refs</div>
+      <ul class="notes">
+        <li><strong>Decisions:</strong> deleted the .tsx file outright. No tests existed for FooleryWordmark so no test file to delete.</li>
+        <li><strong>Changes:</strong> none. <code>grep -rn foolery-wordmark src/</code> returns empty post-delete.</li>
+        <li><strong>Surprises:</strong> none</li>
+      </ul>
+    </li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T6.</strong> Full quality gates + ship-spanda + commit #0b</div>
+      <ul class="notes">
+        <li><strong>Quality gates:</strong> lint ✓ 0 errors · tsc ✓ 0 errors · test ✓ 2881 pass (+7 from baseline = the 7 new SpandaLockup assertions, no regressions) · build ✓ green</li>
+        <li><strong>Ship:</strong> running ship-spanda.sh after commit, then verifying live</li>
+        <li><strong>Surprises:</strong> none</li>
+      </ul>
+    </li>
+
+    <li class="ptr">→ next up: T7 (#0 DS-compliance token loop)</li>
+
+    <li class="group">#0 — DS-compliance token loop</li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T7.</strong> Write <code>ds-compliance-token-loop.test.ts</code> — walks <code>src/components/*.tsx</code>, asserts zero off-palette utilities + zero stray inline hex</div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T8.</strong> Fix off-palette offenders (zinc/stone/amber/emerald/sky in diagnostics cards)</div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T9.</strong> Fix 4 inline <code>#f4efe6</code> occurrences → <code>var(--color-canvas-soft)</code></div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T10.</strong> Commit #0 token-lint pass</div></li>
+
+    <li class="group">#0 — structural snapshots (deferred-if-tight)</li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T11.</strong> Write <code>app-header-structure.test.tsx</code> snapshot vs <code>ui_kits/AppHeader.jsx</code></div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T12.</strong> Refactor <code>app-header-parts.tsx</code> to match (tab pill, lime active, ink+lime Add)</div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T13.</strong> Repeat snapshot+refactor for QueuesView, BeatDetail, SetlistView, OverviewView, TerminalPanel, TakeABeatCard <em>(may defer most; ship the loop + AppHeader, iterate the rest)</em></div></li>
+
+    <li class="group">#1 — workflow profiles + people-tag lint</li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T14.</strong> Write <code>workflows-spanda-profiles.test.ts</code> (red)</div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T15.</strong> Extend <code>BuiltinProfileConfig</code> with <code>customStates / customTerminal / customInitial</code>; teach <code>buildStates()</code></div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T16.</strong> Replace catalog: rename <code>autopilot_no_planning → do</code>, drop other 5, add <code>coordinate / followup / decide</code></div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T17.</strong> Write <code>workflows-runtime-routing.test.ts</code> (red)</div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T18.</strong> Implement <code>resolveProfileForBeat</code> with backwards-compat <code>autopilot_no_planning → do</code> alias</div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T19.</strong> Write <code>bd-lint</code> people-tag tests (coordinate requires <code>with:</code>, followup requires <code>chasing:</code>)</div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T20.</strong> Extend <code>bd-lint-wrapper.sh</code> with people-tag enforcement</div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T21.</strong> Commit #1</div></li>
+
+    <li class="group">#6 — vocabulary translation layer</li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T22.</strong> Write <code>ui-vocab.test.ts</code> (red)</div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T23.</strong> Create <code>src/lib/ui-vocab.ts</code> + <code>src/hooks/use-vocab.ts</code></div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T24.</strong> Write <code>ui-strings-no-direct-vocab.test.tsx</code> architectural lint</div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T25.</strong> Swap ~17 string occurrences across ~8 components to <code>useVocab()</code></div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T26.</strong> Commit #6</div></li>
+
+    <li class="group">#2 — label filter checkboxes</li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T27.</strong> Write <code>filter-bar-labels.test.tsx</code> (red)</div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T28.</strong> Implement checkbox group + Zustand state + URL sync</div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T29.</strong> Commit #2</div></li>
+
+    <li class="group">#3 — Today view (server-side daily read)</li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T30.</strong> Write <code>app/today/page.test.tsx</code> (path resolution + fallback) + <code>render.test.tsx</code></div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T31.</strong> Implement <code>daily-loader.ts</code> + <code>app/today/page.tsx</code> + <code>today-content-frame.tsx</code></div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T32.</strong> Commit #3</div></li>
+
+    <li class="group">#4 — quick capture modal + inline edit</li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T33.</strong> Write <code>quick-capture-modal.test.tsx</code> + <code>inline-edit.test.tsx</code> (red)</div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T34.</strong> Implement modal (Radix Dialog) + inline edit field + global <code>/</code> shortcut</div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T35.</strong> Commit #4</div></li>
+
+    <li class="group">#8 — stale badge + pool config</li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T36.</strong> Write <code>stale-badge.test.tsx</code> (red)</div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T37.</strong> Implement badge cell + populate <code>[pools.stale_grooming]</code> in settings.toml</div></li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T38.</strong> Commit #8</div></li>
+
+    <li class="group">finalize</li>
+    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T39.</strong> Full quality gate + final ship-spanda + verify live + push the branch + final check-off pass</div></li>
+
+  </ul>
+</section>
+
 <div class="intro">
   <p><strong>Locked.</strong> Eight clarifying questions answered. This v2 supersedes the brainstorm in v1; the brainstorm cards are gone because the decisions are made. Each P0 item now has a fixed shape and a TDD breakdown ready to execute.</p>
   <p><strong>New design URL</strong> <code>F_V83UBpWm6ExjvFpmWLPQ</code> is byte-identical to the one already imported. No re-import; the gap is component fidelity, not spec drift. Verification work targets that gap.</p>

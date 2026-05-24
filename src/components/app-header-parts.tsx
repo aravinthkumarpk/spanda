@@ -7,7 +7,7 @@ import {
   Zap, Inbox, BarChart3, ListMusic,
   LayoutDashboard,
 } from "lucide-react";
-import { FooleryWordmark } from "@/components/foolery-wordmark";
+import { SpandaLockup } from "@/components/spanda-lockup";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { VersionBadge } from "@/components/version-badge";
 import { RepoSwitcher } from "@/components/repo-switcher";
@@ -187,7 +187,8 @@ export function HeaderBranding(props: {
           router.push(`/beats${qs ? `?${qs}` : ""}`);
         }}
       >
-        <FooleryWordmark className="h-[42px] w-auto text-clay-600 dark:text-paper-100" />
+        {/* SpandaLockup colors via currentColor; ink-900 in light, paper-100 in dark. */}
+        <SpandaLockup className="h-[42px] w-auto text-ink-900 dark:text-paper-100" />
       </button>
       <VersionBadge
         installedVersion={versionStatus?.installedVersion ?? null}
