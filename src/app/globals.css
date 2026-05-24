@@ -166,6 +166,11 @@
   --color-negative-bg:       #320707;
   --color-negative-pale:     #fce8e9;
 
+  /* ----- Direct border aliases (preview cards use the short names) ----- */
+  --border-default:  #0e0f0c;
+  --border-soft:     rgba(14, 15, 12, 0.10);
+  --border-faint:    rgba(14, 15, 12, 0.06);
+
   /* ----- TYPE SCALE -----
      Integer pixels. Spanda spec adds canonical display scales for
      editorial moments alongside the Tailwind text-* utility names. */
