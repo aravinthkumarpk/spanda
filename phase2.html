@@ -363,11 +363,38 @@ table.inner tr:last-child td { border-bottom: none; }
     </li>
 
     <li class="group">#6 — vocabulary translation layer</li>
-    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T22.</strong> Write <code>ui-vocab.test.ts</code> (red)</div></li>
-    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T23.</strong> Create <code>src/lib/ui-vocab.ts</code> + <code>src/hooks/use-vocab.ts</code></div></li>
-    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T24.</strong> Write <code>ui-strings-no-direct-vocab.test.tsx</code> architectural lint</div></li>
-    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T25.</strong> Swap ~17 string occurrences across ~8 components to <code>useVocab()</code></div></li>
-    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T26.</strong> Commit #6</div></li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T22.</strong> Write <code>ui-vocab.test.ts</code> (red, 18 assertions)</div>
+      <ul class="notes">
+        <li><strong>Decisions:</strong> VocabKey union covers all 13 known musical-vocab strings. Two named vocabularies: plain (default) + verbose (identity map). Helper <code>vocab(name, key)</code> + hook <code>useVocab()</code>. Fail-soft: unknown keys return verbatim.</li>
+      </ul>
+    </li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T23.</strong> Create <code>src/lib/ui-vocab.ts</code> + <code>src/hooks/use-vocab.ts</code></div>
+      <ul class="notes">
+        <li><strong>Decisions:</strong> hook uses <code>useSyncExternalStore</code> (NOT useState+useEffect). React 19 lint rule <code>react-hooks/set-state-in-effect</code> rejects sync setState in effects — useSyncExternalStore is the idiomatic pattern for localStorage subscriptions. SSR-safe via getServerSnapshot returning DEFAULT_VOCAB.</li>
+        <li><strong>Surprises:</strong> hit the React 19 lint rule on first pass; rewrote to useSyncExternalStore on second.</li>
+      </ul>
+    </li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T24.</strong> Write <code>ui-strings-no-direct-vocab.test.ts</code></div>
+      <ul class="notes">
+        <li><strong>Decisions:</strong> walks src/components + src/app .tsx files, regex catches raw <code>"Take!"</code> / <code>"Scene!"</code> literals. Line-level allow: lines containing <code>vocab(</code> or <code>v(</code> are skipped (legit consumer sites).</li>
+        <li><strong>Changes:</strong> exempted <code>agent-history-utils.tsx</code> + <code>settings-actions-section.tsx</code> — data/utility files that EMIT vocab keys as return values. Render site downstream must wrap; checked downstream, not here.</li>
+        <li><strong>Surprises:</strong> first regex was too aggressive — caught literals INSIDE <code>vocab("Take!")</code> calls. Refined to line-based exemption to allow legit consumers.</li>
+      </ul>
+    </li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T25.</strong> Swap string occurrences</div>
+      <ul class="notes">
+        <li><strong>Reality:</strong> only ONE real render site needed swapping — <code>beat-column-defs-extra.tsx:380-381</code> where <code>const label = isParent ? "Scene!" : "Take!"</code>. Wrapped both in <code>vocab(DEFAULT_VOCAB, ...)</code>.</li>
+        <li><strong>Tradeoffs:</strong> column-def renderer is called outside React hook context (TanStack table cell), so static <code>vocab()</code> with DEFAULT_VOCAB instead of <code>useVocab()</code>. Loses live verbose-mode swap for this label — acceptable since the cell renderer is shared infrastructure.</li>
+        <li><strong>Surprises:</strong> v2 spec said "~17 occurrences across ~8 components". Audit was right about counts but most were in data/utility files (2 exempt) or already going through the legacy <code>FooleryWordmark</code> (now <code>SpandaLockup</code>, no vocab needed). The actual live-render literal count was 2.</li>
+        <li><strong>Test fallout:</strong> 1 test (<code>gate-owner-claimability</code>) asserted <code>"Take!"</code> in rendered HTML; updated to expect <code>"Run"</code> with a note explaining the vocab swap.</li>
+      </ul>
+    </li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T26.</strong> Commit #6</div>
+      <ul class="notes">
+        <li><strong>QG:</strong> lint ✓ · tsc ✓ · 2934 tests pass (+20: 18 ui-vocab + 2 ui-strings-lint) · build ✓</li>
+        <li><strong>Live effect:</strong> the Take! button in the kanban now reads "Run" by default.</li>
+      </ul>
+    </li>
 
     <li class="group">#2 — label filter checkboxes</li>
     <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T27.</strong> Write <code>filter-bar-labels.test.tsx</code> (red)</div></li>

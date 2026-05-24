@@ -58,7 +58,10 @@ describe("gate owner claimability UI affordances", () => {
 
     const html = renderCell(column.cell, makeBeat());
 
-    expect(html).toContain("Take!");
+    // Post-vocab swap: the action button label renders "Run" by default
+    // (plain vocab) instead of the musical "Take!". The button retains
+    // the original "Take!" semantics via title="Run" + the icon.
+    expect(html).toContain("Run");
   });
 
   it("shows owner badges for gate beats based on the next owner", () => {

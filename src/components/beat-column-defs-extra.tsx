@@ -3,6 +3,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Beat } from "@/lib/types";
 import { BeatStateBadge } from "@/components/beat-state-badge";
+import { vocab, DEFAULT_VOCAB } from "@/lib/ui-vocab";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -376,9 +377,14 @@ export function actionColumn(
         _hasChildren?: boolean;
       };
       const isParent = hb._hasChildren ?? false;
+      // Render through the vocab layer so 'Take!' → 'Run' and 'Scene!'
+      // → 'Plan it' under the default plain vocab. Renderer is called
+      // outside React hook context (TanStack table cell), so we use
+      // the static vocab() helper with DEFAULT_VOCAB instead of
+      // useVocab() — loses live verbose-mode swap, acceptable trade.
       const label = isParent
-        ? "Scene!"
-        : "Take!";
+        ? vocab(DEFAULT_VOCAB, "Scene!")
+        : vocab(DEFAULT_VOCAB, "Take!");
 
       if (isActive) {
         return renderRollingActive(
