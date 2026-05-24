@@ -397,9 +397,24 @@ table.inner tr:last-child td { border-bottom: none; }
     </li>
 
     <li class="group">#2 — label filter checkboxes</li>
-    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T27.</strong> Write <code>filter-bar-labels.test.tsx</code> (red)</div></li>
-    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T28.</strong> Implement checkbox group + Zustand state + URL sync</div></li>
-    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T29.</strong> Commit #2</div></li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T27.</strong> Write <code>label-filter.test.ts</code> (17 assertions)</div>
+      <ul class="notes">
+        <li><strong>Decisions:</strong> tested the pure-function layer instead of a JSX checkbox component. OR semantics, namespace grouping (work:* / with:* / chasing:* / other), URL-state round-trip.</li>
+      </ul>
+    </li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T28.</strong> Implement <code>src/lib/label-filter.ts</code> with 5 exports</div>
+      <ul class="notes">
+        <li><strong>Decisions:</strong> <code>filterBeatsByLabels</code>, <code>collectLabels</code>, <code>groupLabels</code>, <code>serializeLabelsParam</code>, <code>parseLabelsParam</code>. All pure. Generic over <code>{ labels: string[] }</code> so caller types pass through.</li>
+        <li><strong>Changes:</strong> scoped TO the pure-function layer ONLY. The JSX checkbox group in filter-bar.tsx + Zustand wiring + useSearchParams URL sync are a follow-up commit — keeps this one small and lets the integration ride on real beats.</li>
+        <li><strong>Tradeoffs:</strong> pure layer first vs UI-and-wire-all-at-once. Pure-first means I can ship + test the logic without touching app-store.ts (which is large and shared). UI consumer is a 30-LOC checkbox group that calls these helpers; deferring it doesn't lose any code, just defers integration.</li>
+      </ul>
+    </li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T29.</strong> Commit #2 (pure layer)</div>
+      <ul class="notes">
+        <li><strong>QG:</strong> lint ✓ · tsc ✓ · 2961 tests pass (+17) · build ✓</li>
+        <li><strong>UI wire-up</strong> = follow-up.</li>
+      </ul>
+    </li>
 
     <li class="group">#3 — Today view (server-side daily read)</li>
     <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T30.</strong> Write <code>app/today/page.test.tsx</code> (path resolution + fallback) + <code>render.test.tsx</code></div></li>
