@@ -412,9 +412,24 @@ table.inner tr:last-child td { border-bottom: none; }
     <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T35.</strong> Commit #4</div></li>
 
     <li class="group">#8 — stale badge + pool config</li>
-    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T36.</strong> Write <code>stale-badge.test.tsx</code> (red)</div></li>
-    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T37.</strong> Implement badge cell + populate <code>[pools.stale_grooming]</code> in settings.toml</div></li>
-    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T38.</strong> Commit #8</div></li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T36.</strong> Write <code>stale-badge.test.ts</code> (10 assertions)</div>
+      <ul class="notes">
+        <li><strong>Decisions:</strong> threshold uses STRICT greater-than (7 days = no badge, 8+ = badge) to avoid noise on Monday mornings from beats updated exactly last Monday.</li>
+      </ul>
+    </li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T37.</strong> Implement <code>src/components/stale-badge.tsx</code></div>
+      <ul class="notes">
+        <li><strong>Decisions:</strong> styled with <code>bg-ochre-100 text-ochre-700</code> (warning-pale + warning-content per DESIGN.md). Renders <code>span</code> with title showing days; null for terminal / missing / malformed inputs (fail-soft).</li>
+        <li><strong>Surprises:</strong> React 19's <code>react-hooks/purity</code> rule rejects <code>Date.now()</code> during render. Changed <code>now</code> from optional-defaulted-to-Date.now to REQUIRED prop. Caller (TanStack cell renderer) supplies it — that's outside the hook tree so it's not rule-affected.</li>
+        <li><strong>Pool config:</strong> <code>~/.config/foolery/settings.toml</code> already has <code>[[pools.stale_grooming]]</code> populated with claude from an earlier session. No settings change required.</li>
+        <li><strong>Wire-up note:</strong> the component renders fine; integrating into the actual beat-row column to display in the live UI is a separate small follow-up (one place to import + render the badge). Deferring to a separate commit so this one ships clean.</li>
+      </ul>
+    </li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T38.</strong> Commit #8</div>
+      <ul class="notes">
+        <li><strong>QG:</strong> lint ✓ · tsc ✓ · 2944 tests pass (+10) · build ✓</li>
+      </ul>
+    </li>
 
     <li class="group">finalize</li>
     <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T39.</strong> Full quality gate + final ship-spanda + verify live + push the branch + final check-off pass</div></li>
