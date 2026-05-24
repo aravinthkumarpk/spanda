@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>spanda, badges & pills</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin:0; padding:24px; background:var(--bg-page); font-family:var(--font-sans); color:var(--fg-default); }
+  .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px; }
+  .pill { font-family:var(--font-sans); font-weight:600; font-size:14px; line-height:20px; padding:3px 12px; border-radius:9999px; display:inline-flex; align-items:center; gap:6px; }
+  .pos { background:#e2f6d5; color:#054d28; }
+  .warn { background:#fff4cc; color:#4a3b1c; }
+  .neg { background:#320707; color:#fff; }
+  .neutral { background:#e8ebe6; color:#0e0f0c; }
+  .agent { background:#fff; border:1px solid rgba(14,15,12,0.10); color:#0e0f0c; }
+  .prio { background:#fff; border:1px solid rgba(14,15,12,0.10); color:#0e0f0c; font-family:var(--font-mono); padding:2px 10px; border-radius:8px; font-size:13px; font-weight:600;}
+  .prio-p0 { background:#fce8e9; color:#a72027; border-color:transparent; }
+  .prio-p1 { background:#fff4cc; color:#4a3b1c; border-color:transparent; }
+  .prio-p2 { background:#e8ebe6; color:#0e0f0c; border-color:transparent; }
+  .dot { width:8px; height:8px; border-radius:9999px; }
+  .label { font-family:var(--font-mono); font-size:11px; color:var(--fg-muted); }
+</style>
+</head>
+<body>
+  <div class="row">
+    <span class="pill pos"><span class="dot" style="background:#2ead4b"></span>Shipped</span>
+    <span class="pill pos">Ready for planning</span>
+    <span class="pill warn">In review</span>
+    <span class="pill neg">Blocked</span>
+    <span class="pill neutral">Deferred</span>
+    <span class="label">state pills · radius-pill · body-sm-strong</span>
+  </div>
+  <div class="row">
+    <span class="prio prio-p0">P0</span>
+    <span class="prio prio-p1">P1</span>
+    <span class="prio prio-p2">P2</span>
+    <span class="prio">P3</span>
+    <span class="label">priority chips · radius-sm · 13px mono</span>
+  </div>
+  <div class="row">
+    <span class="pill agent">claude · opus 4.7</span>
+    <span class="pill agent">codex · gpt-5</span>
+    <span class="pill agent">gemini · 2.5-pro</span>
+    <span class="label">agent identity pills</span>
+  </div>
+</body>
+</html>

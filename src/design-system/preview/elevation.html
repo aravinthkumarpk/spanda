@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>spanda, elevation</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin:0; padding:24px; background:var(--bg-page); font-family:var(--font-sans); color:var(--fg-default); }
+  .row { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; align-items:end; }
+  .cell { display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .card { background:#fff; border-radius:18px; width:170px; height:90px; }
+  .level-0 { /* flat on sage */ }
+  .level-1 { border:1px solid #0e0f0c; }
+  .level-2 { box-shadow: 0 12px 32px -8px rgba(14,15,12,0.14), 0 4px 12px -4px rgba(14,15,12,0.08); }
+  .name { font-size:12px; font-weight:600; }
+  .val { font-family:var(--font-mono); font-size:11px; color:var(--fg-muted); text-align:center; max-width:180px; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="cell"><div class="card level-0"></div><div class="name">Level 0 · flat</div><div class="val">white card on sage canvas, surface contrast IS the elevation</div></div>
+    <div class="cell"><div class="card level-1"></div><div class="name">Level 1 · hairline ink</div><div class="val">1px solid #0e0f0c · inputs, tertiary buttons, take-a-beat card</div></div>
+    <div class="cell"><div class="card level-2"></div><div class="name">Level 2 · shadow-lg</div><div class="val">warm-tinted · only on popovers, modals, toasts</div></div>
+  </div>
+</body>
+</html>

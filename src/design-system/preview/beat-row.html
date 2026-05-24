@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>spanda, beat row</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin:0; padding:18px; background:var(--bg-page); font-family:var(--font-sans); color:var(--fg-default); font-size:14px; }
+  .stack { display:flex; flex-direction:column; gap:0; background:#fff; border-radius:18px; overflow:hidden; }
+  .row {
+    display:grid;
+    /* 700 - 36 padding = 664 inner. fixed = 20+52+44+162+86 = 364; 1fr ≈ 300 for title */
+    grid-template-columns: 20px 52px 44px minmax(0, 1fr) 162px 86px;
+    align-items:center;
+    gap:14px;
+    padding:14px 18px;
+    border-bottom:1px solid rgba(14,15,12,0.08);
+  }
+  .row:last-child { border-bottom:0; }
+  .row:hover { background:#f5f7f3; }
+  .check { width:14px; height:14px; border:1.5px solid #0e0f0c; border-radius:4px; }
+  .id { font-family:var(--font-mono); font-size:13px; color:#0e0f0c; }
+  .prio { background:#fff4cc; color:#4a3b1c; font-weight:600; font-size:12px; padding:2px 10px; border-radius:8px; text-align:center; white-space:nowrap; }
+  .prio.p0 { background:#fce8e9; color:#a72027; }
+  .prio.p2 { background:#e8ebe6; color:#0e0f0c; }
+  .title { display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .title .t { font-weight:500; color:#0e0f0c; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .title .meta { display:flex; gap:6px; align-items:center; font-size:12px; color:#868685; flex-wrap:wrap; }
+  .title .tag { background:#e8ebe6; color:#454745; padding:1px 8px; border-radius:9999px; white-space:nowrap; }
+  .pill {
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:#e2f6d5;
+    color:#054d28;
+    font-weight:600;
+    font-size:13px;
+    line-height:18px;
+    padding:3px 12px;
+    border-radius:9999px;
+    white-space:nowrap;       /* keep on a single line */
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .pill.warn { background:#fff4cc; color:#4a3b1c; }
+  .take {
+    background:#9fe870; color:#0e0f0c;
+    font-weight:600; font-size:13px;
+    padding:7px 16px;
+    border-radius:9999px;
+    border:0; cursor:pointer;
+    white-space:nowrap;
+  }
+</style>
+</head>
+<body>
+  <div class="stack">
+    <div class="row">
+      <div class="check"></div>
+      <div class="id">927e</div>
+      <div class="prio p0">P0</div>
+      <div class="title">
+        <div class="t">Hetzner Go-Live: maestro post-AWS-shutdown execution plan</div>
+        <div class="meta">
+          <span>23h ago</span>
+          <span>·</span>
+          <span style="color:#0e0f0c; font-weight:600;">Autopilot</span>
+          <span class="tag">hetzner-blocker</span>
+          <span class="tag">hetzner_migration</span>
+        </div>
+      </div>
+      <div><span class="pill">Ready for planning</span></div>
+      <button class="take">Take!</button>
+    </div>
+    <div class="row">
+      <div class="check"></div>
+      <div class="id">242a</div>
+      <div class="prio">P1</div>
+      <div class="title">
+        <div class="t">Honor knots-e2e over claim_id collisions</div>
+        <div class="meta">
+          <span>7m ago</span>
+          <span>·</span>
+          <span style="color:#0e0f0c; font-weight:600;">Autopilot</span>
+          <span class="tag">knots</span>
+          <span class="tag">claude · opus 4.7</span>
+        </div>
+      </div>
+      <div><span class="pill warn">Implementation</span></div>
+      <button class="take">Take!</button>
+    </div>
+    <div class="row">
+      <div class="check"></div>
+      <div class="id">e935</div>
+      <div class="prio p2">P2</div>
+      <div class="title">
+        <div class="t">Fix active lease metadata refresh</div>
+        <div class="meta">
+          <span>32m ago</span>
+          <span>·</span>
+          <span style="color:#0e0f0c; font-weight:600;">Autopilot</span>
+          <span class="tag">lease</span>
+        </div>
+      </div>
+      <div><span class="pill"><span style="width:7px;height:7px;border-radius:9999px;background:#2ead4b"></span>Shipped</span></div>
+      <button class="take">Take!</button>
+    </div>
+  </div>
+</body>
+</html>

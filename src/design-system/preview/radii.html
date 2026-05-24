@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>spanda, radii</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin:0; padding:20px; background:var(--bg-page); font-family:var(--font-sans); color:var(--fg-default); }
+  .row { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
+  .cell { background:#fff; padding:12px; display:flex; flex-direction:column; align-items:center; gap:10px; border-radius:14px; }
+  .swatch { width:80px; height:60px; background:#9fe870; border:1px solid #0e0f0c; }
+  .name { font-size:12px; font-weight:600; }
+  .val { font-family:var(--font-mono); font-size:11px; color:var(--fg-muted); }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="cell"><div class="swatch" style="border-radius:0"></div><div class="name">none</div><div class="val">0px</div></div>
+    <div class="cell"><div class="swatch" style="border-radius:8px"></div><div class="name">sm</div><div class="val">8px</div></div>
+    <div class="cell"><div class="swatch" style="border-radius:12px"></div><div class="name">md</div><div class="val">12px</div></div>
+    <div class="cell"><div class="swatch" style="border-radius:16px"></div><div class="name">lg</div><div class="val">16px</div></div>
+    <div class="cell"><div class="swatch" style="border-radius:24px; outline:2px solid #9fe870; outline-offset:3px;"></div><div class="name">xl · canonical</div><div class="val">24px</div></div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>spanda, type: subdisplay</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin:0; padding:24px 32px; background:var(--bg-page); font-family:var(--font-sans); color:var(--fg-default); }
+  .stack { display:flex; flex-direction:column; gap:18px; }
+  .row { display:grid; grid-template-columns: 1fr 200px; align-items:end; gap:32px; }
+  .specimen { font-family:var(--font-sans); color:#0e0f0c; }
+  .specimen.lg { font-size:30px; line-height:36px; font-weight:600; letter-spacing:-0.9px; }
+  .specimen.md { font-size:24px; line-height:31px; font-weight:600; letter-spacing:-0.48px; }
+  .specimen.sm { font-size:20px; line-height:30px; font-weight:400; }
+  .meta { display:flex; flex-direction:column; gap:3px; padding-bottom:4px; }
+  .use { font-size:13px; font-weight:600; color:#0e0f0c; }
+  .spec { font-family:var(--font-mono); font-size:11px; color:#868685; }
+</style>
+</head>
+<body>
+  <div class="stack">
+    <div class="row">
+      <div class="specimen lg">Beats ready for planning</div>
+      <div class="meta">
+        <span class="use">Sub-section heading</span>
+        <span class="spec">32px · Inter 600</span>
+      </div>
+    </div>
+    <div class="row">
+      <div class="specimen md">Wave 1 · stop crashing on AWS</div>
+      <div class="meta">
+        <span class="use">Card heading</span>
+        <span class="spec">24px · Inter 600</span>
+      </div>
+    </div>
+    <div class="row">
+      <div class="specimen sm">A keyboard-first control room for multi-agent software work.</div>
+      <div class="meta">
+        <span class="use">Lead paragraph</span>
+        <span class="spec">20px · Inter 400</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>spanda, logo system</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin:0; padding:20px; background:var(--bg-page); font-family:var(--font-sans); color:var(--fg-default); }
+  .head { font-size:11px; font-weight:600; letter-spacing:0.10em; text-transform:uppercase; color:#454745; margin-bottom:14px; }
+  .grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; }
+  .tile { background:#fff; border-radius:18px; padding:18px 14px 14px; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:10px; min-height:200px; }
+  .stage { flex:1; display:flex; align-items:center; justify-content:center; width:100%; }
+  .name { font-family:var(--font-sans); font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#0e0f0c; }
+  .desc { font-size:11px; line-height:15px; color:#868685; text-align:center; }
+</style>
+</head>
+<body>
+  <div class="head">A presence that sees, listens, thinks · two-dot observing mark</div>
+  <div class="grid">
+
+    <!-- 1. Core mark -->
+    <div class="tile">
+      <div class="stage">
+        <svg width="120" height="120" viewBox="0 0 80 80">
+          <defs>
+            <radialGradient id="g1" cx="35%" cy="32%" r="65%">
+              <stop offset="0%" stop-color="#2a2c28"/>
+              <stop offset="55%" stop-color="#15170f"/>
+              <stop offset="100%" stop-color="#0a0b07"/>
+            </radialGradient>
+            <radialGradient id="ga1" cx="50%" cy="50%" r="50%">
+              <stop offset="60%" stop-color="#9fe870" stop-opacity="0"/>
+              <stop offset="85%" stop-color="#9fe870" stop-opacity="0.18"/>
+              <stop offset="100%" stop-color="#9fe870" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle cx="40" cy="40" r="40" fill="url(#ga1)"/>
+          <circle cx="40" cy="40" r="34" fill="url(#g1)"/>
+          <ellipse cx="29" cy="24" rx="9" ry="5" fill="#fff" opacity="0.08"/>
+          <rect x="29" y="33" width="6" height="14" rx="3" fill="#9fe870"/>
+          <rect x="45" y="33" width="6" height="14" rx="3" fill="#9fe870"/>
+        </svg>
+      </div>
+      <div class="name">Core mark</div>
+      <div class="desc">Pearl body, two lime eyes, soft green aura</div>
+    </div>
+
+    <!-- 2. Observing state -->
+    <div class="tile">
+      <div class="stage">
+        <svg width="120" height="120" viewBox="0 0 80 80">
+          <rect x="29" y="33" width="6" height="14" rx="3" fill="#0e0f0c"/>
+          <rect x="45" y="33" width="6" height="14" rx="3" fill="#0e0f0c"/>
+        </svg>
+      </div>
+      <div class="name">Observing state</div>
+      <div class="desc">Eyes alone, for inline accents, loaders</div>
+    </div>
+
+    <!-- 3. Learning pattern (orbits) -->
+    <div class="tile">
+      <div class="stage">
+        <svg width="120" height="120" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="36" fill="none" stroke="#0e0f0c" stroke-width="1" opacity="0.18"/>
+          <circle cx="40" cy="40" r="28" fill="none" stroke="#0e0f0c" stroke-width="1" opacity="0.30"/>
+          <circle cx="40" cy="40" r="20" fill="none" stroke="#0e0f0c" stroke-width="1" opacity="0.50"/>
+          <circle cx="76" cy="40" r="2" fill="#9fe870"/>
+          <circle cx="40" cy="12" r="2" fill="#0e0f0c"/>
+          <rect x="29" y="33" width="6" height="14" rx="3" fill="#0e0f0c"/>
+          <rect x="45" y="33" width="6" height="14" rx="3" fill="#0e0f0c"/>
+        </svg>
+      </div>
+      <div class="name">Learning pattern</div>
+      <div class="desc">Eyes + concentric orbits, animated tick: planning, dispatch, settle</div>
+    </div>
+
+    <!-- 4. Micro-symbol -->
+    <div class="tile">
+      <div class="stage">
+        <svg width="120" height="120" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="34" fill="#0e0f0c"/>
+          <rect x="29" y="33" width="6" height="14" rx="3" fill="#9fe870"/>
+          <rect x="45" y="33" width="6" height="14" rx="3" fill="#9fe870"/>
+        </svg>
+      </div>
+      <div class="name">Micro · flat</div>
+      <div class="desc">No gradients, favicons, avatar grids, mono surfaces</div>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>spanda, cards</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin:0; padding:20px; background:var(--bg-page); font-family:var(--font-sans); color:var(--fg-default); }
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .card { border-radius:24px; padding:18px; min-height:130px; display:flex; flex-direction:column; gap:8px; }
+  .card .name { font-family:var(--font-sans); font-weight:600; font-size:14px; }
+  .card .body { font-size:13px; line-height:18px; opacity:0.85; }
+  .meta { font-family:var(--font-mono); font-size:10px; opacity:0.6; margin-top:auto; }
+  .content { background:#fff; color:#0e0f0c; }
+  .sage { background:#e8ebe6; color:#0e0f0c; }
+  .green { background:#e2f6d5; color:#0e0f0c; }
+  .dark { background:#0e0f0c; color:#9fe870; }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div class="card content"><div class="name">card-content</div><div class="body">White card on sage canvas. No border. The default surface.</div><div class="meta">canvas · 24px</div></div>
+    <div class="card sage"><div class="name">card-feature-sage</div><div class="body">Sage on sage. Subtle grouping, no shadow.</div><div class="meta">canvas-soft · 24px</div></div>
+    <div class="card green"><div class="name">card-feature-green</div><div class="body">Soft-green surface for positive / promo moments.</div><div class="meta">primary-pale · 24px</div></div>
+    <div class="card dark"><div class="name">card-feature-dark</div><div class="body">Polarity-flipped. Lime on near-black.</div><div class="meta">ink · 24px</div></div>
+  </div>
+</body>
+</html>

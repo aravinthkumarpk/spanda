@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>spanda, palette: semantic negative + accents</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin:0; padding:24px; background:var(--bg-page); font-family:var(--font-sans); color:var(--fg-default); }
+  .row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .swatch { background:var(--bg-surface); border-radius:var(--radius-lg); padding:14px; display:flex; flex-direction:column; gap:10px; }
+  .chip { aspect-ratio: 5/2; border-radius:var(--radius-md); border:1px solid var(--border-faint); }
+  .meta { display:flex; flex-direction:column; gap:2px; }
+  .name { font-size:13px; font-weight:600; letter-spacing:-0.1px; }
+  .hex { font-family:var(--font-mono); font-size:11px; color:var(--fg-muted); }
+</style>
+</head>
+<body class="spanda-typography">
+  <div class="row">
+    <div class="swatch"><div class="chip" style="background:#d03238"></div><div class="meta"><div class="name">negative</div><div class="hex">#d03238</div></div></div>
+    <div class="swatch"><div class="chip" style="background:#320707"></div><div class="meta"><div class="name">negative-bg</div><div class="hex">#320707</div></div></div>
+    <div class="swatch"><div class="chip" style="background:#ffc091"></div><div class="meta"><div class="name">accent-orange</div><div class="hex">#ffc091</div></div></div>
+    <div class="swatch"><div class="chip" style="background:#38c8ff"></div><div class="meta"><div class="name">accent-cyan</div><div class="hex">#38c8ff</div></div></div>
+  </div>
+</body>
+</html>

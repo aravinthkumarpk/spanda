@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 150" width="620" height="150" role="img" aria-label="spanda">
+  
+  <g transform="translate(8, 38)">
+    <defs>
+      <radialGradient id="lockupPearl" cx="35%" cy="32%" r="65%">
+        <stop offset="0%" stop-color="#2a2c28"></stop>
+        <stop offset="55%" stop-color="#15170f"></stop>
+        <stop offset="100%" stop-color="#0a0b07"></stop>
+      </radialGradient>
+    </defs>
+    <circle cx="38" cy="38" r="34" fill="url(#lockupPearl)"></circle>
+    <ellipse cx="27" cy="22" rx="9" ry="5" fill="#fff" opacity="0.08"></ellipse>
+    <rect x="27" y="31" width="6" height="14" rx="3" fill="#9fe870"></rect>
+    <rect x="43" y="31" width="6" height="14" rx="3" fill="#9fe870"></rect>
+  </g>
+  <text x="106" y="118" font-family="Manrope, &#39;Wise Sans&#39;, system-ui, sans-serif" font-weight="900" font-size="138" letter-spacing="-6" fill="currentColor" style="fill: currentColor;">spanda</text>
+</svg>

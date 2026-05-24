@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>spanda, take a beat card</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin:0; padding:20px; background:#e8ebe6; font-family:var(--font-sans); color:#0e0f0c; display:flex; gap:18px; align-items:center; }
+  .card { background:#fff; border:1px solid #0e0f0c; border-radius:24px; padding:22px; width:360px; display:flex; flex-direction:column; gap:14px; }
+  .head { display:flex; justify-content:space-between; align-items:center; }
+  .eyebrow { font-size:12px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#454745; }
+  .repo { background:#e8ebe6; border-radius:9999px; padding:4px 10px; font-size:13px; font-weight:600; display:inline-flex; align-items:center; gap:6px; }
+  .repo .dot { width:8px; height:8px; border-radius:9999px; background:#9fe870; }
+  .title-input { font-family:var(--font-sans); font-size:18px; font-weight:600; border:0; outline:0; padding:0; color:#0e0f0c; background:transparent; }
+  .meta-row { display:flex; gap:8px; flex-wrap:wrap; }
+  .chip { background:#e8ebe6; border-radius:9999px; padding:6px 12px; font-size:13px; font-weight:600; }
+  .cta { background:#9fe870; color:#0e0f0c; border:0; border-radius:9999px; padding:12px; font-weight:600; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .note { font-family:var(--font-mono); font-size:11px; color:#868685; max-width:240px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="head">
+      <span class="eyebrow">Take a beat</span>
+      <span class="repo"><span class="dot"></span>maestro</span>
+    </div>
+    <input class="title-input" value="Fix stale grooming queue cutoff" />
+    <div class="meta-row">
+      <span class="chip">P1</span>
+      <span class="chip">Autopilot</span>
+      <span class="chip">claude · opus 4.7</span>
+    </div>
+    <button class="cta">Stage as ready ›</button>
+  </div>
+  <div class="note">The primary input widget on the hero. Inherits Wise's currency-converter-card geometry: white surface, 1px ink hairline, 24px radius, hosts the dispatch decision.</div>
+</body>
+</html>

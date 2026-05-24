@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>spanda, spacing scale</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin:0; padding:20px; background:var(--bg-page); font-family:var(--font-sans); color:var(--fg-default); }
+  .stack { display:flex; flex-direction:column; gap:10px; background:#fff; border-radius:14px; padding:18px; }
+  .row { display:flex; align-items:center; gap:14px; font-size:13px; }
+  .token { width:64px; font-family:var(--font-mono); font-size:12px; color:var(--fg-muted); }
+  .px { width:42px; font-family:var(--font-mono); font-size:12px; color:var(--color-ink); text-align:right; }
+  .bar { height:14px; background:#9fe870; border-radius:4px; }
+</style>
+</head>
+<body>
+  <div class="stack">
+    <div class="row"><div class="token">xxs</div><div class="px">2</div><div class="bar" style="width:2px"></div></div>
+    <div class="row"><div class="token">xs</div><div class="px">4</div><div class="bar" style="width:4px"></div></div>
+    <div class="row"><div class="token">sm</div><div class="px">8</div><div class="bar" style="width:8px"></div></div>
+    <div class="row"><div class="token">md</div><div class="px">12</div><div class="bar" style="width:12px"></div></div>
+    <div class="row"><div class="token">lg</div><div class="px">16</div><div class="bar" style="width:16px"></div></div>
+    <div class="row"><div class="token">xl</div><div class="px">24</div><div class="bar" style="width:24px"></div></div>
+    <div class="row"><div class="token">2xl</div><div class="px">32</div><div class="bar" style="width:32px"></div></div>
+    <div class="row"><div class="token">3xl</div><div class="px">48</div><div class="bar" style="width:48px"></div></div>
+    <div class="row"><div class="token">4xl</div><div class="px">64</div><div class="bar" style="width:64px"></div></div>
+  </div>
+</body>
+</html>

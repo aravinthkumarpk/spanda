@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>spanda, brand marks</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin:0; padding:20px; background:var(--bg-page); font-family:var(--font-sans); color:var(--fg-default); display:grid; grid-template-columns:1.4fr 1fr 1fr 0.9fr; gap:12px; }
+  .tile { background:#fff; border-radius:18px; padding:16px 18px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; min-height:170px; }
+  .tile.dark { background:#0e0f0c; }
+  .label { font-family:var(--font-mono); font-size:11px; color:var(--fg-muted); text-align:center; }
+  .tile.dark .label { color:#868685; }
+  img { display:block; max-width:100%; height:auto; }
+  .role { font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#454745; align-self:flex-start; }
+  .tile.dark .role { color:#868685; }
+</style>
+</head>
+<body>
+  <div class="tile">
+    <span class="role">Wordmark</span>
+    <img src="../assets/spanda_wordmark.svg" alt="spanda wordmark" style="width:220px; color:#0e0f0c;" />
+    <div class="label">Manrope 900 · clean type</div>
+  </div>
+  <div class="tile">
+    <span class="role">Lockup</span>
+    <img src="../assets/spanda_lockup.svg" alt="spanda lockup" style="width:240px; color:#0e0f0c;" />
+    <div class="label">mark + wordmark · canonical brand application</div>
+  </div>
+  <div class="tile">
+    <span class="role">Mark</span>
+    <img src="../assets/spanda_mark.svg" alt="spanda mark" style="width:88px;" />
+    <div class="label">pearl body · two lime eyes</div>
+  </div>
+  <div class="tile">
+    <span class="role">App icon</span>
+    <img src="../assets/spanda_icon.svg" alt="spanda icon" style="width:56px;" />
+    <div class="label">32px favicon</div>
+  </div>
+</body>
+</html>

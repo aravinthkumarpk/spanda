@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>spanda, buttons</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin:0; padding:24px; background:var(--bg-page); font-family:var(--font-sans); color:var(--fg-default); }
+  .row { display:flex; flex-wrap:wrap; gap:14px; align-items:center; }
+  button { font-family:var(--font-sans); font-weight:600; font-size:16px; line-height:24px; padding:12px 24px; border-radius:24px; cursor:pointer; border:0; display:inline-flex; align-items:center; gap:8px; }
+  .primary { background:#9fe870; color:#0e0f0c; }
+  .secondary { background:#e8ebe6; color:#0e0f0c; }
+  .tertiary { background:#fff; color:#0e0f0c; border:1px solid #0e0f0c; }
+  .dark { background:#0e0f0c; color:#9fe870; }
+  .icon-btn { width:44px; height:44px; padding:0; justify-content:center; border-radius:9999px; background:#fff; color:#0e0f0c; border:1px solid rgba(14,15,12,0.10); }
+  .icon-btn svg { width:18px; height:18px; }
+  .label { display:flex; flex-direction:column; gap:4px; }
+  .label small { font-family:var(--font-mono); font-size:11px; color:var(--fg-muted); }
+</style>
+</head>
+<body>
+  <div class="row">
+    <button class="primary">Take!</button>
+    <button class="secondary">Close</button>
+    <button class="tertiary">Rollback</button>
+    <button class="dark">Run a scene</button>
+    <button class="icon-btn" aria-label="add">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    </button>
+  </div>
+  <div style="height:14px"></div>
+  <div class="row" style="gap:24px">
+    <div class="label"><span style="font-weight:600">button-primary</span><small>#9fe870 · 24px radius · 12/24 pad</small></div>
+    <div class="label"><span style="font-weight:600">button-secondary</span><small>sage · same geometry</small></div>
+    <div class="label"><span style="font-weight:600">button-tertiary</span><small>white · 1px ink hairline</small></div>
+  </div>
+</body>
+</html>

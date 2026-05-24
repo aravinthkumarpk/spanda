@@ -1,0 +1,302 @@
+/* =====================================================================
+   spanda design system tokens
+
+   Color strategy: RESTRAINED.
+   One saturated accent (spanda lime) carries < 10% of any surface.
+   Everything else is tinted-toward-warm neutrals (sage canvas, near-black
+   ink with olive warmth). The lime needs to mean something, not be
+   wallpaper. If lime > ~10% of pixels on a view, you have over-decorated.
+
+   Theme: LIGHT, 9-to-5 office, 27-inch monitor at noon, focused for hours.
+   The terminal panel is the only dark surface.
+
+   Wise-inspired: lime-green CTA + sage canvas + heavy display sans.
+   Applied to the spanda product (keyboard-first multi-agent control room).
+
+   All colors documented with OKLCH alongside hex (impeccable convention).
+   ===================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+:root {
+  /* ----- BRAND & ACCENT (single accent; restrained color strategy) ----- */
+  --color-primary:           #9fe870;   /* oklch(0.873 0.193 132.5) , Spanda lime, universal CTA */
+  --color-primary-active:    #cdffad;   /* oklch(0.953 0.135 135.9) , hover / active lift */
+  --color-primary-neutral:   #c5edab;   /* oklch(0.890 0.110 132.4) , selected-row fill */
+  --color-primary-pale:      #e2f6d5;   /* oklch(0.948 0.068 132.0) , soft surface / badge bg */
+  --color-on-primary:        #0e0f0c;   /* ink on lime */
+
+  /* ----- SURFACE (sage canvas + white cards: contrast IS elevation) ----- */
+  --color-canvas:            #ffffff;   /* oklch(1 0 0)              , card interiors only. The one untinted neutral, kept untinted so the white-on-sage contrast cue works. */
+  --color-canvas-soft:       #e8ebe6;   /* oklch(0.924 0.005 130)    , page background. Tinted toward brand hue. */
+  --color-canvas-sage-deep:  #d8dcd3;   /* oklch(0.870 0.006 130)    , pressed sage / divider. */
+  --color-hover-sage:        #f5f7f3;   /* oklch(0.962 0.004 130)    , row / cell hover. A step lighter than canvas-soft so it reads as a lift, not a flatten. */
+
+  /* ----- TEXT / INK (warm-tinted neutrals, never pure black) ----- */
+  --color-ink:               #0e0f0c;   /* oklch(0.143 0.006 120)    , default text + headings, tinted olive-warm */
+  --color-ink-deep:          #163300;   /* oklch(0.265 0.072 130)    , deep forest, on positive surfaces */
+  --color-body:              #454745;   /* oklch(0.366 0.004 150)    , secondary body */
+  --color-mute:              #868685;   /* oklch(0.585 0.001 100)    , captions, placeholder, fine print */
+  --color-on-ink:            #e8ebe6;   /* sage text on near-black */
+
+  /* ----- SEMANTIC (in-product status only, NEVER the brand lime) ----- */
+  --color-positive:          #2ead4b;   /* oklch(0.626 0.184 144)    , success / shipped */
+  --color-positive-deep:     #054d28;   /* oklch(0.310 0.092 152)    , pressed positive, text on positive surfaces */
+  --color-positive-pale:     #e2f6d5;   /* reuses primary-pale, same family */
+
+  --color-warning:           #ffd11a;
+  --color-warning-deep:      #b86700;
+  --color-warning-content:   #4a3b1c;
+  --color-warning-pale:      #fff4cc;
+
+  --color-negative:          #d03238;
+  --color-negative-deep:     #a72027;
+  --color-negative-darkest:  #a7000d;
+  --color-negative-bg:       #320707;   /* Dark maroon callout */
+  --color-negative-pale:     #fce8e9;
+
+  /* ----- TERTIARY / ILLUSTRATIVE ACCENTS ----- */
+  --color-accent-orange:     #ffc091;   /* Inside cards / pricing illustrations */
+  --color-accent-cyan:       #38c8ff;   /* Tertiary illustration accent */
+
+  /* ----- BORDER ----- */
+  --color-border:            #0e0f0c;   /* Hairline-on-ink, used at 1px for inputs/buttons */
+  --color-border-soft:       rgba(14, 15, 12, 0.10);
+  --color-border-faint:      rgba(14, 15, 12, 0.06);
+
+  /* ----- TYPOGRAPHY ----- */
+  /* Wise Sans is proprietary. We use Manrope 900 as the display substitute
+     (geometric, heavy, closest open-source match), Inter for sub-display
+     and body, IBM Plex Mono for terminal / agent log surfaces. */
+  --font-display: "Manrope", "Wise Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:    "Inter", "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Type scale (impeccable: ~1.5 ratio between major steps, well past the 1.25
+     hierarchy minimum). Display lines use Manrope 900, sub-display uses
+     Inter 600, body uses Inter 400 unless noted. */
+  --text-display-mega:  126px;   --lh-display-mega:  107.1px;
+  --text-display-xxl:   96px;    --lh-display-xxl:   81.6px;
+  --text-display-xl:    64px;    --lh-display-xl:    54.4px;
+  --text-display-section: clamp(36px, 4.5vw, 56px);  --lh-display-section: 1.05;  /* fluid editorial section head, weight 900, tracking -1.8px */
+  --text-display-lg:    47px;    --lh-display-lg:    70.5px;   /* lighter sub-display (weight 400) */
+  --text-display-md:    40px;    --lh-display-md:    34px;
+  --text-display-sm:    32px;    --lh-display-sm:    38.4px;
+  --text-display-xs:    24px;    --lh-display-xs:    31.2px;
+
+  --text-body-lg:       20px;    --lh-body-lg:       30px;
+  --text-body-md:       16px;    --lh-body-md:       24px;
+  --text-body-sm:       14px;    --lh-body-sm:       20px;
+  --text-caption:       12px;    --lh-caption:       16px;
+  --text-button-md:     16px;    --lh-button-md:     24px;
+
+  /* Letter-spacing */
+  --tracking-display-lg: -0.108px;
+  --tracking-display-sm: -0.96px;
+  --tracking-display-xs: -0.48px;
+
+  /* ----- SPACING ----- */
+  --space-xxs:   2px;
+  --space-xs:    4px;
+  --space-sm:    8px;
+  --space-md:    12px;
+  --space-lg:    16px;
+  --space-xl:    24px;
+  --space-2xl:   32px;
+  --space-3xl:   48px;
+  --space-4xl:   64px;
+  --space-5xl:   96px;
+
+  /* ----- CARD PADDING DENSITY ----- */
+  --card-pad-compact:     14px;  /* dense row lists, KPI grids when tight */
+  --card-pad-default:     24px;  /* canonical: content cards, feature cards */
+  --card-pad-comfortable: 28px;  /* milestone cards, hero summary cards */
+
+  /* ----- RADII ----- */
+  --radius-none: 0;
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;       /* canonical button + card */
+  --radius-pill: 9999px;
+  --radius-full: 9999px;
+
+  /* ----- ELEVATION ----- */
+  /* The brand uses surface contrast as the primary elevation cue, but
+     we still need lightweight shadows for popovers / toasts / modals. */
+  --shadow-none: none;
+  --shadow-soft: 0 1px 0 0 rgba(14,15,12,0.04);
+  --shadow-md:   0 4px 12px -2px rgba(14,15,12,0.08), 0 2px 4px -1px rgba(14,15,12,0.06);
+  --shadow-lg:   0 12px 32px -8px rgba(14,15,12,0.14), 0 4px 12px -4px rgba(14,15,12,0.08);
+
+  /* ----- Z-INDEX TIER -----
+     Discrete layers so nothing accidentally collides. Skip values left for future
+     in-between needs (e.g. 25, 35) so we never reach for an ad-hoc number. */
+  --z-base:     0;     /* in-flow content */
+  --z-sticky:   10;    /* sticky table headers, in-flow sticky bands */
+  --z-floating: 20;    /* docked terminal panel, floating notes widget */
+  --z-overlay:  30;    /* tooltip, popover, dropdown menu */
+  --z-toast:    40;    /* toast / snackbar */
+  --z-modal:    50;    /* modal scrim + dialog (lightbox beat detail, take-a-beat) */
+
+  /* ----- MOTION ----- */
+  --ease-out:    cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in:     cubic-bezier(0.55, 0.06, 0.68, 0.19);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast:    140ms;
+  --dur-normal:  220ms;
+  --dur-slow:    360ms;
+}
+
+/* =====================================================================
+   Semantic / role tokens, what your components should reference.
+   ===================================================================== */
+:root {
+  --bg-page:          var(--color-canvas-soft);
+  --bg-surface:       var(--color-canvas);
+  --bg-surface-sage:  var(--color-canvas-soft);
+  --bg-surface-dark:  var(--color-ink);
+  --bg-surface-green: var(--color-primary-pale);
+
+  --fg-default:       var(--color-ink);
+  --fg-secondary:     var(--color-body);
+  --fg-muted:         var(--color-mute);
+  --fg-on-dark:       var(--color-on-ink);
+  --fg-on-primary:    var(--color-on-primary);
+  --fg-link:          var(--color-ink);
+
+  --border-default:   var(--color-border);
+  --border-soft:      var(--color-border-soft);
+  --border-faint:     var(--color-border-faint);
+}
+
+/* =====================================================================
+   Element defaults: opt-in via .spanda-typography class on any subtree.
+   Keeps consumers from clobbering host page styles.
+   ===================================================================== */
+.spanda-typography {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-md);
+  line-height: var(--lh-body-md);
+  color: var(--fg-default);
+  font-feature-settings: "calt", "ss01";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.spanda-typography h1,
+.spanda-display-mega {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: var(--text-display-mega);
+  line-height: var(--lh-display-mega);
+  letter-spacing: -2px;
+  color: var(--fg-default);
+  margin: 0;
+}
+
+.spanda-display-xxl {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: var(--text-display-xxl);
+  line-height: var(--lh-display-xxl);
+  letter-spacing: -1.5px;
+  margin: 0;
+}
+
+.spanda-display-xl,
+.spanda-typography h2 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: var(--text-display-xl);
+  line-height: var(--lh-display-xl);
+  letter-spacing: -1px;
+  margin: 0;
+}
+
+.spanda-display-lg {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: var(--text-display-lg);
+  line-height: var(--lh-display-lg);
+  letter-spacing: var(--tracking-display-lg);
+  margin: 0;
+}
+
+.spanda-display-md,
+.spanda-typography h3 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: var(--text-display-md);
+  line-height: var(--lh-display-md);
+  margin: 0;
+}
+
+.spanda-display-sm,
+.spanda-typography h4 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-display-sm);
+  line-height: var(--lh-display-sm);
+  letter-spacing: var(--tracking-display-sm);
+  margin: 0;
+}
+
+.spanda-display-xs,
+.spanda-typography h5 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-display-xs);
+  line-height: var(--lh-display-xs);
+  letter-spacing: var(--tracking-display-xs);
+  margin: 0;
+}
+
+.spanda-typography p,
+.spanda-body-md {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-md);
+  line-height: var(--lh-body-md);
+  font-weight: 400;
+  margin: 0;
+}
+
+.spanda-body-lg {
+  font-size: var(--text-body-lg);
+  line-height: var(--lh-body-lg);
+  font-weight: 400;
+}
+
+.spanda-body-md-strong {
+  font-size: var(--text-body-md);
+  line-height: var(--lh-body-md);
+  font-weight: 600;
+}
+
+.spanda-body-sm {
+  font-size: var(--text-body-sm);
+  line-height: var(--lh-body-sm);
+  font-weight: 400;
+}
+
+.spanda-body-sm-strong {
+  font-size: var(--text-body-sm);
+  line-height: var(--lh-body-sm);
+  font-weight: 600;
+}
+
+.spanda-caption {
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  font-weight: 400;
+  color: var(--fg-muted);
+}
+
+.spanda-typography code,
+.spanda-mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 20px;
+  font-feature-settings: "calt" 0;
+}

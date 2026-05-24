@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>spanda, inputs</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin:0; padding:24px; background:var(--bg-page); font-family:var(--font-sans); color:var(--fg-default); }
+  .stack { display:flex; flex-direction:column; gap:14px; }
+  .field { display:flex; flex-direction:column; gap:6px; }
+  .label { font-size:14px; font-weight:600; color:#0e0f0c; }
+  .input, .select { font-family:var(--font-sans); font-size:16px; line-height:24px; padding:10px 16px; border-radius:12px; border:1px solid #0e0f0c; background:#fff; color:#0e0f0c; appearance:none; }
+  .input::placeholder { color:#868685; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .select { background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%230e0f0c'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.4a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E") no-repeat right 12px center #fff; padding-right:36px; }
+  .search { position:relative; }
+  .search .input { padding-left:42px; border-radius:9999px; background:#fff; }
+  .search svg { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:18px; height:18px; color:#868685; }
+</style>
+</head>
+<body>
+  <div class="stack">
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="input" placeholder="Search beats…" style="width:100%; box-sizing:border-box;" />
+    </div>
+    <div class="row">
+      <div class="field">
+        <span class="label">Title</span>
+        <input class="input" value="Wire pipeline failure notifications" />
+      </div>
+      <div class="field">
+        <span class="label">Profile</span>
+        <select class="select"><option>Autopilot</option><option>Semi-auto</option><option>Autopilot with PR</option></select>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

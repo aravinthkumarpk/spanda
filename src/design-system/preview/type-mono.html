@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>spanda, type: mono / terminal</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin:0; padding:22px 28px; background:var(--bg-page); font-family:var(--font-sans); color:var(--fg-default); display:grid; grid-template-columns: 1fr 200px; gap:28px; align-items:start; }
+  .terminal { background:#0e0f0c; color:#cdffad; border-radius:16px; padding:18px 20px; font-family:var(--font-mono); font-size:13px; line-height:20px; }
+  .terminal .prompt { color:#9fe870; }
+  .terminal .dim { opacity:0.55; }
+  .meta { display:flex; flex-direction:column; gap:4px; padding-top:6px; }
+  .use { font-size:13px; font-weight:600; color:#0e0f0c; }
+  .spec { font-family:var(--font-mono); font-size:11px; color:#868685; }
+  .note { font-size:12px; line-height:17px; color:#454745; margin-top:8px; }
+</style>
+</head>
+<body>
+  <div class="terminal">
+    <div><span class="prompt">claude-opus-4.7 ›</span> <span class="dim">$</span> kno take maestro-927e</div>
+    <div class="dim">  → claim acquired (lease k1f3)</div>
+    <div class="dim">  → workflow: autopilot · step: planning</div>
+    <div><span class="prompt">→</span> Reading TAXONOMY.md and beats/scope.md</div>
+    <div><span class="prompt">→</span> Drafting plan: 4 waves, 13 beats</div>
+    <div class="dim">  turn.completed (is_error: false)</div>
+  </div>
+  <div class="meta">
+    <span class="use">Terminal & inline code</span>
+    <span class="spec">13px · IBM Plex Mono</span>
+    <div class="note">Used in the docked agent log, beat IDs, agent labels, and inline <code>code</code> spans. Never used for prose.</div>
+  </div>
+</body>
+</html>

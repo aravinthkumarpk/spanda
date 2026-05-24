@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>spanda, type: display</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin:0; padding:28px 32px; background:var(--bg-page); font-family:var(--font-sans); color:var(--fg-default); }
+  .stack { display:flex; flex-direction:column; gap:20px; }
+  .row { display:grid; grid-template-columns: 1fr 200px; align-items:end; gap:32px; }
+  .specimen { font-family:var(--font-display); font-weight:900; color:#0e0f0c; letter-spacing:-2px; line-height:0.85; }
+  .meta { display:flex; flex-direction:column; gap:3px; padding-bottom:8px; }
+  .use { font-size:13px; font-weight:600; color:#0e0f0c; }
+  .spec { font-family:var(--font-mono); font-size:11px; color:#868685; }
+</style>
+</head>
+<body>
+  <div class="stack">
+    <div class="row">
+      <div class="specimen" style="font-size:84px;">spanda.</div>
+      <div class="meta">
+        <span class="use">Marketing hero</span>
+        <span class="spec">126px · Manrope 900</span>
+      </div>
+    </div>
+    <div class="row">
+      <div class="specimen" style="font-size:54px;">Take a beat.</div>
+      <div class="meta">
+        <span class="use">Page headline</span>
+        <span class="spec">64px · Manrope 900</span>
+      </div>
+    </div>
+    <div class="row">
+      <div class="specimen" style="font-size:32px;">Run a scene.</div>
+      <div class="meta">
+        <span class="use">Section title</span>
+        <span class="spec">40px · Manrope 900</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

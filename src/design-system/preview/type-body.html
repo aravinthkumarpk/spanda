@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>spanda, type: body & caption</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<style>
+  body { margin:0; padding:22px 28px; background:var(--bg-page); font-family:var(--font-sans); color:var(--fg-default); }
+  .stack { display:flex; flex-direction:column; gap:14px; }
+  .row { display:grid; grid-template-columns: 1fr 200px; align-items:end; gap:28px; }
+  .specimen { font-family:var(--font-sans); color:#0e0f0c; }
+  .body-md { font-size:16px; line-height:24px; font-weight:400; }
+  .body-md-strong { font-size:16px; line-height:24px; font-weight:600; }
+  .body-sm { font-size:14px; line-height:20px; font-weight:400; }
+  .body-sm-strong { font-size:14px; line-height:20px; font-weight:600; }
+  .caption { font-size:12px; line-height:16px; font-weight:600; color:#868685; letter-spacing:0.08em; text-transform:uppercase; }
+  .meta { display:flex; flex-direction:column; gap:2px; padding-bottom:2px; }
+  .use { font-size:13px; font-weight:600; color:#0e0f0c; }
+  .spec { font-family:var(--font-mono); font-size:11px; color:#868685; }
+</style>
+</head>
+<body>
+  <div class="stack">
+    <div class="row">
+      <div class="specimen body-md">Hetzner go-live: maestro post-AWS-shutdown plan</div>
+      <div class="meta"><span class="use">Default body</span><span class="spec">16px · Inter 400</span></div>
+    </div>
+    <div class="row">
+      <div class="specimen body-md-strong">Take! · start a single-beat session</div>
+      <div class="meta"><span class="use">Body, emphasis</span><span class="spec">16px · Inter 600</span></div>
+    </div>
+    <div class="row">
+      <div class="specimen body-sm">23h ago · hetzner-blocker · hetzner_migration</div>
+      <div class="meta"><span class="use">Table row, meta line</span><span class="spec">14px · Inter 400</span></div>
+    </div>
+    <div class="row">
+      <div class="specimen body-sm-strong">Ready for planning</div>
+      <div class="meta"><span class="use">Nav link, status pill</span><span class="spec">14px · Inter 600</span></div>
+    </div>
+    <div class="row">
+      <div class="specimen caption">priority · state · action</div>
+      <div class="meta"><span class="use">Eyebrow above a section</span><span class="spec">12px · Inter 600 caps</span></div>
+    </div>
+  </div>
+</body>
+</html>
