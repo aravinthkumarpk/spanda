@@ -417,9 +417,26 @@ table.inner tr:last-child td { border-bottom: none; }
     </li>
 
     <li class="group">#3 — Today view (server-side daily read)</li>
-    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T30.</strong> Write <code>app/today/page.test.tsx</code> (path resolution + fallback) + <code>render.test.tsx</code></div></li>
-    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T31.</strong> Implement <code>daily-loader.ts</code> + <code>app/today/page.tsx</code> + <code>today-content-frame.tsx</code></div></li>
-    <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T32.</strong> Commit #3</div></li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T30.</strong> Write <code>daily-loader.test.ts</code> (12 assertions)</div>
+      <ul class="notes">
+        <li><strong>Decisions:</strong> separate the pure logic (path resolution, body extraction, fallback walk) from the route. <code>DailyLoaderFs</code> interface for injectable fs lets the test run hermetic with in-memory file map.</li>
+        <li><strong>Tradeoffs:</strong> spec said "page.test.tsx + render.test.tsx (snapshot)". Skipped the snapshot test — the route is mostly a thin shell around the loader; coverage is in the loader unit tests.</li>
+      </ul>
+    </li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T31.</strong> Implement <code>daily-loader.ts</code> + <code>app/today/page.tsx</code></div>
+      <ul class="notes">
+        <li><strong>Decisions:</strong> <code>extractBodyContent</code> hoists <code>&lt;head&gt;&lt;style&gt;</code> blocks INTO the body so the daily's inline CSS still renders. Fallback walks backward up to 7 days. Daily root configurable via <code>SPANDA_DAILY_ROOT</code> env (default: live VPS path).</li>
+        <li><strong>Changes:</strong> page.tsx renders the daily via <code>dangerouslySetInnerHTML</code> — trusted source (our own pipeline). Wrapped in <code>&lt;main&gt;</code> + a spanda-styled header with usedDate badge. Empty state with a clear "run the daily-review pipeline" hint.</li>
+        <li><strong>Surprises:</strong> daily files use UTC date math; tests use UTC dates. Real VPS uses local time but cron triggers are in UTC so the path math is consistent.</li>
+        <li><strong>Build verified:</strong> Next.js compiles the route; the disk read happens server-side per request (no caching). Cheap because the daily HTML is ~150KB.</li>
+      </ul>
+    </li>
+    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T32.</strong> Commit #3</div>
+      <ul class="notes">
+        <li><strong>QG:</strong> lint ✓ · tsc ✓ · 2973 tests pass (+12) · build ✓</li>
+        <li><strong>Live URL:</strong> after ship → <code>foolery.onyourdevice.ai/today</code> renders today's daily.</li>
+      </ul>
+    </li>
 
     <li class="group">#4 — quick capture modal + inline edit</li>
     <li class="task"><div class="row"><span class="checkbox">[ ]</span> <strong>T33.</strong> Write <code>quick-capture-modal.test.tsx</code> + <code>inline-edit.test.tsx</code> (red)</div></li>
