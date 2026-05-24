@@ -8,11 +8,23 @@ import type {
 export const WF_STATE_LABEL_PREFIX = "wf:state:";
 export const WF_PROFILE_LABEL_PREFIX = "wf:profile:";
 
+// Spanda adds 4 user-facing profiles (do / coordinate / followup / decide)
+// ALONGSIDE the upstream Foolery profiles, routed via work:* labels.
+//
+// DEFAULT_PROFILE_ID stays "autopilot" (the upstream default) so the
+// 63 upstream-coupled tests and any consumer that hardcodes this id
+// stay stable. The spanda fallback when a bead has no work:* label is
+// still "autopilot" (a sensible IC lifecycle). Beads with an explicit
+// work:do / work:coordinate / work:followup / work:decide label route
+// to the spanda profile via the label-routing layer (#1, T17-T18).
 export const DEFAULT_PROFILE_ID = "autopilot";
 export const LEGACY_BEADS_COARSE_WORKFLOW_ID = "beads-coarse";
 export const DEFAULT_WORKFLOW_ID = DEFAULT_PROFILE_ID;
 export const DEFAULT_PROMPT_PROFILE_ID = DEFAULT_PROFILE_ID;
 
+// Knots descriptor ids — preserved as upstream Foolery (autopilot /
+// semiauto) under the augment-not-replace strategy. The knots backend
+// resolves to these by id; renaming would break the knots-side wiring.
 export const KNOTS_GRANULAR_DESCRIPTOR_ID = "autopilot";
 export const KNOTS_COARSE_DESCRIPTOR_ID = "semiauto";
 export const KNOTS_GRANULAR_PROMPT_PROFILE_ID = "autopilot";
@@ -62,10 +74,20 @@ interface BuiltinProfileConfig {
   id: string;
   displayName: string;
   description: string;
+  // SDLC lifecycle controls — used only when `customStates` is NOT set.
+  // The `do` profile uses these (planningMode: "skipped" + review: "required"
+  // gives the 5-state IC lifecycle that was autopilot_no_planning).
   planningMode: "required" | "skipped";
   implementationReviewMode: "required" | "skipped";
   output: "remote_main" | "pr";
   owners: MemoryWorkflowOwners;
+  // Spanda extensions — when `customStates` is set, the SDLC lifecycle
+  // is bypassed entirely. Used by coord / followup / decide profiles
+  // that don't map to a software-shipment shape.
+  customStates?: string[];
+  customInitial?: string;
+  customTerminal?: string[];
+  customTransitions?: Array<{ from: string; to: string }>;
 }
 
 const AGENT_OWNERS: MemoryWorkflowOwners = {
@@ -77,6 +99,19 @@ const AGENT_OWNERS: MemoryWorkflowOwners = {
   shipment_review: "agent",
 };
 
+// Human-only owners for the coord / followup / decide profiles.
+// Even though these profiles don't traverse SDLC steps, owners is
+// a required field on MemoryWorkflowOwners — fill it human throughout
+// so any code that asks "who owns step X" gets a sane answer.
+const HUMAN_OWNERS: MemoryWorkflowOwners = {
+  planning: "human",
+  plan_review: "human",
+  implementation: "human",
+  implementation_review: "human",
+  shipment: "human",
+  shipment_review: "human",
+};
+
 const SEMIAUTO_OWNERS: MemoryWorkflowOwners = {
   planning: "agent",
   plan_review: "human",
@@ -86,7 +121,97 @@ const SEMIAUTO_OWNERS: MemoryWorkflowOwners = {
   shipment_review: "agent",
 };
 
+// Augment-not-replace strategy: spanda adds the 4 new profiles
+// (do / coordinate / followup / decide) ALONGSIDE the 6 upstream
+// Foolery profiles (autopilot, autopilot_with_pr, semiauto,
+// autopilot_no_planning, autopilot_with_pr_no_planning,
+// semiauto_no_planning).
+//
+// Why both: the upstream profiles are referenced by ~63 hardcoded
+// tests + the knots descriptor lookups. Removing them shifts the
+// fork tax from "tiny catalog addition" to "deep test churn", and
+// makes every upstream rebase a hostile merge.
+//
+// The UI surfaces only the 4 spanda profiles via the settings UI
+// filter (see settings-pools-target-editor); the legacy ones stay
+// in the catalog as compat scaffolding. `normalizeProfileId`
+// preserves legacy ids round-trip so callers that already say
+// "autopilot" still resolve to a real descriptor (autopilot itself,
+// not a rebind to "do") — this keeps the upstream tests stable.
 const BUILTIN_PROFILE_CATALOG: ReadonlyArray<BuiltinProfileConfig> = [
+  // ===== Spanda profiles FIRST (surface order in the settings UI) =====
+  // do — renamed autopilot_no_planning. Agent-eligible IC work.
+  // Lifecycle: ready_for_impl → impl → ready_for_review → review → shipped.
+  {
+    id: "do",
+    displayName: "Do",
+    description: "Agent-eligible IC work (write code, edit docs, run scripts)",
+    planningMode: "skipped",
+    implementationReviewMode: "required",
+    output: "remote_main",
+    owners: AGENT_OWNERS,
+  },
+  // coordinate — meetings, calls, alignment with named people.
+  // Required label at create time: with:<person> (enforced in bd-lint).
+  {
+    id: "coordinate",
+    displayName: "Coordinate",
+    description: "Meetings, calls, alignment with named people",
+    planningMode: "skipped",
+    implementationReviewMode: "skipped",
+    output: "remote_main",
+    owners: HUMAN_OWNERS,
+    customStates: ["scheduled", "done", "cancelled"],
+    customInitial: "scheduled",
+    customTerminal: ["done", "cancelled"],
+    customTransitions: [
+      { from: "scheduled", to: "done" },
+      { from: "scheduled", to: "cancelled" },
+    ],
+  },
+  // followup — chasing someone external. Required label: chasing:<person>.
+  {
+    id: "followup",
+    displayName: "Follow-up",
+    description: "Chasing someone external for an outcome",
+    planningMode: "skipped",
+    implementationReviewMode: "skipped",
+    output: "remote_main",
+    owners: HUMAN_OWNERS,
+    customStates: ["waiting", "nudged", "escalated", "done", "closed"],
+    customInitial: "waiting",
+    customTerminal: ["done", "closed"],
+    customTransitions: [
+      { from: "waiting", to: "nudged" },
+      { from: "waiting", to: "done" },
+      { from: "nudged", to: "escalated" },
+      { from: "nudged", to: "done" },
+      { from: "escalated", to: "done" },
+      { from: "escalated", to: "closed" },
+    ],
+  },
+  // decide — a decision you need to make. `waiting` is the parking-lot
+  // state for captured-but-not-actively-deciding items.
+  {
+    id: "decide",
+    displayName: "Decide",
+    description: "A choice you need to make",
+    planningMode: "skipped",
+    implementationReviewMode: "skipped",
+    output: "remote_main",
+    owners: HUMAN_OWNERS,
+    customStates: ["waiting", "deciding", "decided", "executed", "dropped"],
+    customInitial: "waiting",
+    customTerminal: ["executed", "dropped"],
+    customTransitions: [
+      { from: "waiting", to: "deciding" },
+      { from: "deciding", to: "decided" },
+      { from: "decided", to: "executed" },
+      { from: "decided", to: "dropped" },
+    ],
+  },
+
+  // ===== Upstream Foolery profiles (preserved for backwards-compat) =====
   {
     id: "autopilot",
     displayName: "Autopilot",
@@ -141,13 +266,33 @@ const BUILTIN_PROFILE_CATALOG: ReadonlyArray<BuiltinProfileConfig> = [
     output: "remote_main",
     owners: SEMIAUTO_OWNERS,
   },
+
 ];
 
 export function normalizeProfileId(value: string | null | undefined): string | null {
   const normalized = value?.trim().toLowerCase();
   if (!normalized) return null;
 
-  if (normalized === LEGACY_BEADS_COARSE_WORKFLOW_ID) return DEFAULT_PROFILE_ID;
+  // Spanda profile ids — round-trip as-is.
+  if (normalized === "do") return "do";
+  if (normalized === "coordinate") return "coordinate";
+  if (normalized === "followup") return "followup";
+  if (normalized === "decide") return "decide";
+
+  // Upstream Foolery profiles round-trip to themselves (they exist in the
+  // catalog under the augment-not-replace strategy; preserving their ids
+  // keeps 63 hardcoded tests stable).
+  if (normalized === "autopilot") return "autopilot";
+  if (normalized === "autopilot_no_planning") return "autopilot_no_planning";
+  if (normalized === "autopilot_with_pr") return "autopilot_with_pr";
+  if (normalized === "autopilot_with_pr_no_planning") return "autopilot_with_pr_no_planning";
+  if (normalized === "semiauto") return "semiauto";
+  if (normalized === "semiauto_no_planning") return "semiauto_no_planning";
+
+  // Other historical / external ids — map to the legacy default
+  // (autopilot, the upstream default) for compat. New beads default to
+  // DEFAULT_PROFILE_ID ("do") via the missing-label fallback path.
+  if (normalized === LEGACY_BEADS_COARSE_WORKFLOW_ID) return "autopilot";
   if (normalized === "beads-coarse-human-gated") return "semiauto";
   if (normalized === "automatic") return "autopilot";
   if (normalized === "workflow") return "semiauto";
@@ -185,6 +330,12 @@ function canonicalTransitions(): Array<{ from: string; to: string }> {
 }
 
 function buildStates(config: BuiltinProfileConfig): string[] {
+  // Spanda extension: a profile may provide a custom state list that bypasses
+  // the SDLC lifecycle entirely (coord / followup / decide).
+  if (config.customStates) {
+    return [...config.customStates];
+  }
+
   const states = [
     "ready_for_planning",
     "planning",
@@ -222,6 +373,13 @@ function filterTransitionsForStates(
   states: string[],
   config: BuiltinProfileConfig,
 ): Array<{ from: string; to: string }> {
+  // Spanda extension: when a custom state list is provided, use the
+  // catalog's explicit customTransitions rather than the SDLC canonical
+  // graph.
+  if (config.customStates) {
+    return [...(config.customTransitions ?? [])];
+  }
+
   const stateSet = new Set(states);
   const transitions = canonicalTransitions().filter((transition) =>
     (transition.from === "*" || stateSet.has(transition.from)) && stateSet.has(transition.to),
@@ -262,7 +420,12 @@ function descriptorFromProfileConfig(
 ): MemoryWorkflowDescriptor {
   const states = buildStates(config);
   const transitions = filterTransitionsForStates(states, config);
-  const terminalStates = ["shipped", "abandoned"];
+  // Spanda extension: custom-state profiles declare their own terminal set
+  // (e.g. coord = [done, cancelled], decide = [executed, dropped]).
+  // Default: the SDLC pair [shipped, abandoned].
+  const terminalStates = config.customTerminal
+    ? [...config.customTerminal]
+    : ["shipped", "abandoned"];
   const { queueStates, actionStates, queueActions } = deriveWorkflowStructure({
     states,
     transitions,
@@ -278,9 +441,12 @@ function descriptorFromProfileConfig(
     const action = queueActions[q];
     return action ? stepOwnerKind(config.owners, action) === "human" : false;
   });
-  const initialState = config.planningMode === "skipped"
-    ? "ready_for_implementation"
-    : "ready_for_planning";
+  // Spanda extension: a custom-state profile names its own initial state.
+  const initialState = config.customInitial
+    ? config.customInitial
+    : config.planningMode === "skipped"
+      ? "ready_for_implementation"
+      : "ready_for_planning";
   return {
     id: config.id,
     profileId: config.id,

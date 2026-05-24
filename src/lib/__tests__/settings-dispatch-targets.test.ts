@@ -16,7 +16,10 @@ describe("settings dispatch targets", () => {
     expect(groups[0]?.label).toBe("Execution Planning");
     expect(groups[1]?.label).toBe("Scope Refinement");
     expect(groups[2]?.label).toBe("Stale Grooming");
-    expect(groups[3]?.label).toBe("Autopilot");
+    // Spanda profiles surface FIRST in the catalog (per BUILTIN_PROFILE_CATALOG
+    // ordering), so "Do" lands at index 3 — was "Autopilot" pre-spanda.
+    // Legacy profiles still in the catalog, just after the spanda set.
+    expect(groups[3]?.label).toBe("Do");
     expect(groups.at(-1)?.label).toBe("Semiauto (no planning)");
   });
 
