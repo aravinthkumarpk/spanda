@@ -23,7 +23,7 @@ export function SettingsAutoSyncSection({
           </Label>
           <p className="text-[11px] text-muted-foreground">
             Periodically sync all registered Knots and Beads
-            projects while Foolery is open.
+            projects while Spanda is open.
           </p>
         </div>
         <div className="flex items-center gap-2">

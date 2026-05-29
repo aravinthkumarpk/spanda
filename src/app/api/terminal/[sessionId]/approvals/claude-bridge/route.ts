@@ -123,7 +123,7 @@ async function waitForApproval(
   record.updatedAt = Date.now();
   return {
     behavior: "deny",
-    message: "Timed out waiting for Foolery approval.",
+    message: "Timed out waiting for Spanda approval.",
   };
 }
 

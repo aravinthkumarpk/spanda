@@ -235,7 +235,7 @@ export async function checkUpdates(): Promise<Diagnostic[]> {
     diagnostics.push({
       check: "updates",
       severity: "info",
-      message: `Foolery is up to date (${ver}).`,
+      message: `Spanda is up to date (${ver}).`,
       fixable: false,
     });
   }

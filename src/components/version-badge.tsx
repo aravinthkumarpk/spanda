@@ -106,7 +106,7 @@ export function VersionBadgeTrigger(props: {
     <button
       type="button"
       className="version-badge group relative inline-flex cursor-pointer select-none items-center"
-      title={`Foolery ${displayVersion} — click to check for updates`}
+      title={`Spanda ${displayVersion} — click to check for updates`}
       onClick={props.onCheck}
     >
       <span
@@ -335,7 +335,7 @@ function renderUpdateHelperText(
     return "Automatic update failed. Manual fallback:";
   }
   if (status.phase === "restarting") {
-    return "Restarting Foolery. Manual fallback:";
+    return "Restarting Spanda. Manual fallback:";
   }
   return "Automatic local update. Manual fallback:";
 }
