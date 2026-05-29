@@ -355,7 +355,7 @@ describe("VersionPopoverBody", () => {
       "Restarting…",
     );
     expect(flattenText(tree)).toContain(
-      "Restarting Foolery. Manual fallback:",
+      "Restarting Spanda. Manual fallback:",
     );
   });
 

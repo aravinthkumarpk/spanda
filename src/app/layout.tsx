@@ -26,7 +26,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Foolery",
+  title: "Spanda",
   description: "View and manage beats",
 };
 

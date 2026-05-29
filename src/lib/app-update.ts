@@ -242,7 +242,7 @@ function buildWorkerSource(): string {
     '    await runLauncher("update");',
     "    await writeStatus({",
     '      phase: "restarting",',
-    '      message: "Restarting Foolery",',
+    '      message: "Restarting Spanda",',
     "    });",
     '    await appendLog("Running launcher restart");',
     '    await runLauncher("restart");',

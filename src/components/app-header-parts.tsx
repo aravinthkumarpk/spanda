@@ -48,7 +48,7 @@ export function VersionBannerBar(props: {
   return (
     <div className="mb-2 flex items-start justify-between gap-3 rounded-md border border-clay-200 bg-clay-100 px-3 py-2 text-sm text-clay-800">
       <p className="leading-6">
-        New Foolery version{" "}
+        New Spanda version{" "}
         <span className="font-semibold">
           {formatDisplayVersion(banner.latestVersion)}
         </span>{" "}

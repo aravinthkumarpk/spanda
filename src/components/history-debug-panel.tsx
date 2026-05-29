@@ -71,7 +71,7 @@ export function buildFallbackHistoryDebugPrompt({
   actualOutcome,
 }: HistoryDebugPromptInput): string {
   return [
-    "Investigate this Foolery history session.",
+    "Investigate this Spanda history session.",
     "",
     "Expected Outcome",
     expectedOutcome.trim(),
