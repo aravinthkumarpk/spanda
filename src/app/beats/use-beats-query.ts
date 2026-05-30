@@ -80,9 +80,16 @@ export function useBeatsQuery(
   const streaming = useStreamingProgress();
 
   const params: Record<string, string> = {};
+  // Views that show EVERY state and classify client-side (overview's matrix,
+  // the board's loom-derived columns, the projects rollup) must not send a
+  // state filter — otherwise the backend returns a narrowed/empty set.
+  const showsAllStates =
+    beatsView === "overview"
+    || beatsView === "board"
+    || beatsView === "projects";
   if (
     !searchQuery
-    && beatsView !== "overview"
+    && !showsAllStates
     && filters.state
   ) {
     params.state = filters.state;
