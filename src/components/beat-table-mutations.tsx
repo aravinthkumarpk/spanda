@@ -18,12 +18,8 @@ import {
   updateBeatOrThrow,
 } from "@/lib/update-beat-mutation";
 import type { CascadeDescendant } from "@/lib/cascade-close";
-
-const ROW_TERMINAL_TARGETS = new Set([
-  "shipped",
-  "abandoned",
-  "closed",
-]);
+import { isTerminalState } from "@/lib/task-action-resolver";
+import { builtinProfileDescriptor } from "@/lib/workflows";
 
 export function repoPathForBeat(
   beat: Beat | undefined,
@@ -52,9 +48,12 @@ export function useUpdateBeatMutation(data: Beat[]) {
       id, fields, repoPath,
     }: UpdateArgs) => {
       const targetState = fields.state?.trim().toLowerCase();
+      const descriptor = builtinProfileDescriptor(
+        data.find((b) => b.id === id)?.profileId,
+      );
       if (
         targetState !== undefined
-        && ROW_TERMINAL_TARGETS.has(targetState)
+        && isTerminalState(targetState, descriptor)
       ) {
         return markTerminalOrThrow(
           data, id, targetState, undefined, repoPath,

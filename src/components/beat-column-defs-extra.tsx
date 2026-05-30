@@ -25,6 +25,7 @@ import {
   isRollbackTransition,
 } from "@/lib/workflows";
 import { canTakeBeat } from "@/lib/beat-take-eligibility";
+import { isTerminalState } from "@/lib/task-action-resolver";
 import {
   validNextStates,
 } from "./beat-column-states";
@@ -57,10 +58,10 @@ export function stateColumn(
       const inherited =
         isRolling || isParentRolling;
       const state = row.original.state;
-      const isTerminal =
-        state === "shipped"
-        || state === "abandoned"
-        || state === "closed";
+      const isTerminal = isTerminalState(
+        state,
+        builtinProfileDescriptor(row.original.profileId),
+      );
       const pulse =
         inherited && !isTerminal
           ? "animate-pulse"
@@ -361,10 +362,10 @@ export function actionColumn(
     enableSorting: false,
     cell: ({ row }) => {
       const beat = row.original;
-      const isTerminal =
-        beat.state === "shipped"
-        || beat.state === "abandoned"
-        || beat.state === "closed";
+      const isTerminal = isTerminalState(
+        beat.state,
+        builtinProfileDescriptor(beat.profileId),
+      );
       if (isTerminal) {
         return null;
       }
@@ -404,7 +405,7 @@ export function actionColumn(
           </span>
         );
       }
-      if (!canTakeBeat(beat)) {
+      if (!canTakeBeat(beat, builtinProfileDescriptor(beat.profileId))) {
         return null;
       }
       return renderShipButton(

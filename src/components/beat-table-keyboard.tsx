@@ -3,6 +3,7 @@ import { useReactTable } from "@tanstack/react-table";
 import type { Beat } from "@/lib/types";
 import type { UpdateBeatInput } from "@/lib/schemas";
 import { canTakeBeat } from "@/lib/beat-take-eligibility";
+import { builtinProfileDescriptor } from "@/lib/workflows";
 import { persistExpandedIds } from "@/components/beat-table-expand";
 
 type KeyboardHookParams = {
@@ -272,7 +273,7 @@ function handleShipKey(
 ): void {
   if (!ctx.onShipBeat || idx < 0) return;
   const beat = rows[idx].original;
-  if (!canTakeBeat(beat)) return;
+  if (!canTakeBeat(beat, builtinProfileDescriptor(beat.profileId))) return;
   const inherited =
     ctx.parentRollingBeatIds.has(beat.id) ||
     Boolean(

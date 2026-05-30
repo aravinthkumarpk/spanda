@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import type { Beat } from "@/lib/types";
 import type { UpdateBeatInput } from "@/lib/schemas";
 import { canTakeBeat } from "@/lib/beat-take-eligibility";
+import { builtinProfileDescriptor } from "@/lib/workflows";
 import { refineBeatScope } from "@/lib/api";
 import {
   useScopeRefinementPendingStore,
@@ -439,7 +440,8 @@ function HeaderActions({
           size="xs"
           title="Take! -- start a session for this beat"
           disabled={
-            !onShipBeat || !canTakeBeat(beat)
+            !onShipBeat
+            || !canTakeBeat(beat, builtinProfileDescriptor(beat.profileId))
           }
           onClick={() =>
             onShipBeat?.(
