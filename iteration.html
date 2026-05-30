@@ -123,9 +123,11 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:22px;margin:44
   </div>
   <div style="text-align:right">
     <div class="eyebrow">drafted 30 may 2026</div>
-    <div class="sub toplinks"><a href="/index.html">&larr; roadmap</a> <a href="/dogfood.html">dogfood guide &rarr;</a> <a href="/implementation-notes.html">build notes &rarr;</a></div>
+    <div class="sub toplinks"><a href="/index.html">&larr; roadmap</a> <a href="/iteration-2.1.html">iteration 2.1 &rarr;</a> <a href="/dogfood.html">dogfood guide &rarr;</a></div>
   </div>
 </header>
+
+<div class="asm" style="margin:0 0 18px;background:var(--color-lake-pale);color:var(--color-ink-deep)"><b>&rarr; Followed up in <a href="/iteration-2.1.html">iteration 2.1</a>:</b> the &ldquo;&oplus; assumption&rdquo; notes below were each interviewed into a deliberate decision. <b>Several were changed</b> &mdash; most importantly, &ldquo;Do&rdquo; now runs a <em>human-gated</em> profile with an explicit sign-off step (it was silently autonomous here), and &ldquo;Review&rdquo; is the gate queue, not escalations. See 2.1 + <code>docs/adr/0004</code> for the superseding decisions.</div>
 
 <h1>Legible &amp; manual execution</h1>
 <p class="lede">From dogfooding the live board, one thing is clear: spanda can <b>run</b> a task with an agent, but it can&rsquo;t yet be <b>driven by hand</b>. You can&rsquo;t move a card yourself, you can&rsquo;t easily see what a running agent is doing, and when the agent has a question it hides in a bell. This iteration inverts the board&rsquo;s defaults &mdash; <b>manual status becomes the primary gesture</b>, and every task gets one clean surface to watch and steer its execution.</p>

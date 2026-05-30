@@ -1,7 +1,11 @@
 # 3. Beads sync — how the model maps onto beads storage
 
 Date: 2026-05-30
-Status: Accepted
+Status: Accepted — lifecycle/profile, status-surface, and altitude portions
+superseded by [ADR-0004](0004-do-profile-gates-and-surfaces.md) (iteration 2.1).
+The field mapping and "no new store" principle below still hold; a Do
+initiative now runs the redefined **`do`** profile (planning + `sign_off` + two
+human gates), **not** `semiauto`.
 
 ## Context
 
