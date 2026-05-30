@@ -16,7 +16,7 @@ import { Clapperboard, Pencil } from "lucide-react";
  * A single card on the normalized board. Shows the beat title, the REAL
  * workflow state as a small badge (Q3: the card keeps the specific state even
  * though the column is normalized), the bucket chip (Q3: bucket = a card label,
- * not a column), and the owner-derived primary action (Q4: a "Run" affordance
+ * not a column), and the owner-derived primary action (Q4: a "Start" affordance
  * only when the beat is agent-claimable, via the loom-derived canTakeBeat).
  */
 export function BoardCard({
@@ -90,7 +90,7 @@ export function BoardCard({
             type="button"
             onClick={() => onShipBeat?.(beat)}
             disabled={isShipping}
-            title="Run — hand this task to an agent"
+            title="Start — hand this task to an agent"
             className={
               "inline-flex items-center gap-1 rounded px-1.5 py-0.5"
               + " text-xs font-medium text-lake-700 hover:bg-lake-100"
@@ -99,7 +99,7 @@ export function BoardCard({
             }
           >
             <Clapperboard className="size-3" />
-            {isShipping ? "Running…" : "Run"}
+            {isShipping ? "Starting…" : "Start"}
           </button>
         )}
       </div>

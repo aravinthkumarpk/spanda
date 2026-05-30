@@ -62,6 +62,8 @@ export function EditBeatDialog({
             title: beat.title,
             description: beat.description ?? "",
             type: beat.type,
+            state: beat.state,
+            profileId: beat.profileId,
             priority: beat.priority,
             labels: beat.labels,
             acceptance: beat.acceptance ?? "",

@@ -28,6 +28,11 @@ import {
 import { RelationshipPicker } from "@/components/relationship-picker";
 import { ProfileInfoDialog } from "@/components/profile-info-dialog";
 import { FormField } from "@/components/form-field";
+import {
+  TaskTypeField,
+  StatusField,
+  spandaTaskTypeOptions,
+} from "@/components/beat-form-fields";
 
 const PRIORITIES = [0, 1, 2, 3, 4] as const;
 
@@ -96,46 +101,60 @@ function ProfileSelectField({
   );
 }
 
-function TypePriorityRow({
+/**
+ * A4 — the add-task "Task type" control. Offers the four spanda task types
+ * (Do / Decide / Coordinate / Follow-up). Falls back to the full profile
+ * selector only on a backend that exposes none of them (e.g. knots-only).
+ */
+function CreateTypeField({
   form,
-  hideTypeSelector,
+  workflows,
+  error,
+  onInfoClick,
 }: {
   form: AnyForm;
-  hideTypeSelector: boolean;
+  workflows: MemoryWorkflowDescriptor[];
+  error?: string;
+  onInfoClick: () => void;
 }) {
-  const cls = hideTypeSelector
-    ? ""
-    : "grid grid-cols-2 gap-2";
+  const taskTypeOptions = spandaTaskTypeOptions(workflows);
+  if (taskTypeOptions.length > 0) {
+    return <TaskTypeField form={form} options={taskTypeOptions} />;
+  }
+  if (workflows.length > 0) {
+    return (
+      <ProfileSelectField
+        form={form}
+        workflows={workflows}
+        error={error}
+        onInfoClick={onInfoClick}
+      />
+    );
+  }
+  return null;
+}
+
+function PriorityField({ form }: { form: AnyForm }) {
   return (
-    <div className={cls}>
-      {!hideTypeSelector && (
-        <FormField label="Type">
-          <Input
-            placeholder="e.g. task, bug, feature"
-            {...form.register("type")}
-          />
-        </FormField>
-      )}
-      <FormField label="Priority">
-        <Select
-          value={String(form.watch("priority"))}
-          onValueChange={(v) =>
-            form.setValue("priority", Number(v) as never)
-          }
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {PRIORITIES.map((p) => (
-              <SelectItem key={p} value={String(p)}>
-                P{p}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </FormField>
-    </div>
+    <FormField label="Priority">
+      <Select
+        value={String(form.watch("priority"))}
+        onValueChange={(v) =>
+          form.setValue("priority", Number(v) as never)
+        }
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {PRIORITIES.map((p) => (
+            <SelectItem key={p} value={String(p)}>
+              P{p}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </FormField>
   );
 }
 
@@ -215,7 +234,7 @@ function BeatFormActions({
       </Button>
       {onCreateMore && (
         <Button
-          title="Create this beat and start another"
+          title="Create this task and start another"
           type="button"
           variant="success-light"
           className="flex-1"
@@ -440,6 +459,10 @@ export function BeatForm(props: BeatFormProps) {
   const workflowError = getWorkflowError(
     mode, form.formState.errors,
   );
+  const editState =
+    props.mode === "edit" ? props.defaultValues?.state : undefined;
+  const editProfileId =
+    props.mode === "edit" ? props.defaultValues?.profileId : undefined;
 
   return (
     <form
@@ -451,7 +474,7 @@ export function BeatForm(props: BeatFormProps) {
         error={form.formState.errors.title?.message}
       >
         <Input
-          placeholder="Beat title"
+          placeholder="Task title"
           autoFocus
           {...form.register("title")}
         />
@@ -462,19 +485,22 @@ export function BeatForm(props: BeatFormProps) {
           {...form.register("description")}
         />
       </FormField>
-      {mode === "create" &&
-        create.workflows.length > 0 && (
-          <ProfileSelectField
-            form={form}
-            workflows={create.workflows}
-            error={workflowError}
-            onInfoClick={() => setProfileInfoOpen(true)}
-          />
-        )}
-      <TypePriorityRow
-        form={form}
-        hideTypeSelector={create.hideTypeSelector}
-      />
+      {mode === "create" && (
+        <CreateTypeField
+          form={form}
+          workflows={create.workflows}
+          error={workflowError}
+          onInfoClick={() => setProfileInfoOpen(true)}
+        />
+      )}
+      {mode === "edit" && editState && (
+        <StatusField
+          form={form}
+          profileId={editProfileId}
+          currentState={editState}
+        />
+      )}
+      <PriorityField form={form} />
       <LabelsField form={form} />
       <AcceptanceField form={form} />
       {mode === "create" && (
