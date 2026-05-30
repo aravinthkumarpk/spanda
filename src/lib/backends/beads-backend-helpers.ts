@@ -246,6 +246,11 @@ function applyScalarFields(
   if (input.acceptance !== undefined) beat.acceptance = input.acceptance;
   if (input.notes !== undefined) beat.notes = input.notes;
   if (input.estimate !== undefined) beat.estimate = input.estimate;
+  // ADR-0003: metadata is shallow-merged so a PATCH of just `metadata.status`
+  // (the skill pack's live "what's done") never clobbers `metadata.plan`.
+  if (input.metadata !== undefined) {
+    beat.metadata = { ...beat.metadata, ...input.metadata };
+  }
 }
 
 function invariantKey(inv: Invariant): string {

@@ -52,7 +52,7 @@ describe("classifyBeatRole", () => {
     ).toBe("task");
   });
 
-  it("ignores labels and type entirely when classifying", () => {
+  it("ignores non-altitude labels and type when classifying", () => {
     const labelled = makeBeat("x", {
       labels: ["project:foo", "work:do"],
       type: "task",
@@ -65,6 +65,35 @@ describe("classifyBeatRole", () => {
     expect(
       classifyBeatRole(labelled, { hasParentInSet: false, hasChildren: true }),
     ).toBe("project");
+  });
+
+  it("honors an explicit altitude:* label over structure (ADR-0003)", () => {
+    // The empty-initiative gap: a spec'd initiative with no children would
+    // structurally read as a task; the altitude:initiative label fixes it.
+    const initiative = makeBeat("i", { labels: ["altitude:initiative"] });
+    expect(
+      classifyBeatRole(initiative, {
+        hasParentInSet: false,
+        hasChildren: false,
+      }),
+    ).toBe("initiative");
+
+    const project = makeBeat("p", { labels: ["altitude:project"] });
+    expect(
+      classifyBeatRole(project, { hasParentInSet: true, hasChildren: false }),
+    ).toBe("project");
+
+    const task = makeBeat("t", { labels: ["altitude:task"] });
+    expect(
+      classifyBeatRole(task, { hasParentInSet: false, hasChildren: true }),
+    ).toBe("task");
+  });
+
+  it("falls back to structure for a malformed/absent altitude label", () => {
+    const bad = makeBeat("b", { labels: ["altitude:", "altitude:bogus"] });
+    expect(
+      classifyBeatRole(bad, { hasParentInSet: true, hasChildren: true }),
+    ).toBe("initiative");
   });
 });
 
@@ -240,12 +269,15 @@ describe("project-tree hermetic imports", () => {
     expect(src).not.toMatch(/fetch\(|require\(["']node:net["']\)/);
   });
 
-  it("never classifies by reading beat.labels or beat.type strings", () => {
+  it("classifies only on the altitude:* label, never on type or other labels", () => {
     const src = readFileSync(
       new URL("../project-tree.ts", import.meta.url),
       "utf8",
     );
-    expect(src).not.toMatch(/\.labels/);
+    // Never reads beat.type for classification.
     expect(src).not.toMatch(/\.type\b/);
+    // The only label literal the classifier keys off is the altitude prefix.
+    expect(src).toContain('"altitude:"');
+    expect(src).not.toMatch(/"project:"|"work:"/);
   });
 });

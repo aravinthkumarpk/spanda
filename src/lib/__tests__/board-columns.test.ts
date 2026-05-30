@@ -5,6 +5,7 @@ import {
   groupBeatsByBoardColumn,
 } from "@/lib/board-columns";
 import type { Beat, MemoryWorkflowDescriptor } from "@/lib/types";
+import { builtinProfileDescriptor } from "@/lib/workflows";
 
 function makeBeat(
   id: string,
@@ -288,5 +289,55 @@ describe("groupBeatsByBoardColumn null + broken handling", () => {
         () => broken,
       ),
     ).toThrow(/FOOLERY/);
+  });
+});
+
+/**
+ * B2 (ADR-0003) — the real `semiauto` profile's 7-state lifecycle must map onto
+ * the normalized board with no unclassified states. A Do initiative carries
+ * `profileId: semiauto`; this locks its state→column projection. Uses the live
+ * builtin descriptor (not a hand-rolled one) so a drift in the semiauto profile
+ * trips this test.
+ */
+describe("boardColumnForState — semiauto lifecycle (ADR-0003)", () => {
+  const semiauto = builtinProfileDescriptor("semiauto");
+
+  it("maps the 7 ADR lifecycle states to the normalized board", () => {
+    // our term            beads state                column
+    // Open                ready_for_planning         todo
+    // Plan                planning                   doing
+    // Plan review (gate)  plan_review                doing (active review action)
+    // Execution ready     ready_for_implementation   todo
+    // Executing           implementation             doing
+    // Exec review (gate)  implementation_review      doing (active review action)
+    // Done                shipped                    done
+    expect(boardColumnForState("ready_for_planning", semiauto)).toBe("todo");
+    expect(boardColumnForState("planning", semiauto)).toBe("doing");
+    expect(boardColumnForState("plan_review", semiauto)).toBe("doing");
+    expect(boardColumnForState("ready_for_implementation", semiauto)).toBe(
+      "todo",
+    );
+    expect(boardColumnForState("implementation", semiauto)).toBe("doing");
+    expect(boardColumnForState("implementation_review", semiauto)).toBe(
+      "doing",
+    );
+    expect(boardColumnForState("shipped", semiauto)).toBe("done");
+  });
+
+  it("surfaces the two human gates as their review-queue states", () => {
+    // While an initiative rests waiting for the human to open a gate it sits in
+    // the ready_for_*_review queue, which is the board's Review column.
+    expect(boardColumnForState("ready_for_plan_review", semiauto)).toBe(
+      "review",
+    );
+    expect(
+      boardColumnForState("ready_for_implementation_review", semiauto),
+    ).toBe("review");
+  });
+
+  it("classifies every semiauto state (none land in unclassified)", () => {
+    for (const state of semiauto.states) {
+      expect(boardColumnForState(state, semiauto)).not.toBeNull();
+    }
   });
 });

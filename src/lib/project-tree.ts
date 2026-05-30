@@ -2,10 +2,13 @@
  * project-tree — pure grouping of a flat `Beat[]` into a
  * Project -> Initiative -> Task tree keyed off native `Beat.parent` edges (Q2).
  *
- * Classification is STRUCTURAL only: a beat's role is decided entirely by its
- * position in the parent graph (does it have a parent in the set? does it have
- * children?), NEVER by reading a beat's label list or type string. Project
- * titles come from the parent bead's own `title`, not from a `project:*` label.
+ * Classification honors an explicit `altitude:project|initiative|task` label
+ * first (ADR-0003 — round-trips via labels, and fixes the empty-initiative gap
+ * where a spec'd initiative with no children would otherwise read as a task),
+ * then falls back to STRUCTURAL position in the parent graph (does it have a
+ * parent in the set? does it have children?). The beat's `type` string and any
+ * non-`altitude:` label are NEVER consulted. Project titles come from the
+ * parent bead's own `title`, not from a `project:*` label.
  *
  * Consumes `buildHierarchy` from `beat-hierarchy.ts` (parent-first DFS that
  * sets `_depth`/`_hasChildren`, treats a missing parent as top-level, and
@@ -57,8 +60,32 @@ export const DEFAULT_UNSORTED_PROJECT_ID = "__unsorted__";
 
 export type BeatRole = "project" | "initiative" | "task";
 
+const ALTITUDE_LABEL_PREFIX = "altitude:";
+const ALTITUDE_VALUES: ReadonlySet<BeatRole> = new Set([
+  "project",
+  "initiative",
+  "task",
+]);
+
 /**
- * Decide a beat's structural role from its graph position alone.
+ * Read an explicit `altitude:project|initiative|task` label if one is present
+ * and well-formed (ADR-0003). This is the ONLY label the classifier reads — a
+ * `project:*` / `work:*` / arbitrary label is never consulted. Returns
+ * `undefined` when no valid altitude label is set, so the caller can fall back
+ * to structural classification.
+ */
+export function altitudeFromLabel(beat: Beat): BeatRole | undefined {
+  for (const label of beat.labels ?? []) {
+    if (!label.startsWith(ALTITUDE_LABEL_PREFIX)) continue;
+    const value = label.slice(ALTITUDE_LABEL_PREFIX.length).trim().toLowerCase();
+    if (ALTITUDE_VALUES.has(value as BeatRole)) return value as BeatRole;
+  }
+  return undefined;
+}
+
+/**
+ * Decide a beat's role: an explicit `altitude:*` label wins (ADR-0003); absent
+ * that, fall back to its graph position alone.
  *
  * - no-parent + children  -> project
  * - parent    + children  -> initiative
@@ -69,6 +96,8 @@ export function classifyBeatRole(
   beat: Beat,
   ctx: { hasParentInSet: boolean; hasChildren: boolean },
 ): BeatRole {
+  const explicit = altitudeFromLabel(beat);
+  if (explicit) return explicit;
   if (!ctx.hasParentInSet && ctx.hasChildren) return "project";
   if (ctx.hasParentInSet && ctx.hasChildren) return "initiative";
   return "task";

@@ -34,6 +34,15 @@ export const invariantSchema = z.object({
   condition: z.string().trim().min(1),
 });
 
+/**
+ * Open metadata dict (ADR-0003). The product model parks the plan document on
+ * `metadata.plan` and the live "what's done" status on `metadata.status`; the
+ * dict stays open so the skill pack can park more without a schema change. On
+ * update this is shallow-merged into the existing metadata (see `applyUpdate`),
+ * so PATCHing only `metadata.status` never clobbers `metadata.plan`.
+ */
+export const beatMetadataSchema = z.record(z.string(), z.unknown());
+
 export const createBeatSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
@@ -49,6 +58,7 @@ export const createBeatSchema = z.object({
   invariants: z.array(invariantSchema).optional(),
   profileId: z.string().min(1).optional(),
   workflowId: z.string().min(1).optional(),
+  metadata: beatMetadataSchema.optional(),
 });
 
 export const updateBeatSchema = z.object({
@@ -70,6 +80,7 @@ export const updateBeatSchema = z.object({
   addInvariants: z.array(invariantSchema).optional(),
   removeInvariants: z.array(invariantSchema).optional(),
   clearInvariants: z.boolean().optional(),
+  metadata: beatMetadataSchema.optional(),
 });
 
 export const closeBeatSchema = z.object({

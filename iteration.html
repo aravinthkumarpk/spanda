@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>spanda — iteration: legible &amp; manual execution</title>
+<meta name="description" content="Spanda iteration 02: make running work legible and manual — drag-and-drop status, a per-task status + control surface, and a readable execution narrative. One source of truth throughout."/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='34' fill='%230e0f0c'/%3E%3Crect x='29' y='32' width='6' height='14' rx='3' fill='%239fe870'/%3E%3Crect x='45' y='32' width='6' height='14' rx='3' fill='%239fe870'/%3E%3C/svg%3E"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --color-primary:#9fe870; --color-primary-pale:#e2f6d5; --color-on-primary:#0e0f0c;
+  --color-canvas:#ffffff; --color-canvas-soft:#e8ebe6; --color-hover-sage:#f5f7f3;
+  --color-ink:#0e0f0c; --color-on-ink:#f4f6f1; --color-ink-deep:#163300; --color-body:#454745; --color-mute:#868685;
+  --color-positive:#2ead4b; --color-positive-deep:#054d28; --color-positive-pale:#e2f6d5;
+  --color-warning-deep:#b86700; --color-warning-content:#4a3b1c; --color-warning-pale:#fff4cc;
+  --color-lake:#1f6f78; --color-lake-pale:#dceef0;
+  --color-border-soft:rgba(14,15,12,0.10); --color-border-faint:rgba(14,15,12,0.06);
+  --font-display:"Manrope",ui-sans-serif,system-ui,sans-serif;
+  --font-sans:"Inter","Manrope",ui-sans-serif,system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --r-md:12px; --r-lg:16px; --r-xl:24px; --r-pill:9999px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--color-canvas-soft);color:var(--color-ink)}
+body{font:400 16px/1.6 var(--font-sans);-webkit-font-smoothing:antialiased}
+::selection{background:var(--color-primary);color:var(--color-on-primary)}
+.wrap{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+a{color:var(--color-lake)}
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid var(--color-border-soft)}
+.lockup{display:flex;align-items:center;gap:10px}
+.lockup svg{height:42px;width:auto}
+.lockup .name{font-family:var(--font-display);font-weight:900;font-size:32px;letter-spacing:-0.02em}
+.sub{color:var(--color-body);font-size:14px;margin-top:6px}
+.eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-mute)}
+h1{font-family:var(--font-display);font-weight:800;font-size:32px;letter-spacing:-0.02em;margin:0 0 8px}
+.lede{color:var(--color-body);font-size:16px;max-width:74ch;margin:0 0 8px}
+.toplinks a{margin-left:14px;font-size:13px}
+
+.vocab{background:var(--color-canvas);border-radius:var(--r-xl);padding:18px 22px;margin:14px 0 8px;box-shadow:0 1px 0 0 rgba(14,15,12,0.04)}
+.vocab h3{font-family:var(--font-display);font-weight:700;font-size:15px;margin:0 0 12px}
+.vtable{width:100%;border-collapse:collapse;font-size:14px}
+.vtable th{text-align:left;font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--color-mute);font-weight:600;padding:0 12px 8px 0;border-bottom:1px solid var(--color-border-faint)}
+.vtable td{padding:8px 12px 8px 0;border-bottom:1px solid var(--color-border-faint);vertical-align:top;color:var(--color-body)}
+.vtable td b{color:var(--color-ink);font-weight:600}
+.vtable .old{font-family:var(--font-mono);font-size:12px;color:var(--color-mute)}
+
+.pains{margin:22px 0 8px;border-radius:var(--r-xl);overflow:hidden;border:1px solid var(--color-border-soft)}
+.pain{display:flex;gap:16px;align-items:flex-start;padding:16px 20px;background:var(--color-canvas)}
+.pain + .pain{border-top:1px solid var(--color-border-faint)}
+.pain .n{font-family:var(--font-mono);font-size:11px;color:var(--color-mute);white-space:nowrap;padding-top:3px;min-width:46px}
+.pain .body b{font-family:var(--font-display);font-weight:700}
+.pain .body span{display:block;color:var(--color-body);font-size:14px;margin-top:2px}
+.pain .body .fix{display:block;color:var(--color-positive-deep);font-size:13px;margin-top:6px;font-family:var(--font-mono)}
+
+.order{background:var(--color-ink);color:var(--color-on-ink);border-radius:var(--r-xl);padding:22px 26px;margin:26px 0}
+.order h2{font-family:var(--font-display);font-weight:800;font-size:18px;margin:0 0 4px;color:#fff}
+.order p{color:#aeb3a8;font-size:13px;margin:0 0 14px}
+.order ol{margin:0;padding:0;list-style:none}
+.order li{display:flex;align-items:baseline;gap:12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.08);font-size:14px;color:#e8ebe6}
+.order li:last-child{border-bottom:0}
+.order .ph{font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;min-width:48px}
+.order .ph.now{color:var(--color-primary)} .order .ph.next{color:#ffd11a} .order .ph.later{color:#868685}
+.order .sid{font-family:var(--font-mono);font-size:12px;color:#fff;min-width:28px}
+.order .why{color:#aeb3a8;font-size:12px;margin-top:8px;font-style:italic}
+
+h2.epic{font-family:var(--font-display);font-weight:800;font-size:22px;margin:44px 0 2px;letter-spacing:-0.01em}
+.epic-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-lake)}
+.epic-note{color:var(--color-body);font-size:14.5px;margin:0 0 14px;max-width:74ch}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+.badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;padding:3px 10px;border-radius:var(--r-pill)}
+.b-now{background:var(--color-primary);color:var(--color-on-primary)}
+.b-next{background:var(--color-warning-pale);color:var(--color-warning-content)}
+.b-later{background:#ececea;color:var(--color-mute)}
+.b-done{background:var(--color-positive-pale);color:var(--color-positive-deep)}
+.b-partial{background:var(--color-warning-pale);color:var(--color-warning-content)}
+.b-exists{background:var(--color-lake-pale);color:var(--color-lake)}
+
+.card{background:var(--color-canvas);border-radius:var(--r-xl);padding:22px 24px;margin:14px 0;box-shadow:0 1px 0 0 rgba(14,15,12,0.04)}
+.card .head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.card h3{font-family:var(--font-display);font-weight:700;font-size:18px;margin:0 0 2px;letter-spacing:-0.01em}
+.card .ref{font-family:var(--font-mono);font-size:11px;color:var(--color-mute)}
+.badges{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.story{margin:12px 0 4px;padding:12px 14px;background:var(--color-hover-sage);border-radius:var(--r-md);font-size:14.5px}
+.story b{font-weight:600}
+.ach{font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-mute);margin:12px 0 2px}
+.ac{margin:2px 0;padding:0;list-style:none}
+.ac li{position:relative;padding:3px 0 3px 26px;font-size:14px;color:var(--color-body)}
+.ac li::before{content:"\25cb";position:absolute;left:0;top:2px;font-family:var(--font-mono);font-size:13px;color:var(--color-mute)}
+.ac li.y::before{content:"\2713";color:var(--color-positive)}
+.reuse{margin-top:10px;font-size:12.5px;color:var(--color-lake);font-family:var(--font-mono)}
+.dep{margin-top:6px;font-size:12px;color:var(--color-warning-deep);font-family:var(--font-mono)}
+
+.mock{font-family:var(--font-mono);font-size:12px;line-height:1.5;background:var(--color-ink);color:#dfe6d6;border-radius:var(--r-md);padding:14px 16px;margin:12px 0 4px;white-space:pre;overflow-x:auto}
+.mock .hi{color:var(--color-primary)}
+.mock .dim{color:#868685}
+.mock .warn{color:#ffd11a}
+
+.ink{background:var(--color-ink);color:var(--color-on-ink);border-radius:var(--r-xl);padding:24px 26px;margin:30px 0}
+.ink h2{font-family:var(--font-display);font-weight:800;font-size:20px;margin:0 0 6px;color:#fff}
+.ink p{color:#cfd3cb;font-size:14.5px;margin:8px 0;max-width:74ch}
+.ink .q{font-family:var(--font-display);font-style:italic;font-size:17px;color:#fff;border-left:3px solid var(--color-primary);padding-left:14px;margin:14px 0}
+.ink ul{margin:8px 0;padding-left:20px;color:#cfd3cb;font-size:14px}
+.ink ul li{margin:4px 0}
+.ink code{font-family:var(--font-mono);font-size:12.5px;background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:6px;color:#dfe6d6}
+.foot{margin-top:48px;padding-top:18px;border-top:1px solid var(--color-border-soft);font-size:12px;color:var(--color-mute)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div>
+    <div class="lockup">
+      <svg viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="34" fill="#0e0f0c"/><rect x="29" y="32" width="6" height="14" rx="3" fill="#9fe870"/><rect x="45" y="32" width="6" height="14" rx="3" fill="#9fe870"/></svg>
+      <span class="name">spanda</span>
+    </div>
+    <div class="sub">iteration 02 &middot; make running work legible &amp; manual</div>
+  </div>
+  <div style="text-align:right">
+    <div class="eyebrow">drafted 30 may 2026</div>
+    <div class="sub toplinks"><a href="/index.html">&larr; roadmap</a> <a href="/dogfood.html">dogfood guide &rarr;</a> <a href="/implementation-notes.html">build notes &rarr;</a></div>
+  </div>
+</header>
+
+<h1>Legible &amp; manual execution</h1>
+<p class="lede">From dogfooding the live board, one thing is clear: spanda can <b>run</b> a task with an agent, but it can&rsquo;t yet be <b>driven by hand</b>. You can&rsquo;t move a card yourself, you can&rsquo;t easily see what a running agent is doing, and when the agent has a question it hides in a bell. This iteration inverts the board&rsquo;s defaults &mdash; <b>manual status becomes the primary gesture</b>, and every task gets one clean surface to watch and steer its execution.</p>
+<p class="lede" style="color:var(--color-mute);font-size:14px">One source of truth throughout: status changes go through <code style="font-family:var(--font-mono)">PATCH /api/beats</code> into the beads DB; the new surfaces are <em>views and controls</em> over it, never a second store.</p>
+
+<!-- ===================== CANONICAL: AGENT TASK BOARD ===================== -->
+<div class="ink" style="border:2px solid var(--color-primary)">
+  <h2>&#9733; Agent Task Board &mdash; the model we converged on</h2>
+  <p><b>What I'm actually trying to do:</b> spend my time on one thing &mdash; writing and refining <b>specs</b>. Everything downstream of a good spec gets handled by agents. I don't babysit execution. I glance at a board, see what's happening, and step in only when there's a real decision.</p>
+  <p class="q">Two human gates: <b>plan review</b> and <b>execution review</b>. Two agent phases: <b>plan</b> and <b>execute</b>. I stay out of the middle, and I never lose visibility.</p>
+</div>
+
+<div class="vocab">
+  <h3>Three altitudes &mdash; the spec &amp; the status page live at the initiative</h3>
+  <table class="vtable">
+    <tr><th>altitude</th><th>carries</th><th>role</th></tr>
+    <tr><td><b>Project</b></td><td class="old">nothing (a folder)</td><td>Groups initiatives. No spec, no lifecycle.</td></tr>
+    <tr><td><b>Initiative</b></td><td><b>the spec + one status page</b></td><td>The unit you live in. Runs the whole lifecycle. Both gates are here.</td></tr>
+    <tr><td><b>Task</b></td><td class="old">no spec</td><td>Emergent execution sub-unit. Created <b>only when the work needs more than one</b>. A row on the initiative's status page.</td></tr>
+  </table>
+</div>
+
+<div class="vocab">
+  <h3>Four task types &mdash; only <b>Do</b> runs the full agent lifecycle</h3>
+  <table class="vtable">
+    <tr><th>type</th><th>how it moves</th><th>flow</th></tr>
+    <tr><td><b>Do</b></td><td>agents, via the skill pack</td><td>the full <b>spec &rarr; Plan &rarr; Plan review &rarr; Execute &rarr; Execution review &rarr; Done</b> lifecycle below. This is the part Claude Code/Codex execute.</td></tr>
+    <tr><td><b>Decide</b></td><td><b>agents (decide pack)</b> or by hand</td><td>take context &rarr; <b>brainstorm &rarr; decide &rarr; communicate &rarr; close</b> &mdash; runnable as a skill pack in Claude Code/Codex, or moved by hand (drag / PATCH).</td></tr>
+    <tr><td><b>Coordinate</b></td><td>you, by hand</td><td>meetings / alignment with people. Just move it across the board.</td></tr>
+    <tr><td><b>Follow-up</b></td><td>you, by hand</td><td>chasing someone for an outcome. Just move it across the board.</td></tr>
+  </table>
+  <p class="epic-note" style="margin:12px 0 0"><b>Board = your current stack</b> &mdash; one clean view of everything across all four types, so you can execute. <b>Today = what changed</b> &mdash; the clarity feed for deciding what to pull onto the board and prioritise.</p>
+</div>
+
+<div class="order">
+  <h2>The <b>Do</b> lifecycle &mdash; on the initiative, in plain words</h2>
+  <p>Applies to Do tasks. Two &#9995; columns are &ldquo;needs you&rdquo;. A glance tells you where a decision is waiting.</p>
+  <ol>
+    <li><span class="ph now">1</span><span class="sid">Open</span><span>the initiative exists with a spec</span></li>
+    <li><span class="ph now">2</span><span class="sid">Plan</span><span>you mark it; grill-me front-loads every question and proposes the <b>minimum</b> tasks</span></li>
+    <li><span class="ph next">3 &#9995;</span><span class="sid">PlanRev</span><span>page shows objective &middot; problem &middot; recommended solution (pros/cons) &middot; breakdown &middot; acceptance &middot; assumptions &mdash; <b>you decide</b></span></li>
+    <li><span class="ph now">4</span><span class="sid">ExecRdy</span><span>approved &rarr; tasks created, queued, nothing running</span></li>
+    <li><span class="ph now">5</span><span class="sid">Start</span><span>your one &ldquo;go&rdquo; releases the batch</span></li>
+    <li><span class="ph now">6</span><span class="sid">Exec</span><span>agents <b>execute</b> the tasks in parallel (dependency-aware); status page shows live progress + <b>&ldquo;what's done&rdquo;</b></span></li>
+    <li><span class="ph next">7 &#9995;</span><span class="sid">ExecRev</span><span>when <b>all</b> tasks finish, you review the produced output in one sitting &mdash; <b>you decide</b></span></li>
+    <li><span class="ph now">8</span><span class="sid">Done</span><span>approved</span></li>
+  </ol>
+  <p class="why">Locked rules &mdash; fallback: best-guess + document + flag at execution review, interrupt live only when genuinely stuck. Reject: Plan&nbsp;No &rarr; re-grill the spec; Execution&nbsp;No &rarr; redo that task (default) with a &ldquo;mis-planned &rarr; back to Plan&rdquo; escape; your reject note is the instruction.</p>
+</div>
+
+<h2 class="epic">The reframe &mdash; <span class="epic-tag">Foolery is the board; Claude Code &amp; Codex are the brain</span></h2>
+<p class="epic-note">We were overcomplicating &mdash; trying to make Foolery <em>run</em> the agents (native grill, native goal-loop, native dispatch). That's the hardest, riskiest part, and it's redundant: <b>Claude Code and Codex are already the executors.</b> So Foolery's job shrinks to a <b>context board</b> &mdash; take context, update context, view context &mdash; and the agents stay in their native chat.</p>
+<div class="card">
+  <div class="head">
+    <div><h3>Board &harr; brain contract</h3><div class="ref">existing REST API (/api/beats) &middot; a cross-agent skill pack</div></div>
+    <div class="badges"><span class="badge b-done">contract locked</span></div>
+  </div>
+  <div class="mock"><span class="dim">  Foolery board</span>  context + lifecycle state (source of truth)
+       <span class="hi">&#8597;</span>  read context &middot; write plan/status &middot; move card
+  <span class="dim">  Claude Code / Codex (native chat)</span>  grills, plans, executes
+</div>
+  <div class="ach">two pieces, that's it</div>
+  <ul class="ac">
+    <li class="y"><b>Contract = the existing REST API.</b> The agent reads/lists tasks, moves a card (<code style="font-family:var(--font-mono)">PATCH /api/beats/[id]</code>), and reads/writes the context field set &mdash; spec &rarr; <code style="font-family:var(--font-mono)">description</code> + <code style="font-family:var(--font-mono)">acceptance</code>, plan &rarr; <code style="font-family:var(--font-mono)">metadata.plan</code>, status &rarr; <code style="font-family:var(--font-mono)">metadata.status</code> (ADR-0003). No new store.</li>
+    <li class="y"><b>Mechanism = a Spanda skill pack</b> &mdash; markdown+script skills usable by <b>both Claude Code and Codex</b> (Superpowers-style portability). No bespoke orchestrator.</li>
+  </ul>
+  <div class="ach">the skill pack (detailed below)</div>
+  <ul class="ac">
+    <li><b>do pack:</b> <code style="font-family:var(--font-mono)">spanda-board &middot; pick &middot; plan &middot; execute &middot; signoff &middot; learn</code></li>
+    <li><b>decide pack:</b> <code style="font-family:var(--font-mono)">spanda-decide</code></li>
+  </ul>
+</div>
+
+<div class="alts">
+  <div class="alt a1"><div class="lvl">phase 1</div><div class="body"><b>Context board + skill pack.</b> <span>Foolery shows the initiative/task board with lifecycle columns and editable context. Agents (Claude Code/Codex) drive the lifecycle from their chat using the skill pack over the REST API: pick &rarr; plan &rarr; move &rarr; execute &rarr; status. <b>The status page lives in Foolery</b> &mdash; agents write progress + &ldquo;what's done&rdquo; back to the card via the API, and you <b>watch status in Foolery, never by tailing the chat</b>. Every decision we designed still holds &mdash; realized <b>through the agents</b>, not built natively. Ships fast, low risk.</span></div></div>
+  <div class="alt a3"><div class="lvl">phase 2</div><div class="body"><b>Execute natively from Foolery.</b> <span>Once the board+context loop is proven, bring execution in-house: native dispatch, the goal-loop, live streaming, the approval bridge surfaced on the page. The hard part, done last, on a proven foundation.</span></div></div>
+</div>
+
+<div class="ink">
+  <h2>Methodology &mdash; Superpowers + goal-following are the engine</h2>
+  <p>The agent discipline is not invented; it's <b>Superpowers</b>: <b>Plan</b> = brainstorming (one question at a time, front-loaded) + writing-plans (objective, breakdown, verification); <b>Execute</b> = subagent-driven development + RED-GREEN-REFACTOR TDD in a worktree + verification-before-completion.</p>
+  <p>And the spec <b>is the goal</b>: each task runs under a goal-following loop (Claude <code>/goal</code> Stop-hook; Codex <code>goals=true</code>) where the <b>acceptance criteria are the completion condition</b>. That's what makes &ldquo;best-guess and keep going, interrupt only when stuck&rdquo; automatic rather than hoped-for &mdash; the agent can't quit until acceptance holds.</p>
+  <p class="q">You see minimal tasks; the agent works in small verified increments underneath. Two granularities, one board.</p>
+</div>
+
+<h2 class="epic">Skills &amp; references &mdash; <span class="epic-tag">two packs, grounded in proven sources</span></h2>
+<p class="epic-note">The skill packs aren't invented from scratch &mdash; each Spanda skill borrows from a proven reference. Two agent packs: <b>do</b> (the full lifecycle) and <b>decide</b> (brainstorm &rarr; decide &rarr; communicate &rarr; close). Coordinate &amp; Follow-up stay manual. All skills are cross-agent (Claude Code + Codex) and drive the board over the REST API. <b>Each skill sits on top of the API</b> &mdash; a thin procedure that carries <b>no state of its own</b>; the board (via the API) is the single source of truth, so you can add, swap, or reorder skills without touching the board, and two agents never fight over state. Each thin skill <b>invokes the installed reference</b> (gstack, Superpowers) as a sub-procedure where present, with an inline fallback (<b>ADR-0002</b>).</p>
+
+<div class="vocab">
+  <h3><code style="font-family:var(--font-mono)">do</code> pack &mdash; the full Do lifecycle</h3>
+  <table class="vtable">
+    <tr><th>skill</th><th>what it does</th><th>primary source <span style="font-weight:400;text-transform:none">(ADR-0001)</span></th></tr>
+    <tr><td><b>spanda-plan</b></td><td>grill the spec, propose the minimum tasks, write the plan to the card, move to Plan review</td><td class="old"><b>Superpowers</b> &mdash; brainstorming + writing-plans</td></tr>
+    <tr><td><b>spanda-execute</b></td><td>execute the tasks in isolated worktrees with TDD; commit per task; write &ldquo;what's done&rdquo; back to the card</td><td class="old"><b>Superpowers</b> &mdash; subagent + TDD + worktrees + verification &middot; <b>wrapped by goal-following</b> (/goal, Codex goals)</td></tr>
+    <tr><td><b>spanda-signoff</b></td><td>e2e/QA, verify every acceptance criterion, canary health &mdash; the evidence for Execution review</td><td class="old"><b>gstack</b> &mdash; qa &rarr; review &rarr; ship &rarr; land-and-deploy &rarr; canary</td></tr>
+    <tr><td><b>spanda-learn</b></td><td>after Execution review, capture decisions / patterns / deviations into a shared <b>knowledge note</b> so the next Plan starts smarter</td><td class="old"><b>lavra</b> &mdash; persistent knowledge store + recall</td></tr>
+  </table>
+  <p class="epic-note" style="margin:12px 0 0">Both gates are <b>LLM-assisted human reviews</b> &mdash; the LLM surfaces forcing questions/evidence, you decide. <b>Plan review</b> is assisted by gstack <code style="font-family:var(--font-mono)">office-hours</code> (it grills the plan <em>with</em> you); <b>Execution review</b> is assisted by the sign-off evidence.</p>
+</div>
+
+<div class="vocab">
+  <h3><code style="font-family:var(--font-mono)">decide</code> pack &mdash; brainstorm &rarr; decide &rarr; communicate &rarr; close</h3>
+  <table class="vtable">
+    <tr><th>skill</th><th>what it does</th><th>borrows from</th></tr>
+    <tr><td><b>spanda-decide</b></td><td>take the card's context, brainstorm options, make the call, communicate it, close the card</td><td class="old"><b>Superpowers</b> brainstorming + <b>gstack</b> office-hours framing. <b>v2:</b> mental-model skills from our repo (game-theory, probability, systems, decision&hellip;)</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="head"><div><h3>E2E testing &amp; sign-off &mdash; the borrowed quality bar</h3><div class="ref">spanda-signoff &middot; gstack qa / review / ship / land-and-deploy / canary</div></div><div class="badges"><span class="badge b-exists">borrowed</span></div></div>
+  <div class="story">The Execution review gate is not a vibe-check &mdash; it's an evidence-based sign-off lifted from gstack's ship discipline.</div>
+  <ul class="ac">
+    <li class="y"><b>gstack qa</b> &mdash; systematically QA the app, fix bugs atomically, re-verify; produces before/after health scores (Quick / Standard / Exhaustive tiers).</li>
+    <li class="y"><b>gstack review</b> &mdash; catch the bugs that pass CI but blow up in prod: SQL safety, LLM trust-boundary violations, conditional side-effects.</li>
+    <li class="y"><b>gstack ship + land-and-deploy</b> &mdash; tests + coverage audit + PR, then merge, wait for CI, verify production health.</li>
+    <li class="y"><b>gstack canary</b> &mdash; post-deploy watch for console errors / perf regressions against a pre-deploy baseline.</li>
+    <li class="y"><b>lavra /test-browser</b> + Spanda's own <code style="font-family:var(--font-mono)">quality-fe-agent</code> (browser-scout / e2e orchestrator) for real browser e2e.</li>
+  </ul>
+  <div class="reuse">sign-off = every acceptance criterion verified with evidence before Done</div>
+</div>
+
+<div class="ink">
+  <h2>Why this shape &mdash; the compound-engineering principle</h2>
+  <p>Every reference converges on the same ratio: <b>&ldquo;80% of the work is planning and review, 20% is execution&rdquo;</b> (compound-engineering). That's exactly why our model front-loads grilling at Plan and puts two human gates around execution &mdash; and why the board turns those gates into a glance, not a chore.</p>
+  <p>Per <b>ADR-0001</b> we pick one primary per phase, collapsing six references to <b>three in active use</b>: <b>Superpowers</b> (the Plan / Execute / Decide spine), <b>gstack</b> (Sign-off + the Plan-review <code>office-hours</code> assist), and <b>lavra</b> (the Learn memory loop) &mdash; with <b>goal-following</b> (Claude /goal, Codex goals) wrapping Execute to hold the agent to acceptance. <b>mattpocock</b> (to-issues) and <b>compound-engineering</b> (the 80/20 philosophy itself) drop to optional inspiration.</p>
+</div>
+
+
+<!-- ===================== IN SYNC WITH BEADS ===================== -->
+<h2 class="epic">In sync with beads &mdash; <span class="epic-tag">no new store (ADR-0003)</span></h2>
+<p class="epic-note">The board <em>is</em> beads (<code style="font-family:var(--font-mono)">.beads/issues.jsonl</code> via <code style="font-family:var(--font-mono)">/api/beats</code>). Every part of the model maps onto fields beads already round-trips. Beads persists the full workflow state as a <code style="font-family:var(--font-mono)">wf:state:&lt;state&gt;</code> label and <code style="font-family:var(--font-mono)">metadata</code> is an open dict &mdash; so the whole lifecycle and the plan/status records fit with <b>zero schema changes</b>.</p>
+
+<div class="vocab">
+  <h3>Lifecycle &harr; beads state (a Do initiative carries <code style="font-family:var(--font-mono)">profileId: semiauto</code>)</h3>
+  <table class="vtable">
+    <tr><th>our term</th><th>beads state</th><th>column</th></tr>
+    <tr><td><b>Open</b></td><td class="old">ready_for_planning</td><td>Open</td></tr>
+    <tr><td><b>Plan</b></td><td class="old">planning</td><td>Planning</td></tr>
+    <tr><td><b>Plan review</b> &#9995;</td><td class="old">plan_review</td><td>Plan review</td></tr>
+    <tr><td><b>Execution ready</b></td><td class="old">ready_for_implementation</td><td>Ready</td></tr>
+    <tr><td><b>Executing</b></td><td class="old">implementation</td><td>Executing</td></tr>
+    <tr><td><b>Execution review</b> &#9995;</td><td class="old">implementation_review</td><td>Exec review</td></tr>
+    <tr><td><b>Done</b></td><td class="old">shipped</td><td>Done</td></tr>
+  </table>
+</div>
+
+<div class="vocab">
+  <h3>Field &amp; altitude mapping &mdash; everything lands on an existing beads field</h3>
+  <table class="vtable">
+    <tr><th>our concept</th><th>beads field</th></tr>
+    <tr><td><b>altitude</b> (project / initiative / task)</td><td class="old">label <code style="font-family:var(--font-mono)">altitude:*</code> (falls back to structural classifyBeatRole)</td></tr>
+    <tr><td><b>task type</b> (Do / Decide / Coordinate / Follow-up)</td><td class="old">profileId (do / decide / coordinate / followup)</td></tr>
+    <tr><td><b>spec</b> &mdash; objective / problem / solution</td><td class="old">description</td></tr>
+    <tr><td><b>spec</b> &mdash; acceptance</td><td class="old">acceptance (acceptance_criteria)</td></tr>
+    <tr><td><b>the plan document</b></td><td class="old">metadata.plan</td></tr>
+    <tr><td><b>status / &ldquo;what's done&rdquo;</b></td><td class="old">metadata.status</td></tr>
+    <tr><td><b>breakdown</b></td><td class="old">child task beats (parent edge)</td></tr>
+  </table>
+  <p class="epic-note" style="margin:12px 0 0">Updatable via <code style="font-family:var(--font-mono)">PATCH /api/beats/[id]</code> today: state, description, notes, acceptance, labels, parent, profileId, priority, type. <b>The skill pack only needs this one endpoint.</b></p>
+</div>
+
+<!-- ===================== PHASE 1 PLAN (writing-plans) ===================== -->
+<h2 class="epic">Phase 1 plan &mdash; <span class="epic-tag">writing-plans: bite-size tasks, files, verify</span></h2>
+<p class="epic-note">Built the way the product itself works: each task is <b>TDD-first</b> (test &rarr; red &rarr; green), in an isolated <b>worktree</b>, under <code style="font-family:var(--font-mono)">/goal</code> (the goal = that task's &ldquo;done-when&rdquo;), and merged only when all <b>four gates are green</b> &mdash; <code style="font-family:var(--font-mono)">bun run lint &amp;&amp; bunx tsc --noEmit &amp;&amp; bun run test &amp;&amp; bun run build</code>. Three streams; B (sync) underpins A and C, so it lands first.</p>
+
+<div class="vocab">
+  <h3>Stream B &middot; beads sync &mdash; <span style="font-weight:400;text-transform:none">land first; A &amp; C depend on it</span></h3>
+  <table class="vtable">
+    <tr><th>st</th><th>task</th><th>files</th><th>done-when &middot; verify</th></tr>
+    <tr><td><span class="badge b-done">done</span></td><td><b>B1</b> altitude label</td><td class="old">project-tree.ts · create path</td><td>honor <code style="font-family:var(--font-mono)">altitude:*</code> label, fall back to structural; a spec'd empty initiative classifies as initiative &middot; <span class="old">unit test classifyBeatRole + label</span></td></tr>
+    <tr><td><span class="badge b-done">done</span></td><td><b>B2</b> lifecycle &harr; semiauto states</td><td class="old">board-columns.ts · workflows.ts</td><td>states map per ADR-0003; Do initiative = profileId semiauto &middot; <span class="old">test boardColumnForState over the 7 states</span></td></tr>
+    <tr><td><span class="badge b-done">done</span></td><td><b>B3</b> plan / status in metadata</td><td class="old">schemas.ts · api/beats/[id]/route.ts</td><td><code style="font-family:var(--font-mono)">metadata.plan</code> + <code style="font-family:var(--font-mono)">metadata.status</code> round-trip &middot; <span class="old">PATCH then GET asserts</span></td></tr>
+    <tr><td><span class="badge b-done">done</span></td><td><b>B4</b> status page renders status</td><td class="old">status-page.tsx (new) · /api/beats/[id]</td><td>one page per initiative shows live state + &ldquo;what's done&rdquo; + pending question &middot; <span class="old">render test</span></td></tr>
+  </table>
+</div>
+
+<div class="vocab">
+  <h3>Stream A &middot; board as a type-aware view</h3>
+  <table class="vtable">
+    <tr><th>st</th><th>task</th><th>files</th><th>done-when &middot; verify</th></tr>
+    <tr><td><span class="badge b-done">done</span></td><td><b>A1</b> initiative board, lifecycle columns</td><td class="old">board-view.tsx · board-columns.ts</td><td>initiatives render across Open&rarr;Done; the two &#9995; columns flagged &middot; <span class="old">test + build</span></td></tr>
+    <tr><td><span class="badge b-later">todo</span></td><td><b>A2</b> move a card (drag + PATCH)</td><td class="old">board-card.tsx · board-drag-target.ts (new)</td><td>drag &rarr; descriptor-derived target &rarr; PATCH; optimistic + revert; terminal-drop confirms &middot; <span class="old">unit tests for the resolver</span></td></tr>
+    <tr><td><span class="badge b-later">todo</span></td><td><b>A3</b> projects &rarr; board (filtered)</td><td class="old">projects-view.tsx · board-view.tsx</td><td>click a project &rarr; board scoped to all descendants &middot; <span class="old">test the filter</span></td></tr>
+    <tr><td><span class="badge b-later">todo</span></td><td><b>A4</b> add-task = 4 task types</td><td class="old">beat-form.tsx · workflows.ts</td><td>only Do / Decide / Coordinate / Follow-up under &ldquo;Task type&rdquo;; legacy hidden &middot; <span class="old">component test</span></td></tr>
+    <tr><td><span class="badge b-later">todo</span></td><td><b>A5</b> tabs: 4 primary + More, left</td><td class="old">app-header-parts.tsx · app-header-hooks.ts</td><td>Today / Board / Projects / Review primary; rest in More; left-aligned &middot; <span class="old">render test</span></td></tr>
+    <tr><td><span class="badge b-partial">partial</span></td><td><b>A6</b> terminology (Run&rarr;Start, beat&rarr;task)</td><td class="old">settings-actions-section.tsx · settings-dispatch-section.tsx · board-card.tsx</td><td>locked vocab applied everywhere &middot; <span class="old">grep: no &ldquo;beat&rdquo; in UI copy</span></td></tr>
+    <tr><td><span class="badge b-later">todo</span></td><td><b>A7</b> edit-task status field</td><td class="old">beat-form.tsx · edit-beat-dialog.tsx</td><td>Status field, valid states, saves via PATCH &middot; <span class="old">component test</span></td></tr>
+    <tr><td><span class="badge b-later">todo</span></td><td><b>A8</b> Today tab + promote contract</td><td class="old">app-header-hooks.ts · promote-island.tsx</td><td>Today routes from the nav; promote contract published &middot; <span class="old">nav test</span></td></tr>
+    <tr><td><span class="badge b-done">done</span></td><td><b>A9</b> settings model save fix</td><td class="old">api/settings/route.ts · settings.ts</td><td>model persists; cache invalidated on write &middot; <span class="old">PATCH then GET</span></td></tr>
+  </table>
+</div>
+
+<div class="vocab">
+  <h3>Stream C &middot; the skill pack &mdash; <span style="font-weight:400;text-transform:none">thin, on the REST API, cross-agent (ADR-0001/0002)</span></h3>
+  <table class="vtable">
+    <tr><th>st</th><th>skill</th><th>does (calls /api/beats + installed reference)</th><th>verify</th></tr>
+    <tr><td><span class="badge b-later">todo</span></td><td><b>spanda-board</b></td><td>list / view context for an initiative or task</td><td class="old">dry-run vs test beads</td></tr>
+    <tr><td><span class="badge b-later">todo</span></td><td><b>spanda-pick</b></td><td>choose the next thing to work; respect the gates</td><td class="old">dry-run</td></tr>
+    <tr><td><span class="badge b-later">todo</span></td><td><b>spanda-plan</b></td><td>Superpowers brainstorm &rarr; write <code style="font-family:var(--font-mono)">metadata.plan</code> &rarr; move to plan_review</td><td class="old">dry-run</td></tr>
+    <tr><td><span class="badge b-later">todo</span></td><td><b>spanda-execute</b></td><td>worktree + TDD under <code style="font-family:var(--font-mono)">/goal</code>; commit per task; write <code style="font-family:var(--font-mono)">metadata.status</code></td><td class="old">dry-run</td></tr>
+    <tr><td><span class="badge b-later">todo</span></td><td><b>spanda-signoff</b></td><td>gstack qa / review / canary evidence &rarr; Execution review</td><td class="old">dry-run</td></tr>
+    <tr><td><span class="badge b-later">todo</span></td><td><b>spanda-learn</b></td><td>capture decisions / patterns into the knowledge note</td><td class="old">dry-run</td></tr>
+    <tr><td><span class="badge b-later">todo</span></td><td><b>spanda-decide</b></td><td>brainstorm &rarr; decide &rarr; communicate &rarr; close</td><td class="old">dry-run</td></tr>
+  </table>
+  <p class="epic-note" style="margin:12px 0 0">The <b>Plan review</b> gate runs gstack <code style="font-family:var(--font-mono)">office-hours</code> to grill the plan <em>with</em> you; both gates stay human. Skills live as portable markdown under <code style="font-family:var(--font-mono)">skills/spanda-*</code>.</p>
+</div>
+
+<!-- ===================== PHASE 2 ===================== -->
+<div class="alts">
+  <div class="alt a3"><div class="lvl">phase 2</div><div class="body"><b>Execute natively from Foolery.</b> <span>Once the board + skill-pack loop is proven, bring execution in-house: native dispatch, the goal-loop, live streaming, the approval bridge surfaced on the status page, and a custom initiative-vs-task profile that refines the semiauto mapping. The Decide pack also gains the repo's mental-model skills. The hard part, last, on a proven foundation.</span></div></div>
+</div>
+
+<div class="vocab">
+  <h3>Source of truth for this plan</h3>
+  <table class="vtable">
+    <tr><td><b>CONTEXT.md</b></td><td>the glossary &mdash; every term, one meaning</td></tr>
+    <tr><td><b>docs/adr/0001</b></td><td>skill primary sources (one per phase)</td></tr>
+    <tr><td><b>docs/adr/0002</b></td><td>skill sourcing (thin wrappers over installed references)</td></tr>
+    <tr><td><b>docs/adr/0003</b></td><td>beads sync (states, fields, altitude)</td></tr>
+  </table>
+</div>
+<div class="foot">spanda &middot; iteration 02 plan &middot; drafted for review before any code &mdash; this page updates as the design firms up.</div>
+
+</div>
+</body>
+</html>
