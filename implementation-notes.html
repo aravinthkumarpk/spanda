@@ -445,6 +445,34 @@
   BeatForm; the promote path already uses BeatForm. Converging the edit path onto BeatForm too is optional polish.</p>
 </div>
 
+<div class="entry">
+  <div class="ts">2026-05-30 · first real deploy + the bug dogfooding caught</div>
+  <h2><span class="tag t-surprise">surprise</span>The live app was a day-stale release showing an empty board on real data — three layered causes, all fixed</h2>
+  <p>Writing the dogfood guide forced a look at the actual running app, and it was broken in a way no unit test
+  could catch. Three issues, peeled back in order:</p>
+  <ul>
+    <li><b>Stale release.</b> <code>spanda.onyourdevice.ai</code> (foolery runtime at
+      <code>~/.local/share/foolery/runtime</code>) was the <b>May-29</b> build — none of this work was deployed.
+      Built a fresh <code>.next</code> from <code>design-system</code> and swapped it into the runtime
+      (<code>foolery</code> serves a self-contained <code>next start</code> bundle; deps unchanged so the runtime
+      node_modules stayed compatible).</li>
+    <li><b>Wrong backend.</b> <code>personal-os</code> had a <b>spurious <code>.knots</code></b> dir (cache only,
+      no events — a stray <code>kno</code> run on May 24), and marker detection lists knots before beads, so the
+      auto-router used the <b>knots</b> backend on a beads repo (<code>kno rehydrate</code> → 0). Removed the
+      empty <code>.knots</code> (backed up) → detection picks beads.</li>
+    <li><b>The real bug: empty board.</b> Even on beads, the new <b>board/projects</b> views requested
+      <code>state=all</code>; the backend exact-matched the <code>all</code> sentinel against
+      <code>beat.state</code> and dropped every task. Two fixes: the beads backend now treats
+      <code>state==="all"</code> as no filter (defensive, unit-tested), and — the real one — board/projects no
+      longer send a state filter at all (they classify every state client-side, exactly like overview).</li>
+  </ul>
+  <p><b>Verified after redeploy:</b> the board's request returns <b>223 tasks</b> — 78 To-do
+  (ready_for_implementation), 1 Doing, 144 Done (shipped) — and the three project roots are present, so Projects
+  renders too. The live app now runs <code>804b7626</code> on real personal-os data. Lesson: unit + build gates
+  prove the code; only running it on real data proved the <em>app</em>. Dogfooding paid for itself before the
+  guide was even used.</p>
+</div>
+
 </div>
 </body>
 </html>
