@@ -2,8 +2,10 @@
 
 import type { Beat } from "@/lib/types";
 import { BeatStateBadge } from "@/components/beat-state-badge";
+import { StaleBadge } from "@/components/stale-badge";
 import { bucketCardLabel } from "@/lib/bucket-profile";
 import { canTakeBeat } from "@/lib/beat-take-eligibility";
+import { isTerminalState } from "@/lib/task-action-resolver";
 import { builtinProfileDescriptor } from "@/lib/workflows";
 import { displayBeatLabel } from "@/lib/beat-display";
 import { Clapperboard } from "lucide-react";
@@ -17,11 +19,13 @@ import { Clapperboard } from "lucide-react";
  */
 export function BoardCard({
   beat,
+  now,
   onOpenBeat,
   onShipBeat,
   isShipping,
 }: {
   beat: Beat;
+  now: number;
   onOpenBeat: (beat: Beat) => void;
   onShipBeat?: (beat: Beat) => void;
   isShipping?: boolean;
@@ -29,6 +33,7 @@ export function BoardCard({
   const descriptor = builtinProfileDescriptor(beat.profileId);
   const bucket = bucketCardLabel(beat.labels);
   const canRun = Boolean(onShipBeat) && canTakeBeat(beat, descriptor);
+  const isTerminal = isTerminalState(beat.state, descriptor);
   return (
     <div
       className={
@@ -50,6 +55,7 @@ export function BoardCard({
       </button>
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         <BeatStateBadge state={beat.state} />
+        <StaleBadge updatedAt={beat.updated} isTerminal={isTerminal} now={now} />
         {bucket && (
           <span
             className={

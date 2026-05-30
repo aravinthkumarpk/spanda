@@ -39,6 +39,7 @@ export function BoardView({
   onShipBeat?: (beat: Beat) => void;
   shippingByBeatId?: Record<string, unknown>;
 }) {
+  const [now] = useState(() => Date.now());
   const [selectedBuckets, setSelectedBuckets] = useState<string[]>([]);
   const presentBuckets = useMemo(
     () =>
@@ -88,6 +89,7 @@ export function BoardView({
             label={column.label}
             beats={groups[column.id]}
             isLoading={isLoading}
+            now={now}
             onOpenBeat={onOpenBeat}
             onShipBeat={onShipBeat}
             shippingByBeatId={shippingByBeatId}
@@ -109,6 +111,7 @@ function BoardColumnPanel({
   label,
   beats,
   isLoading,
+  now,
   onOpenBeat,
   onShipBeat,
   shippingByBeatId,
@@ -116,6 +119,7 @@ function BoardColumnPanel({
   label: string;
   beats: Beat[];
   isLoading: boolean;
+  now: number;
   onOpenBeat: (beat: Beat) => void;
   onShipBeat?: (beat: Beat) => void;
   shippingByBeatId?: Record<string, unknown>;
@@ -144,6 +148,7 @@ function BoardColumnPanel({
             <BoardCard
               key={beat.id}
               beat={beat}
+              now={now}
               onOpenBeat={onOpenBeat}
               onShipBeat={onShipBeat}
               isShipping={Boolean(shippingByBeatId?.[beat.id])}

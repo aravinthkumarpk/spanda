@@ -13,8 +13,7 @@
 // (Tailwind ochre family in the spanda mapping).
 
 import type React from "react";
-
-const STALE_THRESHOLD_MS = 7 * 86_400_000;
+import { isStale, staleAgeDays } from "@/lib/stale";
 
 interface StaleBadgeProps {
   /** ISO 8601 timestamp string of last update, or null if unknown. */
@@ -35,13 +34,13 @@ export function StaleBadge({
   isTerminal,
   now,
 }: StaleBadgeProps): React.ReactElement | null {
+  // Single source for the stale rule: src/lib/stale.ts (strict >, fail-soft
+  // on null/malformed). isStale covers terminal? no — terminal is a separate
+  // suppression, kept here.
   if (isTerminal) return null;
-  if (!updatedAt) return null;
-  const updatedMs = Date.parse(updatedAt);
-  if (Number.isNaN(updatedMs)) return null;
-  const ageMs = now - updatedMs;
-  if (ageMs <= STALE_THRESHOLD_MS) return null;
-  const days = Math.floor(ageMs / 86_400_000);
+  if (!isStale(updatedAt, now)) return null;
+  const days = staleAgeDays(updatedAt, now);
+  if (days === null) return null;
   return (
     <span
       className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10.5px] font-semibold tracking-wider uppercase bg-ochre-100 text-ochre-700"
