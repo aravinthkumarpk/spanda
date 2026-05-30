@@ -57,14 +57,18 @@ For each child task (or the initiative itself if it has no breakdown):
 
 ## When all tasks are done
 
-Roll the initiative up to the Execution review gate and summarize what shipped:
+Move the initiative into **sign-off** (ADR-0004) — the explicit agent step
+between execution and the human Execution-review gate, where `spanda-signoff`
+runs qa / review / canary and writes the evidence:
 
 ```bash
 curl -s -X PATCH "$BASE/api/beats/$ID" -H 'content-type: application/json' \
-  -d '{"state":"implementation_review","metadata":{"status":"all tasks complete — <summary>"}}'
+  -d '{"state":"sign_off","metadata":{"status":"all tasks complete — signing off"}}'
 ```
 
-Then run **spanda-signoff** to assemble the evidence the human needs, and stop.
+Then run **spanda-signoff** to assemble the evidence; it advances the initiative
+to the Execution review gate (`ready_for_implementation_review`) and stops —
+the human gives the gate via Approve / Reject. Never set `shipped` yourself.
 Execution review is a human gate — do not mark the initiative `shipped`.
 
 ## Why status goes on the card, not in the chat

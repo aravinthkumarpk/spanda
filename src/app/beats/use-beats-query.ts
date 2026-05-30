@@ -86,7 +86,10 @@ export function useBeatsQuery(
   const showsAllStates =
     beatsView === "overview"
     || beatsView === "board"
-    || beatsView === "projects";
+    || beatsView === "projects"
+    // review fetches every state and filters to requiresHumanAction client-side
+    // (gateBeats); sending a state filter would narrow away gate-resting beats.
+    || beatsView === "review";
   if (
     !searchQuery
     && !showsAllStates

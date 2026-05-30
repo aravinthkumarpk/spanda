@@ -53,7 +53,7 @@ clobbers an existing `metadata.plan`. Response: `{ "ok": true }`.
 | a pending question for the human | `metadata.question` |
 | breakdown | child task beats (`parent` edge) |
 
-## Lifecycle ↔ beads state (a Do initiative carries `profileId: semiauto`*)
+## Lifecycle ↔ beads state (a Do initiative carries `profileId: do`*)
 
 | our term | beads state | board column |
 |----------|-------------|--------------|
@@ -62,11 +62,13 @@ clobbers an existing `metadata.plan`. Response: `{ "ok": true }`.
 | Plan review (gate) | `plan_review` (rests at `ready_for_plan_review`) | Review |
 | Execution ready | `ready_for_implementation` | To do |
 | Executing | `implementation` | Doing |
+| Sign-off (agent) | `sign_off` | Doing |
 | Execution review (gate) | `implementation_review` (rests at `ready_for_implementation_review`) | Review |
 | Done | `shipped` | Done |
 
-\* In the board UI the four spanda task types map to the `do` / `decide` /
-`coordinate` / `followup` profiles; `semiauto` is the equivalent
+\* ADR-0004: the spanda **`do`** profile is the canonical human-gated Do
+lifecycle — planning + an agent `sign_off` step + two human gates
+(`plan_review`, `implementation_review`). `semiauto` is the equivalent
 human-gated SDLC profile on knots-style backends. Either way, **never** test a
 state by string prefix — ask the API for the beat and act on the returned
 `state`. State classification is loom-derived (see repo `CLAUDE.md`).

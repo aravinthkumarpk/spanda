@@ -82,4 +82,29 @@ describe("StatusPage", () => {
     expect(html).toContain("Plan");
     expect(html).toContain("1. API");
   });
+
+  it("shows Approve/Reject when at a gate with a decision handler (D6)", () => {
+    const html = render({
+      initiative: makeBeat({
+        profileId: "do",
+        state: "ready_for_plan_review",
+        requiresHumanAction: true,
+      }),
+      onGateDecision: () => {},
+    });
+    expect(html).toContain("Your decision");
+    expect(html).toContain("Approve");
+    expect(html).toContain("Reject");
+  });
+
+  it("hides the gate controls when no decision handler is wired", () => {
+    const html = render({
+      initiative: makeBeat({
+        profileId: "do",
+        state: "ready_for_plan_review",
+        requiresHumanAction: true,
+      }),
+    });
+    expect(html).not.toContain("Your decision");
+  });
 });

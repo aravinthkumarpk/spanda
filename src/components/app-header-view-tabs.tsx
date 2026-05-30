@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -68,6 +69,8 @@ const MORE_TABS: {
     title: "Queue tasks (ready for action)" },
   { view: "active", icon: <Zap className="size-4" />, label: "Active",
     title: "Active tasks (in progress)" },
+  { view: "finalcut", icon: <Megaphone className="size-4" />,
+    label: "Escalations", title: "Escalations — live agent approval requests" },
   { view: "retakes", icon: <RotateCcw className="size-4" />, label: "Regressions",
     title: "Regression tracking — reopened tasks" },
   { view: "history", icon: <History className="size-4" />, label: "History",
@@ -94,15 +97,19 @@ function TodayTabLink() {
 
 function MoreTabsMenu(props: {
   setView: (v: BeatsViewId) => void;
+  escalationsCount: number;
 }) {
-  const { setView } = props;
+  const { setView, escalationsCount } = props;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           size="lg"
           variant="ghost"
-          className="h-8 gap-1.5 px-2.5"
+          className={cn(
+            "h-8 gap-1.5 px-2.5",
+            escalationsCount > 0 && "text-clay-700 dark:text-clay-100",
+          )}
           title="More views"
         >
           <MoreHorizontal className="size-4" />
@@ -118,6 +125,11 @@ function MoreTabsMenu(props: {
           >
             {t.icon}
             <span className="ml-2">{t.label}</span>
+            {t.view === "finalcut" && escalationsCount > 0 && (
+              <Badge variant="secondary" className="ml-auto">
+                {escalationsCount > 9 ? "9+" : escalationsCount}
+              </Badge>
+            )}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -154,14 +166,13 @@ export function ViewSwitcherTabs(props: {
         setView={setView}
       />
       <ViewTab
-        view="finalcut" current={beatsView}
+        view="review" current={beatsView}
         icon={<Megaphone className="size-4" />}
         label="Review"
-        title="Review — gates and escalations that need you"
+        title="Review — the Plan-review & Execution-review gates that need you"
         setView={setView}
-        badge={escalationsCount}
       />
-      <MoreTabsMenu setView={setView} />
+      <MoreTabsMenu setView={setView} escalationsCount={escalationsCount} />
     </div>
   );
 }

@@ -47,16 +47,21 @@ you can observe. The shape of the evidence is the same.
    (`spanda-board`). The acceptance criteria are the checklist.
 2. **Gather evidence** — gstack qa → review → canary (or the inline fallback).
    Tie each result back to a specific acceptance criterion.
-3. **Write the evidence to the card** so the status page shows it:
+   Run this while the initiative is in the agent **`sign_off`** state (ADR-0004),
+   which `spanda-execute` set when the work finished.
+3. **Write the evidence and advance to the gate** so the status page shows it
+   and the initiative lands in the human Execution-review queue:
    ```bash
    BASE="${FOOLERY_URL:-http://localhost:3000}"
    curl -s -X PATCH "$BASE/api/beats/$ID" -H 'content-type: application/json' \
-     -d '{"metadata":{"status":"SIGN-OFF\n- AC1: <pass + evidence>\n- AC2: …\n- canary: <green/red>"}}'
+     -d '{"state":"ready_for_implementation_review","metadata":{"status":"SIGN-OFF\n- AC1: <pass + evidence>\n- AC2: …\n- canary: <green/red>"}}'
    ```
-   Leave `state` at `implementation_review`. Do **not** set `shipped`.
+   This rests at the gate (`requiresHumanAction`). Do **not** set `shipped` — the
+   human gives the gate.
 4. **Hand to the human:** "Sign-off ready — every acceptance criterion has
-   evidence on the card. Your call." If something fails, say so plainly and
-   point at the failing criterion; the human may reject (→ redo that task).
+   evidence on the card. Your call." It now shows in the **Review** queue; the
+   human clicks **Approve** (→ ship) or **Reject** (with a note → redo). If
+   something fails, say so plainly and point at the failing criterion.
 
 ## Why evidence, not a verdict
 

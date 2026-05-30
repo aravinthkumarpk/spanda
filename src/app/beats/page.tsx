@@ -4,8 +4,6 @@ import { Suspense } from "react";
 import { useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import type { Beat } from "@/lib/types";
-import type { AgentInfo } from "@/components/beat-columns";
-import { BeatTable } from "@/components/beat-table";
 import {
   BeatDetailLightbox,
 } from "@/components/beat-detail-lightbox";
@@ -29,22 +27,12 @@ import {
 } from "@/components/beat-state-overview";
 import { ScopedBoardView } from "./scoped-board-view";
 import { ProjectsView } from "@/components/projects-view";
+import { ReviewQueueView } from "@/components/review-queue-view";
+import { BeatsListContent } from "./beats-list-content";
 import { LabelFilterChips } from "@/components/label-filter-chips";
 import { useLabelFilter } from "./use-label-filter";
 import { useActiveFilter } from "./use-active-filter";
 import { useUpdateUrl } from "@/hooks/use-update-url";
-import {
-  AllReposEmptyState,
-  DegradedBanner,
-  StreamingEmptyState,
-} from "./beats-empty-states";
-import { RepoSwitchLoadingState } from "@/components/repo-switch-loading-state";
-import {
-  StreamingProgressBar,
-} from "@/components/streaming-progress-bar";
-import type {
-  StreamingProgress,
-} from "./use-streaming-progress";
 import { useAppStore } from "@/stores/app-store";
 import { useTerminalStore } from "@/stores/terminal-store";
 import {
@@ -87,20 +75,18 @@ function useBeatsPageState() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q") ?? "";
   const detailBeatId = searchParams.get("beat");
-  const detailRepo =
-    searchParams.get("detailRepo") ?? undefined;
-  const beatsView =
-    parseBeatsView(searchParams.get("view"));
+  const detailRepo = searchParams.get("detailRepo") ?? undefined;
+  const beatsView = parseBeatsView(searchParams.get("view"));
   const isListView = isListBeatsView(beatsView);
   const isOverviewView = beatsView === "overview";
   const isBoardView = beatsView === "board";
   const isProjectsView = beatsView === "projects";
+  const isReviewView = beatsView === "review";
   const shouldLoadBeats =
-    isListView || isOverviewView || isBoardView || isProjectsView;
-  const supportsBeatDetail =
-    shouldLoadBeats || beatsView === "setlist";
-  const viewPhase: ViewPhase =
-    beatsView === "active" ? "active" : "queues";
+    isListView || isOverviewView || isBoardView || isProjectsView
+    || isReviewView;
+  const supportsBeatDetail = shouldLoadBeats || beatsView === "setlist";
+  const viewPhase: ViewPhase = beatsView === "active" ? "active" : "queues";
   const isActiveView = beatsView === "active";
   const { activeRepo, registeredRepos } = useAppStore();
   const {
@@ -172,6 +158,7 @@ function useBeatsPageState() {
   });
   return {
     beatsView, isListView, isOverviewView, isBoardView, isProjectsView,
+    isReviewView,
     viewPhase,
     supportsBeatDetail,
     isActiveView, activeRepo,
@@ -218,8 +205,7 @@ function BeatsPageInner() {
   const isRetakesView = s.beatsView === "retakes";
   const isHistoryView = s.beatsView === "history";
   const isOverviewView = s.beatsView === "overview";
-  const isDiagnosticsView =
-    s.beatsView === "diagnostics";
+  const isDiagnosticsView = s.beatsView === "diagnostics";
   const warmupView = s.isListView
     && (s.beatsView === "queues" || s.beatsView === "active")
     ? s.beatsView
@@ -276,6 +262,7 @@ function BeatsPageInner() {
         isOverviewView={isOverviewView}
         isBoardView={s.isBoardView}
         isProjectsView={s.isProjectsView}
+        isReviewView={s.isReviewView}
         isDiagnosticsView={isDiagnosticsView}
         state={s}
       />
@@ -321,6 +308,7 @@ function BeatsViewBody({
   isOverviewView,
   isBoardView,
   isProjectsView,
+  isReviewView,
   isDiagnosticsView,
   state: s,
 }: {
@@ -331,6 +319,7 @@ function BeatsViewBody({
   isOverviewView: boolean;
   isBoardView: boolean;
   isProjectsView: boolean;
+  isReviewView: boolean;
   isDiagnosticsView: boolean;
   state: PageState;
 }) {
@@ -377,6 +366,13 @@ function BeatsViewBody({
           beats={s.beats}
           onOpenBeat={s.handleOpenBeat}
         />
+      ) : isReviewView ? (
+        <ReviewQueueView
+          isLoading={s.isLoading}
+          loadError={s.loadError}
+          beats={s.beats}
+          onOpenBeat={s.handleOpenBeat}
+        />
       ) : isDiagnosticsView ? (
         <DiagnosticsView
           repoPath={s.activeRepo ?? undefined}
@@ -391,126 +387,18 @@ function BeatsViewBody({
           isQueuedView={s.beatsView === "queues"}
           isActiveView={s.isActiveView}
           agentInfoByBeatId={s.agentInfoByBeatId}
-          onSelectionChange={
-            s.handleSelectionChange
-          }
+          onSelectionChange={s.handleSelectionChange}
           selectionVersion={s.selectionVersion}
           searchQuery={s.searchQuery}
           onOpenBeat={s.handleOpenBeat}
           onShipBeat={s.handleShipBeat}
           shippingByBeatId={s.shippingByBeatId}
           onAbortShipping={s.handleAbortShipping}
-          streamingProgress={
-            s.streamingProgress
-          }
+          streamingProgress={s.streamingProgress}
         />
       )}
     </div>
   );
 }
 
-interface BeatsListContentProps {
-  isLoading: boolean;
-  loadError: string | null;
-  isDegradedError: boolean;
-  beats: Beat[];
-  showRepoColumn: boolean;
-  isQueuedView: boolean;
-  isActiveView: boolean;
-  agentInfoByBeatId: Record<string, AgentInfo>;
-  onSelectionChange: (ids: string[]) => void;
-  selectionVersion: number;
-  searchQuery: string;
-  onOpenBeat: (beat: Beat) => void;
-  onShipBeat: (beat: Beat) => Promise<void>;
-  shippingByBeatId: Record<string, string>;
-  onAbortShipping: (
-    beatId: string,
-  ) => Promise<void>;
-  streamingProgress: StreamingProgress;
-}
-
-function BeatsListContent(
-  props: BeatsListContentProps,
-) {
-  const {
-    isLoading, loadError, isDegradedError,
-    beats, showRepoColumn, isQueuedView, isActiveView,
-    agentInfoByBeatId, onSelectionChange,
-    selectionVersion, searchQuery,
-    onOpenBeat, onShipBeat,
-    shippingByBeatId, onAbortShipping,
-    streamingProgress,
-  } = props;
-
-  const isStreamActive =
-    streamingProgress.isStreaming
-    || (streamingProgress.isComplete
-      && streamingProgress.totalRepos > 0);
-
-  if (isLoading && !isStreamActive) {
-    return (
-      <RepoSwitchLoadingState
-        data-testid="repo-switch-loading-beats"
-        label="Loading beats..."
-      />
-    );
-  }
-  if (loadError && !isDegradedError) {
-    return (
-      <div className={
-        "flex items-center justify-center"
-        + " py-6 text-sm text-destructive"
-      }>
-        Failed to load beats: {loadError}
-      </div>
-    );
-  }
-
-  const streamingEmpty =
-    streamingProgress.isStreaming
-    && beats.length === 0;
-  const allReposEmpty =
-    streamingProgress.isComplete
-    && streamingProgress.totalRepos > 0
-    && beats.length === 0;
-
-  return (
-    <div className="overflow-x-auto">
-      {isDegradedError && (
-        <DegradedBanner message={loadError} />
-      )}
-      {isStreamActive && (
-        <StreamingProgressBar
-          progress={streamingProgress}
-        />
-      )}
-      {streamingEmpty ? (
-        <StreamingEmptyState />
-      ) : allReposEmpty ? (
-        <AllReposEmptyState />
-      ) : (
-        <BeatTable
-          data={beats}
-          showRepoColumn={showRepoColumn}
-          showAgentColumns={isActiveView}
-          sortTopLevelByPriorityUpdated={
-            isQueuedView && !searchQuery
-          }
-          agentInfoByBeatId={agentInfoByBeatId}
-          onSelectionChange={onSelectionChange}
-          selectionVersion={selectionVersion}
-          searchQuery={searchQuery}
-          onOpenBeat={onOpenBeat}
-          onShipBeat={onShipBeat}
-          shippingByBeatId={shippingByBeatId}
-          onAbortShipping={onAbortShipping}
-          isStreaming={
-            streamingProgress.isStreaming
-          }
-        />
-      )}
-    </div>
-  );
-}
 

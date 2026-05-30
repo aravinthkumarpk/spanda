@@ -115,14 +115,14 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:22px;margin:40
 <h2 class="epic">Gates &amp; surfaces <span class="epic-tag">where the human acts</span></h2>
 
 <div class="dec">
-  <div class="head"><span class="id">D5</span><h3>&ldquo;Review&rdquo; tab = the human-gate queue</h3><span class="badge b-later">todo</span></div>
+  <div class="head"><span class="id">D5</span><h3>&ldquo;Review&rdquo; tab = the human-gate queue</h3><span class="badge b-done">done</span></div>
   <p class="what">Review lists initiatives waiting on <em>your</em> decision (<code>requiresHumanAction=true</code>) &mdash; Plan review + Execution review. The legacy escalations (<code>finalcut</code>) view, a different execution-time concern, moves into <b>More</b>.</p>
   <span class="old">replaces &oplus; A5: &ldquo;Review &rarr; finalcut/escalations&rdquo; (a conflation)</span>
   <span class="cons">new "review" view (filter requiresHumanAction); finalcut &rarr; More</span>
 </div>
 
 <div class="dec">
-  <div class="head"><span class="id">D6</span><h3>Gate decisions = explicit Approve / Reject (not drag)</h3><span class="badge b-later">todo</span></div>
+  <div class="head"><span class="id">D6</span><h3>Gate decisions = explicit Approve / Reject (not drag)</h3><span class="badge b-done">done</span></div>
   <p class="what">Approve / Reject controls on the Review queue + status page. <b>Reject captures a note</b> (&ldquo;your reject note is the instruction&rdquo;); Execution-review reject offers redo-task (default) or mis-planned&rarr;back-to-Plan. Drag stays single-step only (mark-for-plan, Start, advance, terminal-confirm).</p>
   <span class="old">refines &oplus; A2: drag never addressed the gate decision (a branch + a reason)</span>
   <span class="cons">Approve=forward transition, Reject=rollback (isRollbackTransition) + notes</span>
@@ -136,7 +136,7 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:22px;margin:40
 </div>
 
 <div class="dec">
-  <div class="head"><span class="id">D8</span><h3>Status page = the initiative&rsquo;s detail pane</h3><span class="badge b-later">todo</span></div>
+  <div class="head"><span class="id">D8</span><h3>Status page = the initiative&rsquo;s detail pane</h3><span class="badge b-done">done</span></div>
   <p class="what"><code>BeatDetail</code> branches on altitude: an initiative renders <code>StatusPage</code> (state, what&rsquo;s-done, sign-off evidence, pending question, task breakdown, Approve/Reject); a task renders the existing detail. Reuses <code>/beats?beat=&lt;id&gt;</code> &mdash; no new route. <code>metadata.question</code> = async note; escalations = sync.</p>
   <span class="old">replaces &oplus; B4: a component with no home &rarr; the initiative&rsquo;s real surface</span>
   <span class="cons">mount StatusPage in BeatDetail behind an altitude check + gate controls</span>

@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -5,9 +8,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { BeatStateBadge } from "@/components/beat-state-badge";
+import { builtinProfileDescriptor } from "@/lib/workflows";
+import {
+  gateDecisionTargets,
+  type GateDecisionTargets,
+} from "@/lib/gate-decision";
 import { cn } from "@/lib/utils";
 import type { Beat } from "@/lib/types";
+
+/** A gate decision (D6): the chosen target state + an optional reject note. */
+export type GateDecision = (target: string, note?: string) => void;
 
 /**
  * status-page — the per-initiative status surface (ADR-0003 / iteration 02 B4).
@@ -89,20 +102,95 @@ function StatusSection({
   );
 }
 
+/**
+ * D6 — the human gate decision. Approve advances the initiative past the gate;
+ * Reject sends it back and captures a note ("your reject note is the
+ * instruction"). Only rendered when the initiative is resting at a gate.
+ */
+function GateControls({
+  targets,
+  onDecide,
+}: {
+  targets: GateDecisionTargets;
+  onDecide: GateDecision;
+}) {
+  const [rejecting, setRejecting] = useState(false);
+  const [note, setNote] = useState("");
+  if (!targets.approve && !targets.reject) return null;
+
+  return (
+    <section className="mt-4 rounded-md border border-clay-300 bg-clay-50 px-3 py-3 dark:border-clay-700 dark:bg-clay-900/30">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-clay-700 dark:text-clay-200">
+        Your decision
+      </h3>
+      {rejecting
+        ? (
+          <div className="mt-2 flex flex-col gap-2">
+            <Textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Why reject? This note is the instruction the agent redoes the work against."
+            />
+            <div className="flex gap-2">
+              <Button
+                variant="destructive"
+                disabled={!note.trim() || !targets.reject}
+                onClick={() => onDecide(targets.reject!, note.trim())}
+              >
+                Confirm reject
+              </Button>
+              <Button variant="ghost" onClick={() => setRejecting(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )
+        : (
+          <div className="mt-2 flex gap-2">
+            {targets.approve && (
+              <Button onClick={() => onDecide(targets.approve!)}>
+                Approve
+              </Button>
+            )}
+            {targets.reject && (
+              <Button variant="outline" onClick={() => setRejecting(true)}>
+                Reject
+              </Button>
+            )}
+          </div>
+        )}
+    </section>
+  );
+}
+
 export interface StatusPageProps {
   /** The initiative this page is the status surface for. */
   initiative: Beat;
   /** The initiative's child task beats (the breakdown / live progress). */
   tasks?: Beat[];
+  /** Wired by the host to PATCH the gate decision; controls hidden if absent. */
+  onGateDecision?: GateDecision;
   className?: string;
 }
 
-export function StatusPage({ initiative, tasks, className }: StatusPageProps) {
+export function StatusPage({
+  initiative,
+  tasks,
+  onGateDecision,
+  className,
+}: StatusPageProps) {
   const meta = initiative.metadata;
   const status = readMetaString(meta, "status");
   const question = readMetaString(meta, "question");
   const plan = readMetaString(meta, "plan");
   const childTasks = tasks ?? [];
+  const gateTargets =
+    initiative.requiresHumanAction && onGateDecision
+      ? gateDecisionTargets(
+          initiative,
+          builtinProfileDescriptor(initiative.profileId),
+        )
+      : {};
 
   return (
     <Card className={cn("max-w-2xl", className)}>
@@ -128,6 +216,10 @@ export function StatusPage({ initiative, tasks, className }: StatusPageProps) {
             </section>
           )
           : null}
+
+        {onGateDecision && (
+          <GateControls targets={gateTargets} onDecide={onGateDecision} />
+        )}
 
         <StatusSection
           title="What's done"
