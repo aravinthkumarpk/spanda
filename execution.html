@@ -127,13 +127,13 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:22px;margin:44
   <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
     <div>
       <div class="eyebrow">implementation status</div>
-      <div style="font-family:var(--font-display);font-weight:800;font-size:18px;letter-spacing:-0.01em">Build in progress &middot; 2026-05-30</div>
+      <div style="font-family:var(--font-display);font-weight:800;font-size:18px;letter-spacing:-0.01em">All planned epics built &middot; 2026-05-30</div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <span style="font-family:var(--font-mono);font-size:12px;font-weight:600;background:var(--color-positive-pale);color:var(--color-positive-deep);border-radius:var(--r-pill);padding:4px 12px">lint &check;</span>
       <span style="font-family:var(--font-mono);font-size:12px;font-weight:600;background:var(--color-positive-pale);color:var(--color-positive-deep);border-radius:var(--r-pill);padding:4px 12px">tsc &check;</span>
       <span style="font-family:var(--font-mono);font-size:12px;font-weight:600;background:var(--color-positive-pale);color:var(--color-positive-deep);border-radius:var(--r-pill);padding:4px 12px">build &check;</span>
-      <span style="font-family:var(--font-mono);font-size:12px;font-weight:600;background:var(--color-positive-pale);color:var(--color-positive-deep);border-radius:var(--r-pill);padding:4px 12px">test 294 files / 3206 pass</span>
+      <span style="font-family:var(--font-mono);font-size:12px;font-weight:600;background:var(--color-positive-pale);color:var(--color-positive-deep);border-radius:var(--r-pill);padding:4px 12px">test 294 files / 3219 pass</span>
     </div>
   </div>
   <p style="color:var(--color-body);font-size:14px;margin:0 0 12px">All four quality gates green on branch <code style="font-family:var(--font-mono);font-size:12px">spanda/impl-design</code> (worktree, unpushed). TDD-first: the pure-function layer for every epic shipped <b>before</b> any UI wiring (+207 new tests over the 2999 baseline). Built via a recon &rarr; parallel-pure-logic &rarr; sequential-integration workflow. <b>Live now:</b> Board (<code style="font-family:var(--font-mono);font-size:12px">?view=board</code>) and Projects (<code style="font-family:var(--font-mono);font-size:12px">?view=projects</code>). Running detail in <a href="/implementation-notes.html">implementation notes</a>.</p>
@@ -144,7 +144,7 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:22px;margin:44
     <tr><td><b>A2</b> &middot; add/update form</td><td>&check; prefill + minimal-diff, 37 tests</td><td>&check; Edit dialog on Board cards (interim: description-embedded acceptance)</td></tr>
     <tr><td><b>A3</b> &middot; tracker actions</td><td>&check; terminal/complete resolver, 18 tests</td><td>&check; deloom landed (3 hardcodes removed)</td></tr>
     <tr><td><b>A4</b> &middot; filter/stale/bucket</td><td>&check; bucket&harr;profile + stale, 43 tests</td><td>&check; bucket chips + stale badges on Board; <b>global label-filter chips</b> in the list-view filter shell (?labels=)</td></tr>
-    <tr><td><b>B2</b> &middot; /today promote</td><td>&check; defaults + dedup, 26 tests</td><td>pending (pure layer ready)</td></tr>
+    <tr><td><b>B2</b> &middot; /today promote</td><td>&check; marker layer + key dedup, 35 tests</td><td>&check; per-line "make it work" island on /today (pipeline emits data-promotable)</td></tr>
     <tr><td><b>C1</b> &middot; project hierarchy</td><td>&check; tree grouping, 18 tests</td><td>&check; Projects view live at <code style="font-family:var(--font-mono);font-size:12px">/beats?view=projects</code></td></tr>
     <tr><td><b>C2</b> &middot; portfolio health</td><td>&check; activity classifier, 36 tests</td><td>&check; health badge on each project card</td></tr>
     <tr><td><b>B3 / C3</b></td><td>scoped as deferred (LATER / horizon)</td><td>&mdash;</td></tr>

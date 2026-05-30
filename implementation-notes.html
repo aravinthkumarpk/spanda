@@ -415,6 +415,36 @@
   (/today promote — still needs the line-UX + canonicalRepo decision) and the A2 acceptance confirm.</p>
 </div>
 
+<div class="entry">
+  <div class="ts">2026-05-30 · B2 /today promote — built after the design interview (commit 8c9716f9)</div>
+  <h2><span class="tag t-change">change</span>The last epic: per-line "make it work" promote on /today</h2>
+  <p>Built B2 to the design we locked in the 10-question interview:</p>
+  <ul>
+    <li><b>Q5 acceptance</b> — moved the <code>do</code> rule from a description-scanned <code>Acceptance:</code>
+      line to the bead's <b>native <code>acceptance_criteria</code> field</b>, across quick-capture +
+      quick-capture-update (now consistent with BeatForm, which already used it). +acceptance tests.</li>
+    <li><b>Q7/Q8 marker layer</b> (<code>today-promote.ts</code>): <code>PromoteMarker → buildPromotePayload</code>
+      (assembles work:/with:/chasing: + <code>source:today-&lt;date&gt;</code> + <code>today-key:&lt;key&gt;</code>
+      + <code>project:*</code>) and key-based dedup (<code>collectPromotedKeys</code>/<code>isKeyPromoted</code>),
+      robust to title edits. 35 tests.</li>
+    <li><b>Q2/Q4/Q6 island</b> (<code>promote-island.tsx</code>): a /today client island walks the inlined daily
+      DOM for pipeline-marked <code>[data-promotable]</code> lines (the daily's own scripts don't run under
+      <code>dangerouslySetInnerHTML</code>), portals a "make it work" button per line, and opens the shared
+      <code>CreateBeatDialog</code>/<code>BeatForm</code> prefilled from the marker. Promoted keys render a
+      "promoted" badge. Writes via <code>POST /api/beats</code> to the sole registered work repo; fail-loud if
+      none registered.</li>
+    <li><b>Q9 contract</b>: <a href="#">docs/today-promote-contract.md</a> documents the exact
+      <code>data-promotable</code> attributes for <b>your</b> daily pipeline to emit (the pipeline side is yours).</li>
+    <li><b>Q10 registry</b>: personal-os is now the <b>sole</b> registered repo (beads); the spanda test repo was
+      removed — the whole app operates on real data.</li>
+  </ul>
+  <p><b>Every planned epic is now built, tested, and gate-green</b> (lint 0, tsc clean, 294 files / 3219 tests,
+  build ok). The only thing outside Spanda is your pipeline emitting the <code>data-promotable</code> markers —
+  until it does, /today shows no promote buttons (intentional, nothing guessed). One small follow-up noted: the
+  A2 <em>edit</em> dialog uses the native acceptance field but is still my lightweight component rather than literal
+  BeatForm; the promote path already uses BeatForm. Converging the edit path onto BeatForm too is optional polish.</p>
+</div>
+
 </div>
 </body>
 </html>
