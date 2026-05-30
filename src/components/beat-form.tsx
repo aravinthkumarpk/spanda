@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { z } from "zod";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -29,6 +30,21 @@ import { ProfileInfoDialog } from "@/components/profile-info-dialog";
 import { FormField } from "@/components/form-field";
 
 const PRIORITIES = [0, 1, 2, 3, 4] as const;
+
+// Form-level rule (NOT in the shared API schema, to avoid affecting other
+// create paths): a `do`-bucket task (carries the work:do label) must declare
+// acceptance criteria. Mirrors the quick-capture rule so the Board create
+// dialog and the /today promote both block an empty `do` acceptance.
+const createBeatFormSchema = createBeatSchema.superRefine((val, ctx) => {
+  const isDo = Array.isArray(val.labels) && val.labels.includes("work:do");
+  if (isDo && (!val.acceptance || val.acceptance.trim().length === 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["acceptance"],
+      message: "Acceptance criteria required for do tasks",
+    });
+  }
+});
 
 export interface RelationshipDeps {
   blocks: string[];
@@ -233,8 +249,11 @@ function LabelsField({ form }: { form: AnyForm }) {
 }
 
 function AcceptanceField({ form }: { form: AnyForm }) {
+  const error = form.formState.errors.acceptance?.message as
+    | string
+    | undefined;
   return (
-    <FormField label="Acceptance criteria">
+    <FormField label="Acceptance criteria" error={error}>
       <Textarea
         placeholder="Acceptance criteria"
         {...form.register("acceptance")}
@@ -312,7 +331,7 @@ function useBeatForm(props: BeatFormProps) {
   const { mode, defaultValues, onSubmit } = props;
   const create = extractCreateProps(props);
   const schema =
-    mode === "create" ? createBeatSchema : updateBeatSchema;
+    mode === "create" ? createBeatFormSchema : updateBeatSchema;
 
   const [draft] = useState(() =>
     mode === "create" ? loadDraft() : null,
