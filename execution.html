@@ -152,6 +152,7 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:22px;margin:44
   <div class="alt a3"><div class="lvl">altitude 3</div><div class="body"><b>Strategy &mdash; Projects.</b> <span>Bird's-eye of the projects you manage. Health, bets, where to invest. (Epic C)</span></div></div>
   <div class="alt a2"><div class="lvl">altitude 2</div><div class="body"><b>Triage &mdash; Today.</b> <span>What matters now; turn a line into runnable work. (Epic B)</span></div></div>
   <div class="alt a1"><div class="lvl">altitude 1</div><div class="body"><b>Execution &mdash; Board.</b> <span>An agent runs a task, you review, it ships. (Epic A)</span></div></div>
+  <div class="alt"><div class="lvl">foundation</div><div class="body"><b>Data &mdash; one clean beads DB.</b> <span>Merge the split DBs and classify every task so the three altitudes above have clean labels to read. (Epic D)</span></div></div>
 </div>
 
 <div class="legend">
@@ -164,17 +165,19 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:22px;margin:44
   <h2>Build order</h2>
   <p>Dependency-aware sequence. A2 is the keystone &mdash; one shared form reused by the tracker, the promote flow, and Board capture.</p>
   <ol>
+    <li><span class="ph now">NOW</span><span class="sid">D1</span><span>Merge the two beads DBs into one (data foundation)</span></li>
+    <li><span class="ph now">NOW</span><span class="sid">D2</span><span>Classify the long tail &mdash; every task gets work:* + project:*</span></li>
     <li><span class="ph now">NOW</span><span class="sid">A2</span><span>Shared Add/Update task form &mdash; the keystone, unblocks everything</span></li>
     <li><span class="ph now">NOW</span><span class="sid">A1</span><span>Collapse nine tabs &rarr; four + Plan</span></li>
     <li><span class="ph now">NOW</span><span class="sid">A3</span><span>Task tracker actions (needs A2)</span></li>
     <li><span class="ph now">NOW</span><span class="sid">B2</span><span>/today &rarr; promote a line to the Board (needs A2)</span></li>
-    <li><span class="ph next">NEXT</span><span class="sid">A4</span><span>Filter + stale + routing wireups</span></li>
-    <li><span class="ph next">NEXT</span><span class="sid">C1</span><span>Project as a first-class unit</span></li>
+    <li><span class="ph next">NEXT</span><span class="sid">A4</span><span>Filter + stale + routing wireups (needs D2 labels)</span></li>
+    <li><span class="ph next">NEXT</span><span class="sid">C1</span><span>Project as a first-class unit (needs D2 project:* tags)</span></li>
     <li><span class="ph next">NEXT</span><span class="sid">C2</span><span>Portfolio health view (needs C1)</span></li>
     <li><span class="ph later">LATER</span><span class="sid">B3</span><span>Triage states before a task exists</span></li>
     <li><span class="ph later">LATER</span><span class="sid">C3</span><span>Project metrics / leverage (horizon)</span></li>
   </ol>
-  <p class="why">B1 (/today reads like the clarity daily) is prototyped and live at spanda-dev.</p>
+  <p class="why">D (data cleanup) goes first &mdash; the new system's routing (A4) and Projects (C1) need the work:* and project:* labels to exist. B1 (/today) is prototyped and live at spanda-dev.</p>
 </div>
 
 <!-- ============ EPIC A ============ -->
@@ -314,6 +317,38 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:22px;margin:44
     <li>A leverage view ranks where attention is over- vs under-invested</li>
   </ul>
   <div class="reuse">maps to Evolve-Aravinth outcome&rarr;lever tracking + the scorecard</div>
+</div>
+
+<!-- ============ EPIC D ============ -->
+<h2 class="epic">Epic D &mdash; <span class="epic-tag">clean the beads so the new system reads it</span></h2>
+<p class="epic-note">Foundation. The three altitudes only work if the beads DB is single and every task carries the labels they read: <code>work:*</code> (buckets &rarr; routing, A4) and <code>project:*</code> (&rarr; Projects, C1). Source: the 2026-05-24 beads merge plan + work-classification (<a href="https://aravinth.onyourdevice.ai/beads/merge-plan-2026-05-24.html">merge</a> &middot; <a href="https://aravinth.onyourdevice.ai/beads/work-classification-2026-05-24.html">classification</a>).</p>
+
+<div class="card">
+  <div class="head"><div><h3>Merge the two beads DBs into one</h3><div class="ref">D1 &middot; data foundation</div></div><span class="badge b-now">now</span></div>
+  <div class="story"><b>As an operator,</b> I want one beads database, so /today and the Board see all my work &mdash; not half of it split across two stores.</div>
+  <div class="ach">Acceptance</div>
+  <ul class="ac">
+    <li>The <code>personal-os</code> and <code>my-personal-os</code> DBs merge into one &mdash; zero lost issues</li>
+    <li>11 merge groups resolved (8 already applied, 3 review-only); colliding IDs remapped; dependency + parent edges remapped, no orphans</li>
+    <li>Both source DBs tarball-backed before any write (rollback = untar + repoint)</li>
+    <li>The daily review + Board read the single unified DB</li>
+  </ul>
+  <div class="reuse">per the 2026-05-24 Beads Merge Plan: audit / de-dupe &rarr; ID remap &rarr; merge &amp; verify</div>
+</div>
+
+<div class="card">
+  <div class="head"><div><h3>Classify every task</h3><div class="ref">D2 &middot; operating model</div></div><div class="badges"><span class="badge b-now">now</span><span class="badge b-partial">mostly applied</span></div></div>
+  <div class="story"><b>As an operator,</b> I want every task tagged with a bucket and a project, so the board can route it and group it.</div>
+  <div class="ach">Acceptance</div>
+  <ul class="ac">
+    <li>Every active task carries one <code>work:*</code> bucket (do / coordinate / followup) AND one <code>project:*</code> tag (agent-studio / ai-transformation / personal)</li>
+    <li>Zero tasks missing a project label (the 2026-05-24 pass already reached this)</li>
+    <li>Bucket = who-acts-next (do = mine now; coordinate = I drive, others act; followup = waiting on someone), orthogonal to <code>project:*</code></li>
+    <li>bd-lint blocks new tasks missing <code>project:*</code> (shipped) and missing <code>work:*</code> at create</li>
+    <li>Quality backfill: the ~44 tasks missing a due date and ~10 with weak done-when get fixed</li>
+  </ul>
+  <div class="reuse">per the 2026-05-24 Work Classification: 38 do &middot; 5 coordinate &middot; 12 followup; work:* + project:* = the full operating model</div>
+  <div class="dep">A4 (routing) and C1 (Projects) depend on these labels existing &mdash; that's why Epic D ships first</div>
 </div>
 
 <div class="ink">
