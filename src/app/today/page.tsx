@@ -19,6 +19,21 @@ import { PromoteIsland } from "@/components/promote-island";
 const DAILY_ROOT = process.env.SPANDA_DAILY_ROOT
   || "/home/deploy/code/html-artifacts/docs/daily";
 
+// IANA timezone for the date walk. The daily-review pipeline writes
+// files keyed to an IST clock, so the production default is
+// Asia/Kolkata; override via SPANDA_DAILY_TZ for alternate deployments.
+// This is a deployment-level configuration choice — the lib itself
+// requires `timezone` per CLAUDE.md fail-loud, so swapping the default
+// here cannot silently hide drift inside the lib's behavior.
+const DAILY_TZ = process.env.SPANDA_DAILY_TZ || "Asia/Kolkata";
+
+// Force per-request rendering. Without this, Next.js prerenders the
+// route at build time and bakes in whatever daily was latest at that
+// moment, so freshly-synthesized dailies don't appear until the next
+// build. Force-dynamic re-reads the disk on every request — the daily
+// is a small file and the route is single-user, so the cost is negligible.
+export const dynamic = "force-dynamic";
+
 const realFs: DailyLoaderFs = {
   exists: (path) => existsSync(path),
   read: (path) => readFileSync(path, "utf8"),
@@ -36,6 +51,7 @@ export default async function TodayPage() {
       root: DAILY_ROOT,
       now: new Date(),
       fs: realFs,
+      timezone: DAILY_TZ,
     });
     body = result.body;
     usedDate = result.usedDate;

@@ -37,6 +37,15 @@ export interface LoadDailyHtmlOptions {
   now: Date;
   /** Injected fs adapter — pure-fn tests pass an in-memory map. */
   fs: DailyLoaderFs;
+  /**
+   * IANA timezone for the date walk (e.g. "Asia/Kolkata", "UTC").
+   * Required, no default — the daily-review pipeline writes files keyed to
+   * an IST clock, but other deployments may differ. Callers must be explicit
+   * about whose clock they're reading from. Per CLAUDE.md "Fail Loudly":
+   * a silent UTC default would hide config drift the day someone runs this
+   * for a non-IST pipeline.
+   */
+  timezone: string;
 }
 
 /** Build the canonical daily path for a date: ${root}/YYYY/MM/DD.html */
@@ -83,14 +92,72 @@ function extractTitle(html: string): string | null {
 }
 
 /**
+ * Compute the Y/M/D in the requested IANA timezone for a given moment.
+ * Hermetic — relies on Node's built-in ICU via Intl.DateTimeFormat.
+ * No real fs / network / wall-clock.
+ *
+ * Throws with the greppable `SPANDA DAILY LOADER` marker (per CLAUDE.md
+ * "Fail Loudly") if the timezone is invalid. The raw RangeError from
+ * Intl is opaque ("Invalid time zone specified") and easy to miss in
+ * server logs; wrapping it makes a misconfigured SPANDA_DAILY_TZ surface
+ * as a named subsystem failure instead.
+ */
+function ymdInTimezone(
+  date: Date,
+  timezone: string,
+): { year: number; month: number; day: number } {
+  let fmt: Intl.DateTimeFormat;
+  try {
+    fmt = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  } catch (err) {
+    const cause = err instanceof Error ? err.message : String(err);
+    throw new Error(
+      `SPANDA DAILY LOADER: invalid timezone '${timezone}'. ` +
+        `Set SPANDA_DAILY_TZ to a valid IANA identifier (e.g. 'Asia/Kolkata'). ` +
+        `Underlying: ${cause}`,
+    );
+  }
+  const parts = fmt.formatToParts(date);
+  const get = (type: string): number => {
+    const part = parts.find((p) => p.type === type);
+    if (!part) {
+      throw new Error(`SPANDA DAILY LOADER: Intl returned no '${type}' part`);
+    }
+    return Number(part.value);
+  };
+  return { year: get("year"), month: get("month"), day: get("day") };
+}
+
+/**
+ * Anchor a Y/M/D triple as a UTC-midnight Date so we can iterate days
+ * with `setUTCDate(... - 1)` without crossing any DST/UTC boundary.
+ * The Date's UTC components match the input Y/M/D; the wall-clock
+ * meaning of that Date in the original timezone is irrelevant — we only
+ * use it as a counter that path-builders read via getUTC*.
+ */
+function utcAnchorFor(year: number, month: number, day: number): Date {
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
+/**
  * Load today's daily HTML from disk and prepare it for inlining.
  * Falls back to the most-recent prior daily within the FALLBACK_WINDOW_DAYS
  * window. Throws a clearly-named error if no daily is found at all.
+ *
+ * The 'today' starting point is computed in the caller-supplied timezone
+ * so a late-UTC moment that's already next-day in IST loads the IST file.
  */
 export function loadDailyHtml(opts: LoadDailyHtmlOptions): DailyLoadResult {
-  const { root, now, fs } = opts;
+  const { root, now, fs, timezone } = opts;
+  const { year, month, day } = ymdInTimezone(now, timezone);
+  const startAnchor = utcAnchorFor(year, month, day);
   for (let offset = 0; offset <= FALLBACK_WINDOW_DAYS; offset++) {
-    const date = new Date(now);
+    const date = new Date(startAnchor);
     date.setUTCDate(date.getUTCDate() - offset);
     const path = buildDailyPath(root, date);
     if (!fs.exists(path)) continue;
@@ -103,6 +170,6 @@ export function loadDailyHtml(opts: LoadDailyHtmlOptions): DailyLoadResult {
     };
   }
   throw new Error(
-    `no daily found in ${root} within ${FALLBACK_WINDOW_DAYS} days of ${formatYMD(now)}`,
+    `no daily found in ${root} within ${FALLBACK_WINDOW_DAYS} days of ${formatYMD(startAnchor)}`,
   );
 }
