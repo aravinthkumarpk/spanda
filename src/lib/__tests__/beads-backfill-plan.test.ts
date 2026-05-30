@@ -85,6 +85,24 @@ describe("planBackfill — reparenting flat tasks", () => {
     expect(plan.projectRootsMissing).toHaveLength(0);
     expect(plan.skipped.some((s) => s.id === "orphan")).toBe(true);
   });
+
+  it("never self-parents the project root bead carrying its own label", () => {
+    // The ai-transformation root epic itself carries project:ai-transformation
+    // and is flat (top of the tree). It must NOT be reparented onto itself.
+    const beads: BeadSnapshot[] = [
+      parent("root-ai-transformation", ["project:ai-transformation"]),
+    ];
+    const plan = planBackfill(beads, ROOTS);
+    expect(plan.reparents).toHaveLength(0);
+    expect(plan.summary.toReparent).toBe(0);
+    expect(
+      plan.skipped.some(
+        (s) =>
+          s.id === "root-ai-transformation"
+          && s.reason.includes("its own parent"),
+      ),
+    ).toBe(true);
+  });
 });
 
 describe("planBackfill — missing project roots (FAIL LOUD, no invention)", () => {

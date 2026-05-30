@@ -206,6 +206,16 @@ function planReparent(
     acc.projectRootsMissing.add(project);
     return;
   }
+  if (parent === bead.id) {
+    // This bead IS the project root for its own project label (e.g. the
+    // ai-transformation epic carrying project:ai-transformation). It cannot
+    // be its own parent — leave it at the top of the hierarchy.
+    acc.skipped.push({
+      id: bead.id,
+      reason: `is the project root for ${project} — cannot be its own parent`,
+    });
+    return;
+  }
   acc.reparents.push({ child: bead.id, parent, project });
 }
 
