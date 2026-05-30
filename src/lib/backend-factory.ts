@@ -22,6 +22,7 @@ import { StubBackend } from "@/lib/backends/stub-backend";
 import { BeadsBackend, BEADS_CAPABILITIES } from "@/lib/backends/beads-backend";
 import { KnotsBackend, KNOTS_CAPABILITIES } from "@/lib/backends/knots-backend";
 import { detectMemoryManagerType } from "@/lib/memory-manager-detection";
+import { getRegisteredMemoryManagerTypeSync } from "@/lib/registry";
 import { DispatchFailureError } from "@/lib/dispatch-pool-resolver";
 import { builtinWorkflowDescriptors } from "@/lib/workflows";
 import type { MemoryWorkflowDescriptor } from "@/lib/types";
@@ -64,7 +65,12 @@ export class AutoRoutingBackend implements BackendPort {
       return cached.type;
     }
 
-    const memoryManager = detectMemoryManagerType(repoPath);
+    // A registered repo's DECLARED type is authoritative — an on-disk marker
+    // can be a stale cache (e.g. a spurious `.knots/` left by a stray `kno`
+    // run) that would otherwise mis-route a beads repo to the knots backend.
+    // Fall back to marker detection only for unregistered paths.
+    const declared = getRegisteredMemoryManagerTypeSync(repoPath);
+    const memoryManager = declared ?? detectMemoryManagerType(repoPath);
     let resolved: Exclude<BackendType, "auto">;
     if (memoryManager === "knots") resolved = "knots";
     else if (memoryManager === "beads") resolved = "cli";

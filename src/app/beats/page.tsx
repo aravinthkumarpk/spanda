@@ -31,6 +31,7 @@ import { BoardView } from "@/components/board-view";
 import { ProjectsView } from "@/components/projects-view";
 import { LabelFilterChips } from "@/components/label-filter-chips";
 import { useLabelFilter } from "./use-label-filter";
+import { useActiveFilter } from "./use-active-filter";
 import { useUpdateUrl } from "@/hooks/use-update-url";
 import {
   AllReposEmptyState,
@@ -140,7 +141,7 @@ function useBeatsPageState() {
   });
   const displayedBeats = useDisplayedBeats(beats);
   const { selectedLabels, labelFilteredBeats } = useLabelFilter(
-    displayedBeats,
+    useActiveFilter(displayedBeats),
     searchParams.get("labels"),
   );
   const showRepoColumn =
