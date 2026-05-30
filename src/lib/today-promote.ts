@@ -14,6 +14,13 @@
 //
 // Hermetic — all dates are passed in (no wall clock), no fs, no network.
 
+import {
+  normalizeQuickCapturePayload,
+  type QuickCaptureInput,
+  type QuickCaptureProfile,
+} from "@/lib/quick-capture";
+import { profileForBucket } from "@/lib/bucket-profile";
+
 /**
  * UTC YYYY-MM-DD formatter — mirrors `formatYMD` in src/lib/daily-loader.ts
  * (UTC components, zero-padded month/day).
@@ -124,4 +131,113 @@ export function isLinePromoted(line: string, promotedTitles: Set<string>): boole
   const trimmed = line.trim();
   if (trimmed.length === 0) return false;
   return promotedTitles.has(trimmed);
+}
+
+// ── Rich data-promotable marker layer (Q7/Q8) ───────────────────────────────
+//
+// The daily pipeline emits structured markers on promotable lines (see
+// docs/today-promote-contract.md). The island reads them; these pure helpers
+// turn a marker into the exact create payload and handle key-based dedup.
+
+/** Label prefix carrying the stable per-line dedup key. */
+const TODAY_KEY_PREFIX = "today-key:";
+
+/** Structured promote marker read from a line's data-promote-* attributes. */
+export interface PromoteMarker {
+  /** Stable, unique-within-a-daily id. Drives dedup. */
+  key: string;
+  /** Clean task title (data-promote-title). */
+  title: string;
+  /** Bucket: do/coordinate/followup/decide (bare or `work:` prefixed). */
+  bucket: string;
+  /** Optional project value, e.g. "agent-studio" (no `project:` prefix). */
+  project?: string;
+  /** Acceptance criteria (required for do). */
+  acceptance?: string;
+  /** Person for coordinate (with:) / followup (chasing:). */
+  person?: string;
+}
+
+/** Build the dedup label `today-key:<key>` for a promoted line. */
+export function buildTodayKeyLabel(key: string): string {
+  return `${TODAY_KEY_PREFIX}${key.trim()}`;
+}
+
+/** Parse a `today-key:<key>` label back to its key, or null. */
+export function parseTodayKeyLabel(label: string): string | null {
+  if (!label.startsWith(TODAY_KEY_PREFIX)) return null;
+  const key = label.slice(TODAY_KEY_PREFIX.length).trim();
+  return key.length > 0 ? key : null;
+}
+
+/**
+ * Reverse the marker into a QuickCaptureInput for validation + the form.
+ * The bucket maps to a profile via the catalog-derived profileForBucket
+ * (fail-loud on an unknown bucket). Person is only kept for coordinate/followup.
+ */
+export function markerToQuickCaptureInput(marker: PromoteMarker): QuickCaptureInput {
+  const profile = profileForBucket(marker.bucket) as QuickCaptureProfile;
+  const needsPerson = profile === "coordinate" || profile === "followup";
+  return {
+    title: marker.title,
+    description: "",
+    profile,
+    acceptance: marker.acceptance ?? "",
+    person: needsPerson ? marker.person ?? null : null,
+  };
+}
+
+/** The complete create payload a promoted marker produces. */
+export interface PromoteCreatePayload {
+  title: string;
+  description: string;
+  acceptance: string;
+  labels: string[];
+}
+
+/**
+ * Assemble the full create payload for a marker: the work:/with:/chasing:
+ * labels come from normalizeQuickCapturePayload; this adds the dedup labels
+ * (source:today-<date>, today-key:<key>) and the optional project label.
+ */
+export function buildPromotePayload(
+  marker: PromoteMarker,
+  date: Date,
+): PromoteCreatePayload {
+  const base = normalizeQuickCapturePayload(markerToQuickCaptureInput(marker));
+  const labels = [
+    ...base.labels,
+    buildTodaySourceLabel(date),
+    buildTodayKeyLabel(marker.key),
+  ];
+  const project = marker.project?.trim();
+  if (project && project.length > 0 && project !== "unsorted") {
+    labels.push(`project:${project}`);
+  }
+  return {
+    title: base.title,
+    description: base.description,
+    acceptance: base.acceptance,
+    labels,
+  };
+}
+
+/** Collect the set of `today-key:*` keys already present across tasks. */
+export function collectPromotedKeys(
+  tasks: Array<{ labels: string[] }>,
+): Set<string> {
+  const keys = new Set<string>();
+  for (const task of tasks) {
+    for (const label of task.labels) {
+      const key = parseTodayKeyLabel(label);
+      if (key) keys.add(key);
+    }
+  }
+  return keys;
+}
+
+/** Whether a marker's key has already been promoted (exact, trimmed). */
+export function isKeyPromoted(key: string, promotedKeys: Set<string>): boolean {
+  const trimmed = key.trim();
+  return trimmed.length > 0 && promotedKeys.has(trimmed);
 }

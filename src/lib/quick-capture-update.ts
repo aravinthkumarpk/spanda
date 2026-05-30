@@ -33,6 +33,7 @@ import type { UpdateBeatInput } from "@/lib/schemas";
 export type UpdatableBeat = {
   title: string;
   description?: string;
+  acceptance?: string;
   labels: string[];
 };
 
@@ -59,6 +60,7 @@ export function beatToQuickCaptureInput(
     title: beat.title,
     description: beat.description ?? "",
     profile,
+    acceptance: beat.acceptance ?? "",
     person: extractPerson(beat.labels, profile),
   };
 }
@@ -114,6 +116,9 @@ export function diffQuickCaptureUpdate(
 
   const description = edited.description.trim();
   if (description !== original.description.trim()) patch.description = description;
+
+  const acceptance = edited.acceptance.trim();
+  if (acceptance !== original.acceptance.trim()) patch.acceptance = acceptance;
 
   const desired = ownedLabelsFor(edited);
   const ownedOriginal = originalLabels.filter(isOwnedLabel);

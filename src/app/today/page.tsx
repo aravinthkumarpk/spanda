@@ -11,6 +11,7 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { loadDailyHtml, type DailyLoaderFs } from "@/lib/daily-loader";
+import { PromoteIsland } from "@/components/promote-island";
 
 // Configurable root. Default mirrors the live VPS path used by the
 // daily-review pipeline; override with SPANDA_DAILY_ROOT for tests
@@ -93,6 +94,9 @@ export default async function TodayPage() {
             className="daily-content"
             dangerouslySetInnerHTML={{ __html: body }}
           />
+        )}
+        {!loadError && usedDate && (
+          <PromoteIsland sourceDate={usedDate} />
         )}
       </div>
     </main>
