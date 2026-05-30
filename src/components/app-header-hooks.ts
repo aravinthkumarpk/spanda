@@ -42,11 +42,11 @@ export function buildVersionBannerData(
 }
 
 export type BeatsViewId =
-  | "setlist" | "overview" | "queues" | "active"
+  | "setlist" | "overview" | "board" | "queues" | "active"
   | "finalcut" | "retakes" | "history" | "diagnostics";
 
 export const VIEWS: readonly BeatsViewId[] = [
-  "setlist", "overview", "queues", "active", "finalcut",
+  "setlist", "overview", "board", "queues", "active", "finalcut",
   "retakes", "history", "diagnostics",
 ];
 
@@ -206,7 +206,7 @@ export function useBeatsViewSetter(
     if (view === "queues") p.delete("view");
     else p.set("view", view);
     if (view === "queues") p.set("state", "queued");
-    else if (view === "overview") p.set("state", "all");
+    else if (view === "overview" || view === "board") p.set("state", "all");
     else if (view === "active") {
       p.set("state", "in_action");
     }

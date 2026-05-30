@@ -27,6 +27,7 @@ import { SetlistView } from "@/components/setlist-view";
 import {
   BeatStateOverviewScreen,
 } from "@/components/beat-state-overview";
+import { BoardView } from "@/components/board-view";
 import { RepoSwitchLoadingState } from "@/components/repo-switch-loading-state";
 import {
   StreamingProgressBar,
@@ -83,7 +84,8 @@ function useBeatsPageState() {
     parseBeatsView(searchParams.get("view"));
   const isListView = isListBeatsView(beatsView);
   const isOverviewView = beatsView === "overview";
-  const shouldLoadBeats = isListView || isOverviewView;
+  const isBoardView = beatsView === "board";
+  const shouldLoadBeats = isListView || isOverviewView || isBoardView;
   const supportsBeatDetail =
     shouldLoadBeats || beatsView === "setlist";
   const viewPhase: ViewPhase =
@@ -155,7 +157,7 @@ function useBeatsPageState() {
     activeRepo,
   });
   return {
-    beatsView, isListView, isOverviewView, viewPhase,
+    beatsView, isListView, isOverviewView, isBoardView, viewPhase,
     supportsBeatDetail,
     isActiveView, activeRepo,
     searchQuery, detailBeatId, detailRepo,
@@ -239,6 +241,7 @@ function BeatsPageInner() {
         isRetakesView={isRetakesView}
         isHistoryView={isHistoryView}
         isOverviewView={isOverviewView}
+        isBoardView={s.isBoardView}
         isDiagnosticsView={isDiagnosticsView}
         state={s}
       />
@@ -282,6 +285,7 @@ function BeatsViewBody({
   isFinalCutView, isRetakesView,
   isHistoryView,
   isOverviewView,
+  isBoardView,
   isDiagnosticsView,
   state: s,
 }: {
@@ -290,6 +294,7 @@ function BeatsViewBody({
   isRetakesView: boolean;
   isHistoryView: boolean;
   isOverviewView: boolean;
+  isBoardView: boolean;
   isDiagnosticsView: boolean;
   state: PageState;
 }) {
@@ -319,6 +324,15 @@ function BeatsViewBody({
           onFocusLeaseSession={s.setActiveSession}
           onReleaseBeat={s.handleReleaseBeat}
           streamingProgress={s.streamingProgress}
+        />
+      ) : isBoardView ? (
+        <BoardView
+          isLoading={s.isLoading}
+          loadError={s.loadError}
+          beats={s.beats}
+          onOpenBeat={s.handleOpenBeat}
+          onShipBeat={s.handleShipBeat}
+          shippingByBeatId={s.shippingByBeatId}
         />
       ) : isDiagnosticsView ? (
         <DiagnosticsView

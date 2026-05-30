@@ -1,6 +1,7 @@
 export type BeatsView =
   | "setlist"
   | "overview"
+  | "board"
   | "queues"
   | "active"
   | "search"
@@ -13,6 +14,7 @@ export function parseBeatsView(viewParam: string | null): BeatsView {
   switch (viewParam) {
     case "setlist":
     case "overview":
+    case "board":
     case "active":
     case "search":
     case "finalcut":
