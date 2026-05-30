@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>today — prototype · spanda</title>
+<meta name="description" content="Prototype of the /today surface: the full clarity daily in spanda tokens, with an actionable task tracker backed by the beads system."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --color-primary:#9fe870; --color-primary-pale:#e2f6d5; --color-on-primary:#0e0f0c;
+  --color-canvas:#ffffff; --color-canvas-soft:#e8ebe6; --color-canvas-sage-deep:#d8dcd3;
+  --color-ink:#0e0f0c; --color-ink-deep:#163300; --color-body:#454745; --color-mute:#868685;
+  --color-positive:#2ead4b; --color-positive-pale:#e2f6d5;
+  --color-warning-deep:#b86700; --color-warning-content:#4a3b1c; --color-warning-pale:#fff4cc;
+  --color-negative:#d03238; --color-negative-pale:#fce8e9;
+  --color-accent-cyan:#38c8ff; --color-lake:#1f6f78; --color-lake-pale:#dceef0;
+  --color-border:#0e0f0c; --color-border-soft:rgba(14,15,12,0.10); --color-border-faint:rgba(14,15,12,0.06);
+  --font-display:"Manrope",ui-sans-serif,system-ui,sans-serif;
+  --font-sans:"Inter","Manrope",ui-sans-serif,system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --r-md:12px; --r-lg:16px; --r-xl:24px; --r-pill:9999px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--color-canvas-soft);color:var(--color-ink)}
+body{font:400 16px/1.6 var(--font-sans);-webkit-font-smoothing:antialiased}
+::selection{background:var(--color-primary);color:var(--color-on-primary)}
+.page{max-width:1100px;margin:0 auto;padding:20px 24px 96px}
+code{font-family:var(--font-mono);font-size:0.85em;color:var(--color-body)}
+a{color:var(--color-ink-deep)}
+
+.topbar{display:flex;align-items:center;gap:12px;padding:10px 0 18px;border-bottom:1px solid var(--color-border-soft)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:900;font-size:18px}
+.brand svg{height:26px;width:26px}
+.crumb{font-size:13px;color:var(--color-mute)}.crumb strong{color:var(--color-body);font-weight:600}
+.spacer{flex:1}
+.pill-ghost,.pill-cta{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:7px 14px;border-radius:var(--r-pill);cursor:pointer;border:1px solid var(--color-border-soft);font-family:var(--font-sans)}
+.pill-ghost{background:var(--color-canvas);color:var(--color-ink)}
+.pill-cta{background:var(--color-primary);color:var(--color-on-primary);border-color:transparent}
+
+.hero{display:grid;grid-template-columns:1fr 340px;gap:28px;margin:28px 0 8px;align-items:start}
+.hero h1{font-family:var(--font-display);font-weight:900;font-size:40px;line-height:1.05;letter-spacing:-0.02em;margin:0}
+.hero h1 .day{font-weight:600;font-size:22px;color:var(--color-body)}
+.eyebrow{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-mute);margin:14px 0 0}
+.eyebrow .tick{width:6px;height:6px;border-radius:50%;background:var(--color-primary)}
+.undertitle{color:var(--color-body);font-size:14.5px;max-width:62ch;margin:14px 0 0}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0}
+.toc a{font-family:var(--font-mono);font-size:12px;color:var(--color-body);background:var(--color-canvas);border:1px solid var(--color-border-faint);padding:4px 10px;border-radius:var(--r-pill);text-decoration:none}
+.hero-card{background:var(--color-canvas);border-radius:var(--r-xl);padding:20px 22px;box-shadow:0 1px 0 0 rgba(14,15,12,0.04)}
+.countdown{display:flex;align-items:baseline;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--color-border-faint)}
+.countdown .big{font-family:var(--font-display);font-weight:900;font-size:44px;line-height:1}
+.countdown .label{font-size:12px;color:var(--color-mute)}.countdown .label strong{color:var(--color-ink);font-weight:600}
+.hero-card .row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;font-size:13px;border-bottom:1px solid var(--color-border-faint)}
+.hero-card .lbl{color:var(--color-mute)}
+.hero-card .val{font-family:var(--font-display);font-weight:700;text-align:right}
+.hero-card .val small{display:block;font-family:var(--font-sans);font-weight:400;font-size:11px;color:var(--color-mute)}
+.source{font-size:12px;color:var(--color-mute);margin-top:12px;line-height:1.7}.source a{font-weight:600;color:var(--color-ink-deep)}
+
+.block{margin:40px 0 0}
+.section-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:16px}
+.section-head h2{font-family:var(--font-display);font-weight:900;font-size:26px;letter-spacing:-0.01em;margin:4px 0 0}
+.section-head .sub{color:var(--color-body);font-size:13.5px;max-width:48ch;text-align:right}
+
+.scoreboard,.pyramid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.lane,.tier{background:var(--color-canvas);border-radius:var(--r-xl);padding:18px 20px;box-shadow:0 1px 0 0 rgba(14,15,12,0.04)}
+.lane.feature,.tier.today{outline:2px solid var(--color-primary);outline-offset:-2px}
+.lane-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.bucket-pill{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:0.08em;padding:3px 9px;border-radius:var(--r-pill)}
+.bucket-pill.do{background:var(--color-primary-pale);color:var(--color-ink-deep)}
+.bucket-pill.coord{background:var(--color-lake-pale);color:var(--color-lake)}
+.bucket-pill.followup{background:var(--color-warning-pale);color:var(--color-warning-content)}
+.bucket-pill.closed{background:var(--color-canvas-sage-deep);color:var(--color-body)}
+.lane-head h3{font-family:var(--font-display);font-weight:700;font-size:16px;margin:0}
+.lane-head h3 .count{font-family:var(--font-sans);font-weight:400;font-size:12px;color:var(--color-mute);margin-left:4px}
+.lane ul{list-style:none;margin:0;padding:0}
+.lane li{display:grid;grid-template-columns:8px 64px 1fr;gap:8px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--color-border-faint)}
+.lane li:last-child{border-bottom:0}
+.marker{width:8px;height:8px;border-radius:50%;background:var(--color-canvas-sage-deep);margin-top:6px}
+.marker.hot{background:var(--color-primary)}.marker.cool{background:var(--color-accent-cyan)}
+.li-label{font-weight:600;font-size:13px}.li-text{font-size:13px;color:var(--color-body)}
+.lane-foot{margin-top:12px;font-size:11px;color:var(--color-mute)}.lane-foot code{margin-right:3px}
+.tier-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;color:var(--color-mute);margin-bottom:6px}
+.tier-h{font-family:var(--font-display);font-weight:700;font-size:15px;margin:0 0 10px;line-height:1.35}
+.tier ol{margin:0;padding-left:18px;font-size:13px;color:var(--color-body)}.tier ol li{margin:6px 0}
+.tier-meta{font-size:11px;color:var(--color-mute);margin:12px 0 0}
+
+/* project banner + milestones */
+.project-banner{display:flex;align-items:center;gap:12px;margin:48px 0 0;padding:14px 20px;background:var(--color-ink);color:var(--color-canvas-soft);border-radius:var(--r-lg)}
+.project-banner .num{font-family:var(--font-mono);font-size:12px;color:var(--color-primary)}
+.project-banner .name{font-family:var(--font-display);font-weight:800;font-size:18px;color:#fff}
+.project-banner .summary{font-size:12px;color:#aeb3a8}
+.milestone{background:var(--color-canvas);border-radius:var(--r-xl);padding:18px 20px;margin:14px 0;box-shadow:0 1px 0 0 rgba(14,15,12,0.04)}
+.ms-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--color-mute);margin:18px 0 6px}
+.title-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.title-row h3{font-family:var(--font-display);font-weight:700;font-size:17px;margin:0}
+.ms-meta{font-size:12px;color:var(--color-mute);margin-left:auto}
+.milestone .summary{font-size:13.5px;color:var(--color-body);margin:10px 0}
+.epic-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.epic-table th{text-align:left;font-family:var(--font-mono);font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:var(--color-mute);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--color-border-faint)}
+.epic-table td{padding:9px 10px;border-bottom:1px solid var(--color-border-faint);vertical-align:top;color:var(--color-body)}
+.tag{font-family:var(--font-mono);font-size:10px;padding:2px 7px;border-radius:var(--r-pill)}
+.tag.build-ours{background:var(--color-primary-pale);color:var(--color-ink-deep)}
+.tag.build-deps{background:var(--color-lake-pale);color:var(--color-lake)}
+.tag.gtm{background:#e6f4ea;color:#2ead4b}.tag.slc{background:#f3e8f6;color:#8a4a9e}
+
+/* moved/didn't */
+.moved-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.moved-card{background:var(--color-canvas);border-radius:var(--r-xl);padding:18px 20px;box-shadow:0 1px 0 0 rgba(14,15,12,0.04)}
+.moved-card h3{font-family:var(--font-display);font-weight:700;font-size:16px;margin:0 0 2px}
+.head-meta{font-size:11px;color:var(--color-mute);margin-bottom:8px}
+.moved-card ol{margin:0;padding-left:18px;font-size:13px;color:var(--color-body)}
+.moved-card li{margin:7px 0}
+
+/* chips */
+.chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:11px;padding:2px 8px;border-radius:var(--r-pill);background:var(--color-canvas-soft);color:var(--color-body)}
+.chip .dot{width:6px;height:6px;border-radius:50%;background:var(--color-mute)}
+.chip.good{background:var(--color-positive-pale);color:var(--color-ink-deep)}.chip.good .dot{background:var(--color-positive)}
+.chip.warn{background:var(--color-warning-pale);color:var(--color-warning-content)}.chip.warn .dot{background:var(--color-warning-deep)}
+.chip.bad{background:var(--color-negative-pale);color:var(--color-negative)}.chip.bad .dot{background:var(--color-negative)}
+.chip.neutral{background:var(--color-canvas-soft)}.chip.outline{background:transparent;border:1px solid var(--color-border-soft)}
+
+/* table generic */
+.data-table{background:var(--color-canvas);border-radius:var(--r-xl);overflow:hidden}
+table.gen{width:100%;border-collapse:collapse;font-size:13.5px}
+table.gen th{text-align:left;font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--color-mute);font-weight:600;padding:12px 14px;background:var(--color-canvas-soft)}
+table.gen td{padding:11px 14px;border-bottom:1px solid var(--color-border-faint);vertical-align:middle}
+
+/* task tracker actions */
+.tracker-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.filter-pill{font-family:var(--font-mono);font-size:11px;padding:5px 12px;border-radius:var(--r-pill);border:1px solid var(--color-border-soft);background:var(--color-canvas);color:var(--color-body);cursor:pointer}
+.filter-pill.active{background:var(--color-ink);color:var(--color-canvas-soft);border-color:transparent}
+.btn-add{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:7px 14px;border-radius:var(--r-pill);background:var(--color-primary);color:var(--color-on-primary);border:none;cursor:pointer;font-family:var(--font-sans)}
+.row-actions{display:flex;gap:6px;justify-content:flex-end}
+.act{font-family:var(--font-sans);font-size:11px;font-weight:600;padding:4px 10px;border-radius:var(--r-pill);border:1px solid var(--color-border-soft);background:var(--color-canvas);color:var(--color-ink);cursor:pointer;white-space:nowrap}
+.act.complete{background:var(--color-primary-pale);border-color:transparent;color:var(--color-ink-deep)}
+.act.update{color:var(--color-lake)}
+.beads-note{font-size:11px;color:var(--color-lake);font-family:var(--font-mono);margin-top:10px}
+
+/* kpis */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi{background:var(--color-canvas);border-radius:var(--r-lg);padding:16px 18px;box-shadow:0 1px 0 0 rgba(14,15,12,0.04)}
+.kpi .head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.kpi .label{font-size:12px;color:var(--color-mute)}
+.kpi .value{font-family:var(--font-display);font-weight:900;font-size:30px;margin:6px 0 2px}
+.kpi .value .unit{font-size:16px;color:var(--color-mute)}
+.kpi .change{font-size:11px;color:var(--color-mute)}
+
+/* insights / kb */
+.rate-table{width:100%;border-collapse:collapse;font-size:13px}
+.rate-table th{text-align:left;font-family:var(--font-mono);font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:var(--color-mute);font-weight:600;padding:10px;background:var(--color-canvas-soft)}
+.rate-table td{padding:11px 10px;border-bottom:1px solid var(--color-border-faint);vertical-align:top;color:var(--color-body)}
+.conf-bar{display:inline-block;width:70px;height:6px;border-radius:3px;background:var(--color-canvas-soft);overflow:hidden;vertical-align:middle}
+.conf-bar span{display:block;height:100%;background:var(--color-primary)}
+
+/* appendix */
+.appendix-item{background:var(--color-canvas);border-radius:var(--r-lg);margin:10px 0;padding:0 18px;box-shadow:0 1px 0 0 rgba(14,15,12,0.04)}
+.appendix-item summary{cursor:pointer;padding:14px 0;font-family:var(--font-display);font-weight:700;font-size:14px;display:flex;justify-content:space-between;gap:12px}
+.appendix-item summary .meta{font-family:var(--font-sans);font-weight:400;font-size:12px;color:var(--color-mute)}
+.appendix-item .content{padding:0 0 16px;font-size:13px;color:var(--color-body)}
+
+.foot{margin-top:64px;padding-top:18px;border-top:1px solid var(--color-border-soft);font-size:12px;color:var(--color-mute);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.note{font-style:italic;color:var(--color-mute)}
+.privacy{margin-top:10px;font-size:11px;color:var(--color-warning-deep);font-family:var(--font-mono)}
+@media(max-width:880px){.hero,.scoreboard,.pyramid,.moved-grid{grid-template-columns:1fr}.kpi-row{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="34" fill="#0e0f0c"/><rect x="29" y="33" width="6" height="14" rx="3" fill="#9fe870"/><rect x="45" y="33" width="6" height="14" rx="3" fill="#9fe870"/></svg>
+      <span>spanda</span>
+    </div>
+    <span class="crumb">Daily review <strong>· 30 May 2026</strong> · Agent Studio</span>
+    <span class="spacer"></span>
+    <button class="pill-ghost" type="button">Open setlist</button>
+    <button class="pill-cta" type="button">▶ Take a beat</button>
+  </div>
+
+  <div class="hero">
+    <div>
+      <h1>30 May 2026<br/><span class="day">Saturday</span></h1>
+      <div class="eyebrow"><span class="tick"></span>Pre-OOO handoff day · closure + handoff mode</div>
+      <p class="undertitle">Last working day before OOO. Mode: closure + handoff, not new work. Drive P0 closures across 4 buckets — legal, GTM, event dependencies, merchant dependencies. Ship the OOO handoff doc by EOD. 2 working days to M2.</p>
+      <div class="toc">
+        <a href="#today">Today</a><a href="#pyramid">Pyramid</a><a href="#g1">Agent Studio</a><a href="#g2">AI Transformation</a><a href="#g3">Personal</a><a href="#moved">Moved · didn't</a><a href="#tasks">Task tracker</a><a href="#metrics">Metrics</a><a href="#insights">Insights</a><a href="#kb">KB updates</a><a href="#appendix">Appendix</a>
+      </div>
+    </div>
+    <div class="hero-card">
+      <div class="countdown"><div class="big">2</div><div class="label"><strong>working days to M2</strong><br/>31 May 2026 · Wed + Mon left</div></div>
+      <div class="row"><span class="lbl">Calendar</span><span class="val">15<small>closure block at 16:00</small></span></div>
+      <div class="row"><span class="lbl">Strategic gates</span><span class="val">3<small>RSL · kick-off · handoff</small></span></div>
+      <div class="row"><span class="lbl">Buckets to drive</span><span class="val">4<small>legal · GTM · event · merchant</small></span></div>
+      <div class="row"><span class="lbl">OOO handoff</span><span class="val">5<small>owners</small></span></div>
+      <div class="source"><strong>Plan · 02:10 IST</strong> · pre-OOO handoff day<br/>Source · vault note <code>08_Logs/2026/05/W22/2026-05-30.md</code><br/><a href="https://spanda.onyourdevice.ai">→ open Spanda board</a> · action + delegate layer</div>
+    </div>
+  </div>
+
+  <!-- TODAY scoreboard -->
+  <section class="block" id="today">
+    <div class="section-head"><div><div class="eyebrow"><span class="tick"></span>4 buckets to drive · 02:10 IST plan</div><h2>Today</h2></div><p class="sub">Closure + handoff day. No new commitments. Ship the runbook by EOD; distribute the handoff to 5 owners.</p></div>
+    <div class="scoreboard">
+      <div class="lane feature"><div class="lane-head"><span class="bucket-pill do">DO</span><h3>Drive closures <span class="count">4 buckets</span></h3></div>
+        <ul>
+          <li><span class="marker hot"></span><span class="li-label">Legal</span><span class="li-text">Drive 5 RSL sub-tasks to owner-of-record at the 14:00 deep dive.</span></li>
+          <li><span class="marker hot"></span><span class="li-label">Event</span><span class="li-text">Hand off the demo runbook by EOD. Cart + dispute flows + fallback.</span></li>
+          <li><span class="marker"></span><span class="li-label">GTM</span><span class="li-text">Named-next-step on the design-partner list and FDE hiring.</span></li>
+          <li><span class="marker"></span><span class="li-label">Merchant</span><span class="li-text">Template, SLA bulk, dispute opt-ins across 4 merchants.</span></li>
+        </ul><div class="lane-foot"><code>t14.27</code><code>t14.28</code><code>t14.29</code> due Fri · <code>mbu.21</code> due Wed EOD</div></div>
+      <div class="lane"><div class="lane-head"><span class="bucket-pill coord">CO-ORD</span><h3>Ship OOO handoff <span class="count">5 owners</span></h3></div>
+        <ul>
+          <li><span class="marker hot"></span><span class="li-label">Owner A</span><span class="li-text">Presents the demo Fri. Cart + dispute live.</span></li>
+          <li><span class="marker hot"></span><span class="li-label">Owner B</span><span class="li-text">Covers the E2E tracking thread.</span></li>
+          <li><span class="marker"></span><span class="li-label">Owner C</span><span class="li-text">Owns dispute + cart agents Thu+Fri.</span></li>
+          <li><span class="marker"></span><span class="li-label">Owner D</span><span class="li-text">Triages dependencies + escalations.</span></li>
+        </ul><div class="lane-foot">Post the handoff message + DM each owner by EOD.</div></div>
+      <div class="lane"><div class="lane-head"><span class="bucket-pill followup">FOLLOW-UP</span><h3>Return week <span class="count">Mon+Tue</span></h3></div>
+        <ul>
+          <li><span class="marker cool"></span><span class="li-label">30-day plan</span><span class="li-text">Proposal due Tue. Next month + arc.</span></li>
+          <li><span class="marker cool"></span><span class="li-label">Shortlist</span><span class="li-text">5-agent shortlist for launch readiness.</span></li>
+          <li><span class="marker cool"></span><span class="li-label">Pricing</span><span class="li-text">Hybrid framework + billing engine spec.</span></li>
+        </ul><div class="lane-foot"><code>mbu.23</code> <code>mbu.24</code> · <code>t14.22</code></div></div>
+    </div>
+  </section>
+
+  <!-- PYRAMID -->
+  <section class="block" id="pyramid">
+    <div class="section-head"><div><div class="eyebrow"><span class="tick"></span>TL;DR · what carries forward</div><h2>Today, tomorrow, week.</h2></div><p class="sub">The scoreboard above is the operating list. This is the read of the day.</p></div>
+    <div class="pyramid">
+      <div class="tier today"><div class="tier-eyebrow">Sat 30 May · pre-OOO handoff</div><h3 class="tier-h">Closure across 4 buckets and one handoff doc. Nothing else.</h3><ol><li>14:00 RSL deep dive. Drive 5 sub-tasks to owner-of-record with dates.</li><li>15:00 kick-off. Listen for framing; do not commit new work.</li><li>16:00 closure block. Runbook + handoff doc + eval scaffold.</li></ol><p class="tier-meta">Source: calendar · EOD task diff · W22 close note.</p></div>
+      <div class="tier tomorrow"><div class="tier-eyebrow">Mon+Tue · OOO</div><h3 class="tier-h">Coverage runs through 5 named owners.</h3><ol><li>Owner A presents the demo. Runbook handed off EOD.</li><li>Coverage split across tracking, dispute, analytics, escalations.</li><li>Phone notifications for escalations only.</li></ol><p class="tier-meta">Source: handoff doc · W22 close.</p></div>
+      <div class="tier week"><div class="tier-eyebrow">return week</div><h3 class="tier-h">30-day plan due. Eval pipeline must run without me.</h3><ol><li>Eval pipeline cleanup so it self-serves.</li><li>30-day plan draft → proposal.</li><li>Demo result + feedback into the agent shortlist.</li></ol><p class="tier-meta">Source: check-in commits · W22 forward-action.</p></div>
+    </div>
+  </section>
+
+  <!-- PROJECT 1 -->
+  <div class="project-banner" id="g1"><span class="num">01</span><span class="name">Agent Studio</span><span class="chip warn" style="margin-left:8px"><span class="dot"></span>Goal #2 at risk</span><span class="spacer"></span><span class="summary">G1 · primary focus</span></div>
+  <div class="ms-eyebrow">Active milestone · dev &amp; launch</div>
+  <div class="milestone">
+    <div class="title-row"><h3>Goal #2 · Design Partners + Platform for Scale</h3><span class="chip warn"><span class="dot"></span>at risk</span><span class="ms-meta">Target <strong>31 May 2026</strong> · Owner: me</span></div>
+    <p class="summary">No P0/P1 closure movement on the active milestone. The day needs explicit owner closure across dashboard, SLC, GTM, connector, and merchant reports.</p>
+    <table class="epic-table">
+      <thead><tr><th style="width:32px">#</th><th style="width:110px">Track</th><th>Epic</th><th style="width:110px">ETA</th><th style="width:110px">Status</th></tr></thead>
+      <tbody>
+        <tr><td>E1</td><td><span class="tag build-deps">Build · deps</span></td><td>Dashboard dev (design-partner UI)</td><td>passed</td><td><span class="chip warn"><span class="dot"></span>Behind</span></td></tr>
+        <tr><td>E2</td><td><span class="tag build-deps">Build · deps</span></td><td>Cross-team dependencies (8 teams)</td><td>today</td><td><span class="chip neutral"><span class="dot"></span>In progress</span></td></tr>
+        <tr><td>E3</td><td><span class="tag build-ours">Build · ours</span></td><td>Connector simplification · 5-10 connectors</td><td>this week</td><td><span class="chip neutral"><span class="dot"></span>In progress</span></td></tr>
+        <tr><td>E4</td><td><span class="tag slc">SLC</span></td><td>Security, legal, compliance · 4 tools</td><td>passed</td><td><span class="chip warn"><span class="dot"></span>Behind</span></td></tr>
+        <tr><td>E5</td><td><span class="tag gtm">GTM</span></td><td>Design-partner finalisation (8 → 3-4)</td><td>passed</td><td><span class="chip warn"><span class="dot"></span>Behind</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="ms-eyebrow">Past milestone · iteration &amp; improvement</div>
+  <div class="milestone"><div class="title-row"><h3>Goal #1 · First 5 Merchants Go-Live</h3><span class="chip good"><span class="dot"></span>exceeded · iterating</span><span class="ms-meta">Hit at <strong>11 live</strong> · 4 more in 2 days</span></div><p class="summary">Goal hit and overshot. Iteration is now per-agent quality and conversion, not first-install.</p></div>
+  <div class="ms-eyebrow">Future milestone · scoping started</div>
+  <div class="milestone"><div class="title-row"><h3>Goal #3 · Builder Day + 10k+ Readiness</h3><span class="chip outline"><span class="dot"></span>scoping</span><span class="ms-meta">clarity post-M2</span></div><p class="summary">Public API exposure is the gating risk; data strategy ties in directly.</p></div>
+
+  <!-- PROJECT 2 -->
+  <div class="project-banner" id="g2"><span class="num">02</span><span class="name">AI Transformation</span><span class="chip neutral" style="margin-left:8px"><span class="dot"></span>two-track</span><span class="spacer"></span><span class="summary">transform myself → transform org · <code style="color:var(--color-primary)">t14</code></span></div>
+  <div class="ms-eyebrow">Active milestone · dev &amp; launch</div>
+  <div class="milestone"><div class="title-row"><h3>v1 · Daily-review pipeline (Hermes)</h3><span class="chip neutral"><span class="dot"></span>Gate B</span><span class="ms-meta">Approval gate</span></div><p class="summary">Three crons replace three fragmented rituals. Markdown source, HTML view, ratify-in-Obsidian loop.</p></div>
+
+  <!-- PROJECT 3 -->
+  <div class="project-banner" id="g3"><span class="num">03</span><span class="name">Personal</span><span class="chip neutral" style="margin-left:8px"><span class="dot"></span>parallel</span><span class="spacer"></span><span class="summary">family + side projects · <code style="color:var(--color-primary)">w20</code></span></div>
+  <div class="milestone"><div class="title-row"><h3>School decision this week</h3><span class="chip warn"><span class="dot"></span>decision week</span><span class="ms-meta">Owner: me + partner</span></div><p class="summary">Final pick between options. Fee, activities, distance, calendar. Decision deadline this week.</p></div>
+  <div class="milestone"><div class="title-row"><h3>Spanda · the tool you're reading this in</h3><span class="chip neutral"><span class="dot"></span>side project</span><span class="ms-meta">Owner: me</span></div><p class="summary">Bounded side quest. This dashboard mirrors top-line status only.</p></div>
+
+  <!-- MOVED / DIDN'T -->
+  <section class="block" id="moved">
+    <div class="section-head"><div><div class="eyebrow"><span class="tick"></span>Last 7 days</div><h2>What moved. What didn't.</h2></div><p class="sub">Shipped artifacts on the left. Deadline slips on the right.</p></div>
+    <div class="moved-grid">
+      <div class="moved-card"><h3>What moved</h3><div class="head-meta">Shipped · closed · decided</div><ol>
+        <li><span class="chip good">shipped</span> <strong>Foolery → Spanda rebrand</strong> · live, certified through the pipeline.</li>
+        <li><span class="chip good">closed</span> <strong>Cart quality fix 70→95%</strong> · live today.</li>
+        <li><span class="chip neutral">added</span> <strong>4 work profiles</strong> (do/coordinate/followup/decide).</li>
+        <li><span class="chip good">shipped</span> <strong>Work-classification migration</strong> · 55 tasks labelled by bucket + project.</li>
+      </ol></div>
+      <div class="moved-card"><h3>What didn't</h3><div class="head-meta">Deadline slips · ordered by age</div><ol>
+        <li><span class="chip bad">slipped 6d</span> <strong>Connector + trigger architecture</strong> · open points remain.</li>
+        <li><span class="chip warn">overdue 5d</span> <strong>SLC status update</strong> · chasing 2 owners.</li>
+        <li><span class="chip warn">overdue 4d</span> <strong>Design-partner list lock</strong> · follow-up open.</li>
+      </ol></div>
+    </div>
+  </section>
+
+  <!-- TASK TRACKER — actionable, beads-backed -->
+  <section class="block" id="tasks">
+    <div class="section-head"><div><div class="eyebrow"><span class="tick"></span>Tasks · W22 operating buckets</div><h2>Task tracker.</h2></div><p class="sub">Add, update, and mark complete here. Every action writes to the beads system.</p></div>
+    <div class="tracker-toolbar">
+      <button class="filter-pill active">All</button>
+      <button class="filter-pill">Do</button>
+      <button class="filter-pill">Co-ordinate</button>
+      <button class="filter-pill">Follow-up</button>
+      <button class="filter-pill">Closed today (0)</button>
+      <button class="btn-add" type="button">+ Add task</button>
+    </div>
+    <div class="data-table">
+      <table class="gen">
+        <thead><tr><th style="width:90px">Bucket</th><th>Task + context</th><th style="width:70px">Priority</th><th style="width:210px">Actions</th></tr></thead>
+        <tbody>
+          <tr><td><span class="bucket-pill do">do</span></td><td><strong>Push subscription agents to LIVE today</strong> <code>21q</code></td><td>P0</td><td><div class="row-actions"><button class="act update">Update</button><button class="act complete">✓ Complete</button></div></td></tr>
+          <tr><td><span class="bucket-pill do">do</span></td><td><strong>Cart daily close-out across 4 merchants</strong> <code>1q0</code></td><td>P0</td><td><div class="row-actions"><button class="act update">Update</button><button class="act complete">✓ Complete</button></div></td></tr>
+          <tr><td><span class="bucket-pill coord">co-ord</span></td><td><strong>Compliance + credits unblock live-agent testing</strong> <code>4hy</code></td><td>P0</td><td><div class="row-actions"><button class="act update">Update</button><button class="act complete">✓ Complete</button></div></td></tr>
+          <tr><td><span class="bucket-pill followup">followup</span></td><td><strong>Security + legal compliance status update</strong> <code>sz3</code></td><td>P0</td><td><div class="row-actions"><button class="act update">Update</button><button class="act complete">✓ Complete</button></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="beads-note">+ Add → POST /api/beats · Update → PATCH /api/beats/:id · ✓ Complete → close the task in kno. One source of truth: tasks live in the beads system, this is the view.</p>
+  </section>
+
+  <!-- METRICS -->
+  <section class="block" id="metrics">
+    <div class="section-head"><div><div class="eyebrow"><span class="tick"></span>BigQuery rollup</div><h2>Metrics.</h2></div><p class="sub">Headline numbers + per-agent status. Source: eval + trace tables.</p></div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="head"><span class="label">Merchants live</span><span class="chip good"><span class="dot"></span>on track</span></div><div class="value">11<span class="unit"> → 15</span></div><div class="change">+4 by Friday</div></div>
+      <div class="kpi"><div class="head"><span class="label">Cart pass rate</span><span class="chip warn"><span class="dot"></span>tracking</span></div><div class="value">95<span class="unit">%</span></div><div class="change">fix shipped · 72h watch</div></div>
+      <div class="kpi"><div class="head"><span class="label">Eval pass rate</span><span class="chip good"><span class="dot"></span>surge</span></div><div class="value">82<span class="unit">%</span></div><div class="change">+41pp since 17 May</div></div>
+      <div class="kpi"><div class="head"><span class="label">Connect rate</span><span class="chip bad"><span class="dot"></span>gap</span></div><div class="value">25<span class="unit">%</span></div><div class="change">−30pp vs human team</div></div>
+    </div>
+    <div class="data-table" style="margin-top:16px"><table class="gen">
+      <thead><tr><th>Agent</th><th>Status</th><th>Live</th><th>Calls/day</th><th>Pass rate</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Cart recovery</strong></td><td><span class="chip warn"><span class="dot"></span>72h watch</span></td><td>7</td><td>120</td><td>95%</td></tr>
+        <tr><td><strong>Dispute responder</strong></td><td><span class="chip good"><span class="dot"></span>Live</span></td><td>9</td><td>·</td><td>82%</td></tr>
+        <tr><td><strong>Subscription</strong></td><td><span class="chip neutral"><span class="dot"></span>Read-only</span></td><td>2</td><td>·</td><td>·</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- INSIGHTS -->
+  <section class="block" id="insights">
+    <div class="section-head"><div><div class="eyebrow"><span class="tick"></span>Proposed patterns · ratify by editing the markdown</div><h2>Insights.</h2></div><p class="sub">Confirm compounds; reject tunes the model; unmarked drops after 24h.</p></div>
+    <div class="data-table"><table class="rate-table">
+      <thead><tr><th style="width:60px">ID</th><th style="width:70px">State</th><th>Insight</th><th style="width:110px">Confidence</th></tr></thead>
+      <tbody>
+        <tr><td>G1.i.1</td><td><span class="chip outline">pending</span></td><td>Cart conversion variance is driven by the merchant's top-of-funnel, not the agent.</td><td><span class="conf-bar"><span style="width:65%"></span></span> 0.65</td></tr>
+        <tr><td>G1.i.5</td><td><span class="chip outline">pending</span></td><td>Evals fail silently; pass/fail gates miss regime shifts. M2 needs a "metric was misleading" failure mode.</td><td><span class="conf-bar"><span style="width:75%"></span></span> 0.75</td></tr>
+        <tr><td>G2.i.1</td><td><span class="chip good">ratified</span></td><td>The daily ritual can self-ingest meeting notes on the VPS via direct MCP, bypassing desktop-only auth.</td><td><span class="conf-bar"><span style="width:85%"></span></span> 0.85</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- KB UPDATES -->
+  <section class="block" id="kb">
+    <div class="section-head"><div><div class="eyebrow"><span class="tick"></span>Proposed updates to the knowledge base</div><h2>Vault deltas.</h2></div><p class="sub">Facts surfaced today that should land in the vault so they outlive this review.</p></div>
+    <div class="data-table"><table class="rate-table">
+      <thead><tr><th style="width:32px">#</th><th>Proposed update</th><th style="width:120px">Type</th><th style="width:90px">Ratify</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Spanda vocabulary locked: Project → Initiative → Task (+ Batch).</td><td><span class="chip neutral">process</span></td><td><span class="chip outline">pending</span></td></tr>
+        <tr><td>2</td><td>Eval breakage lens: two failure modes (agent changed vs metric misleading). Drift probes non-negotiable.</td><td><span class="chip neutral">learned</span></td><td><span class="chip good">ratified</span></td></tr>
+        <tr><td>3</td><td>Connect-rate gap: real lever is verified-number provisioning, not staffing.</td><td><span class="chip warn">insight</span></td><td><span class="chip outline">pending</span></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- APPENDIX -->
+  <section class="block" id="appendix">
+    <div class="section-head"><div><div class="eyebrow"><span class="tick"></span>Source-level breakdown · raw refs</div><h2>Appendix.</h2></div><p class="sub">One click each.</p></div>
+    <details class="appendix-item"><summary>What moved by source<span class="meta">Beads · Commits · Meetings · Slack · BQ</span></summary><div class="content">Per-source rollup of the day's signals. In the live daily this expands to the raw inbox pulls (slack.md, beads.md, calendar.md, granola.md, github.md, bigquery.md, gmail.md).</div></details>
+    <details class="appendix-item"><summary>Today's calendar<span class="meta">8 events · 6 G1-tagged</span></summary><div class="content">Time-blocked schedule with G1 tags. Closure block at 16:00.</div></details>
+    <details class="appendix-item"><summary>Owed responses<span class="meta">9 open · 2 P0</span></summary><div class="content">People awaiting a reply, sorted by age. Source: Slack / Email / Meeting.</div></details>
+    <details class="appendix-item"><summary>Data gaps · freshness<span class="meta">3 unresolved</span></summary><div class="content">Sources that were stale or unreachable at synth time, with last-pull timestamps.</div></details>
+    <details class="appendix-item"><summary>References<span class="meta">file paths · raw sources</span></summary><div class="content">Every claim on the page traces to a source: vault note path, raw inbox dir, commit SHA, BQ query.</div></details>
+  </section>
+
+  <div class="foot">
+    <div><code>today · prototype · full clarity daily in spanda tokens · task tracker is actionable (beads-backed)</code></div>
+    <div class="note">The /today addition over the read-only daily: the task tracker's Add / Update / Complete actions, and a per-line "→ make it work" promote (roadmap Track B).</div>
+  </div>
+  <div class="privacy">prototype uses sanitized placeholder content — no real merchant or colleague names — because this repo is pushed to GitHub. The live daily (behind Cloudflare Access) carries the real data.</div>
+
+</div>
+</body>
+</html>

@@ -3,886 +3,327 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>spanda execution — roadmap review</title>
-<meta name="description" content="Interactive review surface for the spanda fork roadmap. Decide each pain point, lock the phasing, copy the finalized markdown back into ROADMAP.md."/>
+<title>spanda — roadmap</title>
+<meta name="description" content="Spanda roadmap: prioritised user stories across three altitudes — Projects, Today, Board — with a dependency-aware build order."/>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='34' fill='%230e0f0c'/%3E%3Crect x='29' y='32' width='6' height='14' rx='3' fill='%239fe870'/%3E%3Crect x='45' y='32' width='6' height='14' rx='3' fill='%239fe870'/%3E%3C/svg%3E"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
-/* =====================================================================
-   spanda design tokens — sourced from src/design-system/colors_and_type.css
-   ===================================================================== */
-:root {
-  /* Brand & accent — restrained: < 10% of any surface */
-  --color-primary:           #9fe870;
-  --color-primary-active:    #cdffad;
-  --color-primary-neutral:   #c5edab;
-  --color-primary-pale:      #e2f6d5;
-  --color-on-primary:        #0e0f0c;
-
-  /* Surface — sage canvas + white cards; contrast IS the elevation */
-  --color-canvas:            #ffffff;
-  --color-canvas-soft:       #e8ebe6;
-  --color-canvas-sage-deep:  #d8dcd3;
-  --color-hover-sage:        #f5f7f3;
-
-  /* Ink — warm-tinted, never pure black */
-  --color-ink:               #0e0f0c;
-  --color-ink-deep:          #163300;
-  --color-body:              #454745;
-  --color-mute:              #868685;
-  --color-on-ink:            #e8ebe6;
-
-  /* Semantic — in-product status only; NEVER the brand lime */
-  --color-positive:          #2ead4b;
-  --color-positive-deep:     #054d28;
-  --color-positive-pale:     #e2f6d5;
-  --color-warning:           #ffd11a;
-  --color-warning-deep:      #b86700;
-  --color-warning-content:   #4a3b1c;
-  --color-warning-pale:      #fff4cc;
-  --color-negative:          #d03238;
-  --color-negative-deep:     #a72027;
-  --color-negative-bg:       #320707;
-  --color-negative-pale:     #fce8e9;
-
-  --color-border:            #0e0f0c;
-  --color-border-soft:       rgba(14, 15, 12, 0.10);
-  --color-border-faint:      rgba(14, 15, 12, 0.06);
-
-  /* Typography */
-  --font-display: "Manrope", "Wise Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-sans:    "Inter", "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --font-mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-
-  /* Spacing — 4px grid */
-  --space-xxs: 2px; --space-xs: 4px; --space-sm: 8px; --space-md: 12px;
-  --space-lg: 16px; --space-xl: 24px; --space-2xl: 32px; --space-3xl: 48px;
-  --space-4xl: 64px; --space-5xl: 96px;
-
-  /* Radii — 24px is the friendliness cue */
-  --radius-sm: 8px;  --radius-md: 12px; --radius-lg: 16px;
-  --radius-xl: 24px; --radius-pill: 9999px;
-
-  /* Elevation — surface contrast is the primary cue; shadows for floated only */
-  --shadow-soft: 0 1px 0 0 rgba(14,15,12,0.04);
-  --shadow-md:   0 4px 12px -2px rgba(14,15,12,0.08), 0 2px 4px -1px rgba(14,15,12,0.06);
-  --shadow-lg:   0 12px 32px -8px rgba(14,15,12,0.14), 0 4px 12px -4px rgba(14,15,12,0.08);
-
-  /* Motion */
-  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
-  --dur-fast: 140ms; --dur-normal: 220ms; --dur-slow: 360ms;
+:root{
+  --color-primary:#9fe870; --color-primary-pale:#e2f6d5; --color-on-primary:#0e0f0c;
+  --color-canvas:#ffffff; --color-canvas-soft:#e8ebe6; --color-hover-sage:#f5f7f3;
+  --color-ink:#0e0f0c; --color-ink-deep:#163300; --color-body:#454745; --color-mute:#868685;
+  --color-positive:#2ead4b; --color-positive-deep:#054d28; --color-positive-pale:#e2f6d5;
+  --color-warning-deep:#b86700; --color-warning-content:#4a3b1c; --color-warning-pale:#fff4cc;
+  --color-lake:#1f6f78; --color-lake-pale:#dceef0;
+  --color-border-soft:rgba(14,15,12,0.10); --color-border-faint:rgba(14,15,12,0.06);
+  --font-display:"Manrope",ui-sans-serif,system-ui,sans-serif;
+  --font-sans:"Inter","Manrope",ui-sans-serif,system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --r-md:12px; --r-lg:16px; --r-xl:24px; --r-pill:9999px;
 }
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--color-canvas-soft);color:var(--color-ink)}
+body{font:400 16px/1.6 var(--font-sans);-webkit-font-smoothing:antialiased}
+::selection{background:var(--color-primary);color:var(--color-on-primary)}
+.wrap{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+a{color:var(--color-lake)}
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid var(--color-border-soft)}
+.lockup{display:flex;align-items:center;gap:10px}
+.lockup svg{height:42px;width:auto}
+.lockup .name{font-family:var(--font-display);font-weight:900;font-size:32px;letter-spacing:-0.02em}
+.sub{color:var(--color-body);font-size:14px;margin-top:6px}
+.eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-mute)}
+h1{font-family:var(--font-display);font-weight:800;font-size:32px;letter-spacing:-0.02em;margin:0 0 8px}
+.lede{color:var(--color-body);font-size:16px;max-width:72ch;margin:0 0 8px}
+.toplinks a{margin-left:14px;font-size:13px}
 
-/* No dark mode override: light is the spec (operator in a 9-to-5 office,
-   27" monitor, focused for hours). Dark surfaces only inside the ink-fill
-   sections below. */
+/* vocab/nav reference tables */
+.vocab{background:var(--color-canvas);border-radius:var(--r-xl);padding:18px 22px;margin:14px 0 8px;box-shadow:0 1px 0 0 rgba(14,15,12,0.04)}
+.vocab h3{font-family:var(--font-display);font-weight:700;font-size:15px;margin:0 0 12px}
+.vtable{width:100%;border-collapse:collapse;font-size:14px}
+.vtable th{text-align:left;font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--color-mute);font-weight:600;padding:0 12px 8px 0;border-bottom:1px solid var(--color-border-faint)}
+.vtable td{padding:8px 12px 8px 0;border-bottom:1px solid var(--color-border-faint);vertical-align:top;color:var(--color-body)}
+.vtable td b{color:var(--color-ink);font-weight:600}
+.vtable .old{font-family:var(--font-mono);font-size:12px;color:var(--color-mute)}
 
-* { box-sizing: border-box; }
-html, body { margin: 0; background: var(--color-canvas-soft); color: var(--color-ink); }
-body { font: 400 16px/24px var(--font-sans); font-feature-settings: "calt", "ss01"; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
-::selection { background: var(--color-primary); color: var(--color-on-primary); }
+/* altitude stack */
+.alts{margin:28px 0 8px;border-radius:var(--r-xl);overflow:hidden;border:1px solid var(--color-border-soft)}
+.alt{display:flex;gap:16px;align-items:flex-start;padding:16px 20px;background:var(--color-canvas)}
+.alt + .alt{border-top:1px solid var(--color-border-faint)}
+.alt .lvl{font-family:var(--font-mono);font-size:11px;color:var(--color-mute);white-space:nowrap;padding-top:3px;min-width:64px}
+.alt .body b{font-family:var(--font-display);font-weight:700}
+.alt .body span{color:var(--color-body);font-size:14px}
+.alt.a3{background:var(--color-lake-pale)}
+.alt.a1{background:var(--color-hover-sage)}
 
-.wrap { max-width: 1200px; margin: 0 auto; padding: var(--space-3xl) var(--space-xl) var(--space-5xl); }
+/* build order */
+.order{background:var(--color-ink);color:var(--color-on-ink);border-radius:var(--r-xl);padding:22px 26px;margin:26px 0}
+.order h2{font-family:var(--font-display);font-weight:800;font-size:18px;margin:0 0 4px;color:#fff}
+.order p{color:#aeb3a8;font-size:13px;margin:0 0 14px}
+.order ol{margin:0;padding:0;list-style:none;counter-reset:step}
+.order li{display:flex;align-items:baseline;gap:12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.08);font-size:14px;color:#e8ebe6}
+.order li:last-child{border-bottom:0}
+.order .ph{font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;min-width:48px}
+.order .ph.now{color:var(--color-primary)} .order .ph.next{color:#ffd11a} .order .ph.later{color:#868685}
+.order .sid{font-family:var(--font-mono);font-size:12px;color:#fff;min-width:28px}
+.order .why{color:#aeb3a8;font-size:12px;margin-top:8px;font-style:italic}
 
-/* =====================================================================
-   Header — spanda lockup + meta band
-   ===================================================================== */
-header.top {
-  display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-xl);
-  margin-bottom: var(--space-2xl); padding-bottom: var(--space-xl);
-  border-bottom: 1px solid var(--color-border-soft);
-}
-header.top .brand { display: flex; flex-direction: column; gap: var(--space-md); }
-header.top .lockup { color: var(--color-ink); height: 56px; width: auto; display: block; }
-header.top .lockup svg { height: 100%; width: auto; }
-header.top .sub { color: var(--color-body); font-size: 14px; line-height: 20px; }
-header.top .sub code { font: 12px var(--font-mono); padding: 1px 6px; background: var(--color-canvas); border: 1px solid var(--color-border-soft); border-radius: var(--radius-sm); }
-header.top .meta { text-align: right; font-size: 13px; color: var(--color-mute); }
-header.top .meta strong { color: var(--color-body); font-weight: 600; }
+h2.epic{font-family:var(--font-display);font-weight:800;font-size:22px;margin:44px 0 2px;letter-spacing:-0.01em}
+.epic-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-lake)}
+.epic-note{color:var(--color-body);font-size:14.5px;margin:0 0 14px;max-width:74ch}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+.badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;padding:3px 10px;border-radius:var(--r-pill)}
+.b-now{background:var(--color-primary);color:var(--color-on-primary)}
+.b-next{background:var(--color-warning-pale);color:var(--color-warning-content)}
+.b-later{background:#ececea;color:var(--color-mute)}
+.b-done{background:var(--color-positive-pale);color:var(--color-positive-deep)}
+.b-partial{background:var(--color-warning-pale);color:var(--color-warning-content)}
 
-/* =====================================================================
-   Eyebrow — lime tick + uppercase caption (canonical)
-   ===================================================================== */
-.eyebrow {
-  display: inline-flex; align-items: center; gap: var(--space-sm);
-  font: 600 12px/16px var(--font-sans);
-  text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--color-mute); margin-bottom: var(--space-lg);
-}
-.eyebrow::before {
-  content: ""; width: 8px; height: 8px; border-radius: 50%;
-  background: var(--color-primary); flex-shrink: 0;
-}
+.card{background:var(--color-canvas);border-radius:var(--r-xl);padding:22px 24px;margin:14px 0;box-shadow:0 1px 0 0 rgba(14,15,12,0.04)}
+.card .head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.card h3{font-family:var(--font-display);font-weight:700;font-size:18px;margin:0 0 2px;letter-spacing:-0.01em}
+.card .ref{font-family:var(--font-mono);font-size:11px;color:var(--color-mute)}
+.badges{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.story{margin:12px 0 4px;padding:12px 14px;background:var(--color-hover-sage);border-radius:var(--r-md);font-size:14.5px}
+.story b{font-weight:600}
+.ach{font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-mute);margin:12px 0 2px}
+.ac{margin:2px 0;padding:0;list-style:none}
+.ac li{position:relative;padding:3px 0 3px 26px;font-size:14px;color:var(--color-body)}
+.ac li::before{content:"\25cb";position:absolute;left:0;top:2px;font-family:var(--font-mono);font-size:13px;color:var(--color-mute)}
+.ac li.y::before{content:"\2713";color:var(--color-positive)}
+.reuse{margin-top:10px;font-size:12.5px;color:var(--color-lake);font-family:var(--font-mono)}
+.dep{margin-top:6px;font-size:12px;color:var(--color-warning-deep);font-family:var(--font-mono)}
 
-/* =====================================================================
-   Section heads — Manrope 900 display
-   ===================================================================== */
-h2.section-head {
-  font: 900 40px/1 var(--font-display);
-  letter-spacing: -1.5px; color: var(--color-ink); margin: var(--space-3xl) 0 var(--space-lg);
-}
-h2.section-head:first-of-type { margin-top: 0; }
-h3.subsection-head {
-  font: 600 24px/31.2px var(--font-sans); letter-spacing: -0.48px;
-  color: var(--color-ink); margin: var(--space-xl) 0 var(--space-md);
-}
-
-/* =====================================================================
-   KPI bar — 4-up, Manrope 900 numbers (per DESIGN.md backlog: spanda's
-   answer to the SaaS hero-metric template)
-   ===================================================================== */
-.kpi-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-md); margin-bottom: var(--space-2xl); }
-.kpi {
-  background: var(--color-canvas); border-radius: var(--radius-xl);
-  padding: var(--space-xl);
-}
-.kpi .label { font: 600 12px/16px var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-mute); }
-.kpi .value {
-  font: 900 44px/1 var(--font-display); letter-spacing: -1.5px;
-  color: var(--color-ink); margin-top: var(--space-sm); font-variant-numeric: tabular-nums;
-}
-.kpi .value .unit { font: 600 16px/1 var(--font-sans); letter-spacing: 0; color: var(--color-mute); margin-left: 4px; }
-.kpi .sub { font-size: 13px; color: var(--color-body); margin-top: var(--space-sm); line-height: 18px; }
-.kpi .sub strong { color: var(--color-positive); font-weight: 600; }
-
-/* =====================================================================
-   Baseline panel — 5-up gate strip
-   ===================================================================== */
-.baseline {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-sm);
-  background: var(--color-canvas); border-radius: var(--radius-xl);
-  padding: var(--space-lg); margin-bottom: var(--space-xl);
-}
-.baseline .b-cell {
-  text-align: center; padding: var(--space-md) var(--space-sm);
-  border-radius: var(--radius-lg); background: var(--color-canvas-soft);
-}
-.baseline .b-cell.green { background: var(--color-primary-pale); }
-.baseline .b-cell.warn { background: var(--color-warning-pale); }
-.baseline .b-cell .b-name { font: 600 11px/16px var(--font-mono); color: var(--color-mute); text-transform: uppercase; letter-spacing: 0.04em; }
-.baseline .b-cell .b-result { font: 600 14px/18px var(--font-sans); margin-top: 4px; color: var(--color-ink); }
-.baseline .b-cell.green .b-result { color: var(--color-positive-deep); }
-.baseline .b-cell.warn .b-result { color: var(--color-warning-content); }
-
-/* =====================================================================
-   Constraints card — white card, sage canvas
-   ===================================================================== */
-.constraints { background: var(--color-canvas); border-radius: var(--radius-xl); padding: var(--space-xl); }
-.constraints ul { margin: 0; padding-left: 20px; color: var(--color-body); font-size: 14px; line-height: 24px; }
-.constraints ul li { margin-bottom: 6px; }
-.constraints ul code { font: 12px var(--font-mono); background: var(--color-canvas-soft); padding: 1px 6px; border-radius: var(--radius-sm); color: var(--color-ink); }
-.constraints ul strong { color: var(--color-ink); font-weight: 600; }
-
-/* =====================================================================
-   Pain cards — white on sage, no border default, no shadow
-   ===================================================================== */
-.pain-grid { display: grid; gap: var(--space-md); }
-.pain {
-  background: var(--color-canvas); border-radius: var(--radius-xl);
-  padding: var(--space-xl);
-  transition: background var(--dur-fast) var(--ease-out);
-}
-.pain.agree { background: var(--color-primary-pale); }
-.pain.discuss { background: var(--color-warning-pale); }
-.pain.defer { background: var(--color-canvas-sage-deep); }
-.pain.defer .body, .pain.defer .options { opacity: 0.6; }
-
-.pain-head { display: flex; align-items: baseline; gap: var(--space-md); margin-bottom: var(--space-md); flex-wrap: wrap; }
-.pain-head .id-pill {
-  font: 600 12px/16px var(--font-mono);
-  background: var(--color-canvas-soft); color: var(--color-body);
-  padding: 3px 10px; border-radius: var(--radius-pill);
-  flex-shrink: 0; letter-spacing: 0;
-}
-.pain-head .title { flex: 1; font: 600 18px/26px var(--font-sans); letter-spacing: -0.2px; color: var(--color-ink); }
-.pain-head .effort { font: 600 12px/16px var(--font-sans); color: var(--color-mute); white-space: nowrap; }
-.pain-head .effort .e-tag {
-  display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm);
-  font: 600 11px/14px var(--font-mono); margin-right: 6px;
-}
-.pain-head .effort .e-tag.S { background: var(--color-primary-pale); color: var(--color-positive-deep); }
-.pain-head .effort .e-tag.M { background: var(--color-warning-pale); color: var(--color-warning-content); }
-.pain-head .effort .e-tag.L { background: var(--color-negative-pale); color: var(--color-negative-deep); }
-.pain-head .effort .e-tag.muted { background: var(--color-canvas-soft); color: var(--color-mute); }
-.pain .body { color: var(--color-body); font-size: 14px; line-height: 22px; margin: 0 0 var(--space-md); }
-
-.pain .options { display: grid; gap: var(--space-sm); margin: var(--space-sm) 0 var(--space-md); }
-.pain .option {
-  display: flex; gap: var(--space-sm); padding: var(--space-sm) var(--space-md);
-  background: var(--color-canvas-soft); border-radius: var(--radius-md);
-  font-size: 14px; line-height: 22px; color: var(--color-body);
-}
-.pain .option .o-key { font: 600 12px/22px var(--font-mono); color: var(--color-mute); flex-shrink: 0; }
-.pain .option.rec { background: var(--color-primary-pale); color: var(--color-ink); }
-.pain .option.rec .o-key { color: var(--color-positive-deep); }
-.pain .option code { font: 12px var(--font-mono); background: rgba(14,15,12,0.06); padding: 1px 5px; border-radius: var(--radius-sm); }
-
-.pain .recommendation {
-  font-size: 14px; line-height: 22px; color: var(--color-ink);
-  padding: var(--space-md) var(--space-lg);
-  background: var(--color-ink); color: var(--color-on-ink);
-  border-radius: var(--radius-lg); margin-bottom: var(--space-md);
-}
-.pain .recommendation strong { color: var(--color-primary); font-weight: 700; }
-
-/* Inline code in pain bodies */
-.pain code { font: 12.5px var(--font-mono); background: var(--color-canvas-soft); padding: 1px 5px; border-radius: var(--radius-sm); color: var(--color-ink); }
-
-/* =====================================================================
-   Decision controls — canonical button family applied
-   ===================================================================== */
-.decision {
-  display: flex; align-items: center; gap: var(--space-sm);
-  padding-top: var(--space-md); margin-top: var(--space-sm);
-  border-top: 1px solid var(--color-border-soft);
-  flex-wrap: wrap;
-}
-.decision .d-label {
-  font: 600 11px/16px var(--font-sans);
-  text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--color-mute); margin-right: var(--space-xs);
-}
-
-/* Decision buttons follow spanda's three-button taxonomy:
-   - "agree" defaults to secondary sage; flips to primary lime when active.
-   - "discuss" defaults to tertiary white+hairline; flips to warning.
-   - "defer" defaults to tertiary; flips to neutral sage-deep when active. */
-.dec-btn {
-  font: 600 14px/20px var(--font-sans);
-  border: 1px solid transparent; background: var(--color-canvas-soft); color: var(--color-ink);
-  padding: 8px 18px; border-radius: var(--radius-xl);
-  cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
-}
-.dec-btn:hover { background: var(--color-canvas-sage-deep); }
-.dec-btn.active[data-d="agree"]   { background: var(--color-primary); color: var(--color-on-primary); border-color: var(--color-primary); }
-.dec-btn.active[data-d="discuss"] { background: var(--color-warning); color: var(--color-warning-content); border-color: var(--color-warning); }
-.dec-btn.active[data-d="defer"]   { background: var(--color-canvas-sage-deep); color: var(--color-body); border-color: var(--color-canvas-sage-deep); }
-
-.decision .notes-input {
-  flex: 1; min-width: 200px; margin-left: var(--space-sm);
-  font: 400 14px/20px var(--font-sans);
-  padding: 9px 14px;
-  border: 1px solid var(--color-border); background: var(--color-canvas);
-  color: var(--color-ink); border-radius: var(--radius-md);
-}
-.decision .notes-input::placeholder { color: var(--color-mute); }
-.decision .notes-input:focus { outline: none; box-shadow: 0 0 0 3px var(--color-primary-pale); }
-
-/* =====================================================================
-   Phase tables — white card, transparent header row, hairline below
-   header (per DESIGN.md data table spec)
-   ===================================================================== */
-.phase-head {
-  display: flex; align-items: baseline; gap: var(--space-md);
-  margin: var(--space-3xl) 0 var(--space-md); flex-wrap: wrap;
-}
-.phase-head .ph-label {
-  font: 600 11px/16px var(--font-mono);
-  padding: 4px 10px; background: var(--color-primary); color: var(--color-on-primary);
-  border-radius: var(--radius-pill); text-transform: uppercase; letter-spacing: 0.06em;
-}
-.phase-head h3 { font: 900 32px/1 var(--font-display); letter-spacing: -1px; color: var(--color-ink); margin: 0; flex: 1; }
-.phase-head .ph-meta { font: 400 13px/18px var(--font-sans); color: var(--color-mute); }
-
-table.phase {
-  width: 100%; border-collapse: collapse;
-  background: var(--color-canvas); border-radius: var(--radius-xl);
-  overflow: hidden;
-}
-table.phase th {
-  /* Transparent header per DESIGN.md (never sage-filled = avoids frozen-pane look) */
-  background: transparent;
-  font: 600 11px/16px var(--font-sans);
-  text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--color-mute); text-align: left;
-  padding: var(--space-md) var(--space-lg);
-  border-bottom: 1px solid var(--color-border-soft);
-}
-table.phase td {
-  font: 400 14px/20px var(--font-sans); color: var(--color-ink);
-  padding: var(--space-lg);
-  border-bottom: 1px solid var(--color-border-faint);
-  vertical-align: top;
-}
-table.phase td:first-child { font: 600 12px/16px var(--font-mono); color: var(--color-mute); white-space: nowrap; width: 60px; }
-table.phase td.test, table.phase td.impl { color: var(--color-body); font-size: 13px; line-height: 20px; }
-table.phase td.test code, table.phase td.impl code {
-  font: 12px var(--font-mono); background: var(--color-canvas-soft);
-  padding: 1px 5px; border-radius: var(--radius-sm); color: var(--color-ink);
-}
-table.phase td.eff { white-space: nowrap; font: 400 12px/16px var(--font-mono); color: var(--color-mute); }
-table.phase tr:last-child td { border-bottom: none; }
-table.phase tr:hover td { background: var(--color-hover-sage); }
-
-/* =====================================================================
-   Ship gate card — dark surface, lime code (polarity flip)
-   ===================================================================== */
-.gate {
-  background: var(--color-ink); color: var(--color-on-ink);
-  border-radius: var(--radius-xl); padding: var(--space-xl);
-  margin-top: var(--space-md);
-}
-.gate h4 {
-  font: 600 11px/16px var(--font-sans);
-  text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--color-mute); margin: 0 0 var(--space-md);
-}
-.gate pre {
-  font: 13px/20px var(--font-mono);
-  background: rgba(255,255,255,0.04);
-  padding: var(--space-md) var(--space-lg);
-  border-radius: var(--radius-lg);
-  margin: 0; overflow-x: auto;
-  color: var(--color-primary);
-  white-space: pre-wrap; word-break: break-all;
-}
-
-/* =====================================================================
-   Sticky export bar — floated elevation (shadow-lg)
-   ===================================================================== */
-.export-bar {
-  position: sticky; bottom: var(--space-lg); margin-top: var(--space-3xl);
-  background: var(--color-canvas); border-radius: var(--radius-xl);
-  padding: var(--space-md) var(--space-xl);
-  box-shadow: var(--shadow-lg);
-  display: flex; align-items: center; gap: var(--space-md);
-  justify-content: space-between;
-  backdrop-filter: blur(6px);
-}
-.export-bar .counts { font: 400 14px/20px var(--font-sans); color: var(--color-body); }
-.export-bar .counts strong { color: var(--color-ink); font-weight: 700; }
-.export-bar .counts .chip {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 2px 10px; border-radius: var(--radius-pill);
-  font: 600 12px/16px var(--font-sans);
-  margin-right: var(--space-sm);
-}
-.export-bar .counts .chip::before { content:""; width: 7px; height: 7px; border-radius:50%; }
-.export-bar .counts .chip.good { background: var(--color-primary-pale); color: var(--color-positive-deep); }
-.export-bar .counts .chip.good::before { background: var(--color-positive); }
-.export-bar .counts .chip.warn { background: var(--color-warning-pale); color: var(--color-warning-content); }
-.export-bar .counts .chip.warn::before { background: var(--color-warning); }
-.export-bar .counts .chip.neutral { background: var(--color-canvas-sage-deep); color: var(--color-ink); }
-.export-bar .counts .chip.neutral::before { background: var(--color-mute); }
-
-/* Canonical button family */
-.btn {
-  font: 600 16px/24px var(--font-sans);
-  padding: 12px 24px; border-radius: var(--radius-xl);
-  border: 1px solid transparent; cursor: pointer;
-  display: inline-flex; align-items: center; gap: var(--space-sm);
-  transition: background var(--dur-fast) var(--ease-out);
-}
-.btn.tertiary { background: var(--color-canvas); color: var(--color-ink); border-color: var(--color-border); }
-.btn.tertiary:hover { background: var(--color-canvas-soft); }
-.btn.primary { background: var(--color-primary); color: var(--color-on-primary); border-color: var(--color-primary); }
-.btn.primary:hover { background: var(--color-primary-active); border-color: var(--color-primary-active); }
-
-/* =====================================================================
-   Toast — floated
-   ===================================================================== */
-.toast {
-  position: fixed; top: var(--space-lg); right: var(--space-lg);
-  padding: 10px var(--space-lg); border-radius: var(--radius-xl);
-  background: var(--color-ink); color: var(--color-primary);
-  font: 600 14px/20px var(--font-sans);
-  box-shadow: var(--shadow-lg);
-  opacity: 0; transform: translateY(-6px);
-  transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
-  pointer-events: none; z-index: 40;
-}
-.toast.show { opacity: 1; transform: translateY(0); }
-
-/* =====================================================================
-   Reduced motion
-   ===================================================================== */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition: opacity var(--dur-fast) var(--ease-out) !important; animation: none !important; }
-}
-
-/* =====================================================================
-   Mobile
-   ===================================================================== */
-@media (max-width: 720px) {
-  .wrap { padding: var(--space-xl) var(--space-md) var(--space-5xl); }
-  .kpi-bar { grid-template-columns: repeat(2, 1fr); }
-  .baseline { grid-template-columns: repeat(2, 1fr); }
-  header.top { flex-direction: column; align-items: flex-start; }
-  header.top .meta { text-align: left; }
-  header.top .lockup { height: 44px; }
-  h2.section-head { font-size: 32px; }
-  .phase-head h3 { font-size: 24px; }
-  table.phase td:first-child { width: auto; }
-  .decision .notes-input { width: 100%; margin-left: 0; }
-}
+.ink{background:var(--color-ink);color:var(--color-on-ink);border-radius:var(--r-xl);padding:24px 26px;margin:30px 0}
+.ink h2{font-family:var(--font-display);font-weight:800;font-size:20px;margin:0 0 6px;color:#fff}
+.ink p{color:#cfd3cb;font-size:14.5px;margin:8px 0;max-width:74ch}
+.ink .q{font-family:var(--font-display);font-style:italic;font-size:17px;color:#fff;border-left:3px solid var(--color-primary);padding-left:14px;margin:14px 0}
+.foot{margin-top:48px;padding-top:18px;border-top:1px solid var(--color-border-soft);font-size:12px;color:var(--color-mute)}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<!-- Header with spanda lockup -->
 <header class="top">
-  <div class="brand">
-    <div class="lockup" aria-label="spanda">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 150" role="img" aria-label="spanda">
-        <g transform="translate(8, 38)">
-          <defs>
-            <radialGradient id="lockupPearl" cx="35%" cy="32%" r="65%">
-              <stop offset="0%" stop-color="#2a2c28"></stop>
-              <stop offset="55%" stop-color="#15170f"></stop>
-              <stop offset="100%" stop-color="#0a0b07"></stop>
-            </radialGradient>
-          </defs>
-          <circle cx="38" cy="38" r="34" fill="url(#lockupPearl)"></circle>
-          <ellipse cx="27" cy="22" rx="9" ry="5" fill="#fff" opacity="0.08"></ellipse>
-          <rect x="27" y="31" width="6" height="14" rx="3" fill="#9fe870"></rect>
-          <rect x="43" y="31" width="6" height="14" rx="3" fill="#9fe870"></rect>
-        </g>
-        <text x="106" y="118" font-family="Manrope, 'Wise Sans', system-ui, sans-serif" font-weight="900" font-size="138" letter-spacing="-6" style="fill: currentColor;">spanda</text>
-      </svg>
+  <div>
+    <div class="lockup">
+      <svg viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="34" fill="#0e0f0c"/><rect x="29" y="32" width="6" height="14" rx="3" fill="#9fe870"/><rect x="45" y="32" width="6" height="14" rx="3" fill="#9fe870"/></svg>
+      <span class="name">spanda</span>
     </div>
-    <div class="sub">execution review · fork <code>aravinthkumarpk/spanda</code> · branch <code>spanda/work-types</code> · roadmap <code>~/code/spanda/ROADMAP.md</code></div>
+    <div class="sub">roadmap &middot; prioritised user stories &middot; three altitudes &middot; build order</div>
   </div>
-  <div class="meta">
-    <div><strong>generated</strong> 24 may 2026</div>
-    <div>review pass · pre-phase-1 start</div>
+  <div style="text-align:right">
+    <div class="eyebrow">refreshed 30 may 2026</div>
+    <div class="sub toplinks"><a href="/today-prototype.html">/today prototype &rarr;</a> <a href="/phase2.html">shipped work &rarr;</a></div>
   </div>
 </header>
 
-<!-- KPI bar -->
-<div class="kpi-bar">
-  <div class="kpi"><div class="label">pain points</div><div class="value">11</div><div class="sub">recommended path locked for each</div></div>
-  <div class="kpi"><div class="label">phase 1 items</div><div class="value">6</div><div class="sub"><strong>load-bearing</strong> TDD-driven</div></div>
-  <div class="kpi"><div class="label">net new LOC</div><div class="value">~620<span class="unit">incl. tests</span></div><div class="sub">across all 3 phases</div></div>
-  <div class="kpi"><div class="label">rollback</div><div class="value">60<span class="unit">sec</span></div><div class="sub">via upstream installer</div></div>
+<h1>Where spanda is headed</h1>
+<p class="lede">Spanda has the execution primitives. The next moves: simplify the board to a basic kanban, turn /today into a launchpad that creates real work, and grow a strategic view of the projects above it. One source of truth throughout &mdash; tasks in the beads system; every new layer is a view or rollup over it, never a second database.</p>
+
+<div class="vocab">
+  <h3>Plain vocabulary</h3>
+  <table class="vtable">
+    <tr><th>Plain word</th><th>Was</th><th>What it is</th></tr>
+    <tr><td><b>Project</b></td><td class="old">&mdash;</td><td>A thing you manage over time. The bird's-eye unit.</td></tr>
+    <tr><td><b>Initiative</b></td><td class="old">Scene</td><td>One feature's worth of work &mdash; a group of tasks.</td></tr>
+    <tr><td><b>Task</b></td><td class="old">Beat</td><td>A single unit of work.</td></tr>
+    <tr><td><b>Batch</b></td><td class="old">Wave</td><td>The tasks in an initiative that can run at the same time.</td></tr>
+    <tr><td><b>Run</b></td><td class="old">Take</td><td>Hand a task to an agent to execute. <em>(shipped)</em></td></tr>
+  </table>
 </div>
 
-<!-- Baseline -->
-<h2 class="section-head"><span class="eyebrow">pre-flight</span>baseline (upstream HEAD <code style="font:14px var(--font-mono);background:var(--color-canvas);padding:2px 8px;border-radius:8px;letter-spacing:0">4439e6ef</code> + ROADMAP commit)</h2>
-<div class="baseline">
-  <div class="b-cell green"><div class="b-name">bun install</div><div class="b-result">✓ 820 pkgs</div></div>
-  <div class="b-cell green"><div class="b-name">bun lint</div><div class="b-result">✓ 0 err</div></div>
-  <div class="b-cell green"><div class="b-name">tsc --noEmit</div><div class="b-result">✓ 0 err</div></div>
-  <div class="b-cell green"><div class="b-name">bun test</div><div class="b-result">✓ 2789</div></div>
-  <div class="b-cell green"><div class="b-name">bun build</div><div class="b-result">✓ green</div></div>
+<div class="vocab">
+  <h3>Navigation (nine tabs &rarr; four + more)</h3>
+  <table class="vtable">
+    <tr><th>Heading</th><th>What it is</th><th>Folds in</th></tr>
+    <tr><td><b>Projects</b></td><td>Bird's-eye: how each project is doing.</td><td class="old">Overview</td></tr>
+    <tr><td><b>Today</b></td><td>What matters now; promote a line into work.</td><td class="old">(new)</td></tr>
+    <tr><td><b>Board</b></td><td>The kanban: queued &rarr; running &rarr; review &rarr; done.</td><td class="old">Queues, Active</td></tr>
+    <tr><td><b>Review</b></td><td>What needs me: approvals + shipped-for-review.</td><td class="old">Escalations, ReTakes</td></tr>
+    <tr><td><b>&middot;&middot;&middot; More</b></td><td>Rarely opened.</td><td class="old">History, Diagnostics</td></tr>
+  </table>
+  <p class="epic-note" style="margin:12px 0 0">Open an initiative on the Board &rarr; its tasks in batches: that inner view is <b>Plan</b> (the old Setlist). Flow: <b>Projects &rarr; Board &rarr; Plan</b>.</p>
 </div>
 
-<!-- Constraints -->
-<h2 class="section-head"><span class="eyebrow">inherited from upstream</span>hard constraints (every fork item must respect)</h2>
-<div class="constraints">
-  <ul>
-    <li><strong>Never hardcode state names.</strong> Always go through <code>MemoryWorkflowDescriptor</code> fields. Prefix-matching <code>state.startsWith("ready_for_")</code> silently breaks custom profiles.</li>
-    <li><strong>Fail loudly.</strong> Missing config throws <code>DispatchFailureError</code> with the marker <code>FOOLERY DISPATCH FAILURE</code>. No silent fallbacks, no <code>?? "default"</code>.</li>
-    <li><strong>Hermetic tests.</strong> <code>src/**/__tests__/</code> = no fs / spawn / network / host binaries. Real-env tests go to <code>__manual_tests__/</code> and never block CI.</li>
-    <li><strong>Quality gates.</strong> Pre-push: <code>bun run lint && test && tsc --noEmit && build</code>. All four green or no push.</li>
-    <li><strong>Size limits.</strong> 500 LOC/file · 100 LOC/function · 100 cols/line (ESLint enforced).</li>
-  </ul>
+<div class="alts">
+  <div class="alt a3"><div class="lvl">altitude 3</div><div class="body"><b>Strategy &mdash; Projects.</b> <span>Bird's-eye of the projects you manage. Health, bets, where to invest. (Epic C)</span></div></div>
+  <div class="alt a2"><div class="lvl">altitude 2</div><div class="body"><b>Triage &mdash; Today.</b> <span>What matters now; turn a line into runnable work. (Epic B)</span></div></div>
+  <div class="alt a1"><div class="lvl">altitude 1</div><div class="body"><b>Execution &mdash; Board.</b> <span>An agent runs a task, you review, it ships. (Epic A)</span></div></div>
 </div>
 
-<!-- Pain points -->
-<h2 class="section-head"><span class="eyebrow">11 pain points</span>review each — agree, discuss, defer</h2>
-<p style="font-size:14px; color:var(--color-body); line-height:22px; margin-top:0; max-width:75ch;">Click <strong>agree</strong> on items you accept as-recommended, <strong>discuss</strong> on items where you want to talk through alternatives, <strong>defer</strong> on items you don't want in any phase. Use the notes field to leave a one-line ask or context. Decisions persist in your browser; click <strong>copy as markdown</strong> at the bottom to paste back to me when ready.</p>
-
-<div class="pain-grid">
-
-<div class="pain" data-id="P1">
-  <div class="pain-head">
-    <span class="id-pill">P1</span>
-    <span class="title">Columns are software-shipment-shaped; "Call with Khilan" sits in <em>Ready Impl</em> flanked by Plan Review and Shipment</span>
-    <span class="effort"><span class="e-tag M">M</span>~150 LOC + tests</span>
-  </div>
-  <p class="body">Foolery's autopilot lifecycle (15 states) is wrong for the 70% of your beads that aren't software shipments.</p>
-  <div class="options">
-    <div class="option rec"><span class="o-key">a)</span><span>Add <code>coord</code> + <code>followup</code> profiles to <code>BUILTIN_PROFILE_CATALOG</code> with <code>customStates</code> arrays</span></div>
-    <div class="option"><span class="o-key">b)</span><span>Author <code>bd formula</code> files instead, unverified Beads-side integration</span></div>
-    <div class="option"><span class="o-key">c)</span><span>Hide unused columns globally, but they're real states for IC</span></div>
-  </div>
-  <div class="recommendation"><strong>Recommended (a)</strong>, extension point upstream actually supports via the descriptor model.</div>
-  <div class="decision"><span class="d-label">decision</span><button class="dec-btn" data-d="agree">agree</button><button class="dec-btn" data-d="discuss">discuss</button><button class="dec-btn" data-d="defer">defer</button><input class="notes-input" placeholder="optional notes…"/></div>
+<div class="legend">
+  <span class="badge b-now">now</span><span class="badge b-next">next</span><span class="badge b-later">later</span>
+  <span class="badge b-done">done</span><span class="badge b-partial">partial</span>
 </div>
 
-<div class="pain" data-id="P2">
-  <div class="pain-head">
-    <span class="id-pill">P2</span>
-    <span class="title">All 90 beads sit in <em>Ready Impl</em>; overwhelming, no useful sort</span>
-    <span class="effort"><span class="e-tag S">S</span>+ <span class="e-tag M">M</span></span>
-  </div>
-  <p class="body">No way to slice by category or time. You opened it and saw everything at once.</p>
-  <div class="options">
-    <div class="option rec"><span class="o-key">a)</span><span>Label-based profile routing, coord/followup beads route to their own column sets</span></div>
-    <div class="option rec"><span class="o-key">b)</span><span>A <code>/today</code> route, flat list of due-today + P0 ready + in-progress</span></div>
-    <div class="option"><span class="o-key">c)</span><span>Stale-beads badge for things older than N days</span></div>
-  </div>
-  <div class="recommendation"><strong>Recommended (a) + (b)</strong>, routing fixes coord overflow, today filter fixes the IC overwhelm.</div>
-  <div class="decision"><span class="d-label">decision</span><button class="dec-btn" data-d="agree">agree</button><button class="dec-btn" data-d="discuss">discuss</button><button class="dec-btn" data-d="defer">defer</button><input class="notes-input" placeholder="optional notes…"/></div>
-</div>
-
-<div class="pain" data-id="P3">
-  <div class="pain-head">
-    <span class="id-pill">P3</span>
-    <span class="title">No label filter, can't isolate <code>work:ic</code> from <code>work:coord</code></span>
-    <span class="effort"><span class="e-tag S">S</span>~80 LOC</span>
-  </div>
-  <p class="body">Labels exist on rows but you can't filter the kanban by them.</p>
-  <div class="options">
-    <div class="option rec"><span class="o-key">a)</span><span>Label checkbox group in <code>filter-bar.tsx</code></span></div>
-    <div class="option"><span class="o-key">b)</span><span>Saved-filter presets (e.g., "Today's IC")</span></div>
-    <div class="option"><span class="o-key">c)</span><span>Skip, let label-based routing do the work</span></div>
-  </div>
-  <div class="recommendation"><strong>Recommended (a) only</strong>, saved presets are nice but premature, one-click multi-label filter unlocks 90% of the value.</div>
-  <div class="decision"><span class="d-label">decision</span><button class="dec-btn" data-d="agree">agree</button><button class="dec-btn" data-d="discuss">discuss</button><button class="dec-btn" data-d="defer">defer</button><input class="notes-input" placeholder="optional notes…"/></div>
-</div>
-
-<div class="pain" data-id="P4">
-  <div class="pain-head">
-    <span class="id-pill">P4</span>
-    <span class="title">No "Today" view, pure lifecycle columns, no date-based slice</span>
-    <span class="effort"><span class="e-tag M">M</span>~150 LOC</span>
-  </div>
-  <p class="body">Mornings need a bookmarkable URL that answers "what now?"</p>
-  <div class="options">
-    <div class="option"><span class="o-key">a)</span><span>Add date filter (due-by, defer-after) to filter-bar</span></div>
-    <div class="option rec"><span class="o-key">b)</span><span><code>/today</code> route with flat list (due-today + in-progress + P0 ready)</span></div>
-    <div class="option rec"><span class="o-key">c)</span><span>Daily HTML links directly into the <code>/today</code> URL</span></div>
-  </div>
-  <div class="recommendation"><strong>Recommended (b) + (c)</strong>, one bookmarkable URL <code>spanda.onyourdevice.ai/today</code>, daily HTML link points there.</div>
-  <div class="decision"><span class="d-label">decision</span><button class="dec-btn" data-d="agree">agree</button><button class="dec-btn" data-d="discuss">discuss</button><button class="dec-btn" data-d="defer">defer</button><input class="notes-input" placeholder="optional notes…"/></div>
-</div>
-
-<div class="pain" data-id="P5">
-  <div class="pain-head">
-    <span class="id-pill">P5</span>
-    <span class="title">No quick capture, must shell out to <code>bd create</code>, breaking flow</span>
-    <span class="effort"><span class="e-tag M">M</span>~120 LOC</span>
-  </div>
-  <p class="body">A new bead idea forces terminal context-switch.</p>
-  <div class="options">
-    <div class="option rec"><span class="o-key">a)</span><span>In-UI "new beat" modal POSTing to <code>/api/beats</code> with lint enforcement</span></div>
-    <div class="option rec"><span class="o-key">b)</span><span>Global keyboard shortcut (<code>/</code> or <code>c</code>) to open it</span></div>
-    <div class="option"><span class="o-key">c)</span><span>Skip, bd create is fine</span></div>
-  </div>
-  <div class="recommendation"><strong>Recommended (a) + (b)</strong>, keyboard-first, validates acceptance inline.</div>
-  <div class="decision"><span class="d-label">decision</span><button class="dec-btn" data-d="agree">agree</button><button class="dec-btn" data-d="discuss">discuss</button><button class="dec-btn" data-d="defer">defer</button><input class="notes-input" placeholder="optional notes…"/></div>
-</div>
-
-<div class="pain" data-id="P6">
-  <div class="pain-head">
-    <span class="id-pill">P6</span>
-    <span class="title">No notification when a Take completes, must poll the UI</span>
-    <span class="effort"><span class="e-tag M">M</span>~120 LOC across both</span>
-  </div>
-  <p class="body">Agent runs end silently, you check repeatedly.</p>
-  <div class="options">
-    <div class="option rec"><span class="o-key">a)</span><span>Telegram DM via existing Hermes gateway on terminal completion</span></div>
-    <div class="option"><span class="o-key">b)</span><span>Browser desktop notification (Notification API)</span></div>
-    <div class="option"><span class="o-key">c)</span><span>Generic webhook out + you wire it</span></div>
-  </div>
-  <div class="recommendation"><strong>Recommended (a)</strong>, Hermes Telegram gateway already running, reuse it.</div>
-  <div class="decision"><span class="d-label">decision</span><button class="dec-btn" data-d="agree">agree</button><button class="dec-btn" data-d="discuss">discuss</button><button class="dec-btn" data-d="defer">defer</button><input class="notes-input" placeholder="optional notes…"/></div>
-</div>
-
-<div class="pain" data-id="P7">
-  <div class="pain-head">
-    <span class="id-pill">P7</span>
-    <span class="title">No Telegram intake into beads, captures still go through terminal</span>
-    <span class="effort"><span class="e-tag S">S</span>~50 LOC, Hermes-side</span>
-  </div>
-  <p class="body">Capture a thought on phone, no path to a bead without opening laptop.</p>
-  <div class="options">
-    <div class="option rec"><span class="o-key">a)</span><span>Hermes Telegram handler creates beads via <code>bd create</code> with <code>work:capture</code> label</span></div>
-    <div class="option"><span class="o-key">b)</span><span>Via Spanda's <code>/api/beats</code> endpoint</span></div>
-    <div class="option"><span class="o-key">c)</span><span>Skip, daily review captures cover it</span></div>
-  </div>
-  <div class="recommendation"><strong>Recommended (a)</strong>, Hermes-side change, zero Spanda fork tax.</div>
-  <div class="decision"><span class="d-label">decision</span><button class="dec-btn" data-d="agree">agree</button><button class="dec-btn" data-d="discuss">discuss</button><button class="dec-btn" data-d="defer">defer</button><input class="notes-input" placeholder="optional notes…"/></div>
-</div>
-
-<div class="pain" data-id="P8">
-  <div class="pain-head">
-    <span class="id-pill">P8</span>
-    <span class="title">Take button always present even on coord/followup beads</span>
-    <span class="effort"><span class="e-tag M">M</span>~80 LOC</span>
-  </div>
-  <p class="body">"Take" makes no sense for "Call with Khilan", misleading UI.</p>
-  <div class="options">
-    <div class="option"><span class="o-key">a)</span><span>Conditional on workflow's <code>owners</code> for current state</span></div>
-    <div class="option"><span class="o-key">b)</span><span>Hide entire action column for human-only workflows</span></div>
-    <div class="option rec"><span class="o-key">c)</span><span>Replace label with workflow-specific verb ("Mark scheduled", "Mark done", "Escalate")</span></div>
-  </div>
-  <div class="recommendation"><strong>Recommended (c)</strong>, gives useful UI for coord/followup instead of just hiding.</div>
-  <div class="decision"><span class="d-label">decision</span><button class="dec-btn" data-d="agree">agree</button><button class="dec-btn" data-d="discuss">discuss</button><button class="dec-btn" data-d="defer">defer</button><input class="notes-input" placeholder="optional notes…"/></div>
-</div>
-
-<div class="pain" data-id="P9">
-  <div class="pain-head">
-    <span class="id-pill">P9</span>
-    <span class="title">Onboarding requires manual settings (repo register, agent register, pool config)</span>
-    <span class="effort"><span class="e-tag S">S</span>~80 LOC bash</span>
-  </div>
-  <p class="body">Five steps before a fresh Spanda is usable.</p>
-  <div class="options">
-    <div class="option rec"><span class="o-key">a)</span><span><code>spanda init</code> CLI pre-fills <code>settings.toml</code> with Aravinth's defaults</span></div>
-    <div class="option"><span class="o-key">b)</span><span>Multi-screen welcome wizard in the UI</span></div>
-    <div class="option"><span class="o-key">c)</span><span>Skip, already set up once, not a recurring pain</span></div>
-  </div>
-  <div class="recommendation"><strong>Recommended (a)</strong>, useful for reinstalls or running on Mac, zero ongoing UI maintenance.</div>
-  <div class="decision"><span class="d-label">decision</span><button class="dec-btn" data-d="agree">agree</button><button class="dec-btn" data-d="discuss">discuss</button><button class="dec-btn" data-d="defer">defer</button><input class="notes-input" placeholder="optional notes…"/></div>
-</div>
-
-<div class="pain" data-id="P10">
-  <div class="pain-head">
-    <span class="id-pill">P10</span>
-    <span class="title">Beat / Take / Scene vocabulary is foreign</span>
-    <span class="effort"><span class="e-tag muted">0</span>LOC</span>
-  </div>
-  <p class="body">Internal naming feels alien but rebranding is a forking-tax trap.</p>
-  <div class="options">
-    <div class="option rec"><span class="o-key">a)</span><span>Don't rename, accept Foolery's vocabulary. Stops feeling foreign after a week.</span></div>
-    <div class="option"><span class="o-key">b)</span><span>Rebrand UI labels via a translation layer (Foolery 2.0 maintenance forever)</span></div>
-    <div class="option"><span class="o-key">c)</span><span>Fork the strings file only</span></div>
-  </div>
-  <div class="recommendation"><strong>Recommended (a), explicitly do nothing.</strong></div>
-  <div class="decision"><span class="d-label">decision</span><button class="dec-btn" data-d="agree">agree</button><button class="dec-btn" data-d="discuss">discuss</button><button class="dec-btn" data-d="defer">defer</button><input class="notes-input" placeholder="optional notes…"/></div>
-</div>
-
-<div class="pain" data-id="P11">
-  <div class="pain-head">
-    <span class="id-pill">P11</span>
-    <span class="title">Stale beads (in-progress since Feb) clutter the Impl column</span>
-    <span class="effort"><span class="e-tag S">S</span>~50 LOC + 5 LOC config</span>
-  </div>
-  <p class="body">w9o has been "in progress" for 3 months. Nothing flags it.</p>
-  <div class="options">
-    <div class="option rec"><span class="o-key">a)</span><span>Configure Spanda's existing <code>stale_grooming</code> pool (currently empty)</span></div>
-    <div class="option rec"><span class="o-key">b)</span><span>Add age badge ("stale 8d") in the row</span></div>
-    <div class="option"><span class="o-key">c)</span><span>Manual "this is stale" action</span></div>
-  </div>
-  <div class="recommendation"><strong>Recommended (a) + (b)</strong>, pool is wired, just empty, badge makes it visible.</div>
-  <div class="decision"><span class="d-label">decision</span><button class="dec-btn" data-d="agree">agree</button><button class="dec-btn" data-d="discuss">discuss</button><button class="dec-btn" data-d="defer">defer</button><input class="notes-input" placeholder="optional notes…"/></div>
-</div>
-
-</div>
-
-<!-- Phase 1 -->
-<div class="phase-head">
-  <span class="ph-label">phase 1</span>
-  <h3>make non-IC beads first-class</h3>
-  <span class="ph-meta">~1 day · load-bearing · TDD red-green-refactor</span>
-</div>
-<table class="phase">
-  <thead><tr><th>item</th><th>test-first (red)</th><th>then implement (green)</th><th>effort</th></tr></thead>
-  <tbody>
-    <tr><td>1.0</td><td class="test">Shared fixtures: <code>__fixtures__/{spanda-profiles, mixed-bead-corpus, stub-settings}.ts</code></td><td class="impl">— (data only)</td><td class="eff">S ~80</td></tr>
-    <tr><td>1.1</td><td class="test"><code>workflows-spanda-profiles.test.ts</code>: catalog contains <code>coord</code>, descriptor has terminal=[done], action=[scheduled], initial=scheduled. Existing 6 unchanged.</td><td class="impl"><code>workflows.ts</code>, extend type with <code>customStates</code>; add <code>coord</code> entry; teach <code>buildStates()</code></td><td class="eff">M ~140</td></tr>
-    <tr><td>1.2</td><td class="test">Same file: <code>followup</code> has states waiting→escalated→done with correct transitions</td><td class="impl">Add <code>followup</code> entry, confirm 3-state transition derivation</td><td class="eff">S ~80</td></tr>
-    <tr><td>1.3</td><td class="test"><code>workflows-runtime-routing.test.ts</code>: <code>work:coord</code>→coord, <code>work:followup</code>→followup, <code>work:ic</code>→default, none→default, two labels→<code>FOOLERY DISPATCH FAILURE</code></td><td class="impl"><code>workflows-runtime.ts</code>, <code>resolveProfileForBeat</code>; wire into <code>profile-defaults.ts</code></td><td class="eff">S ~140</td></tr>
-    <tr><td>1.4</td><td class="test"><code>beat-column-action-spanda.test.tsx</code>: coord row → Mark scheduled / Mark done; followup → Mark done / Escalate; IC → Take/Scene unchanged</td><td class="impl"><code>beat-column-defs-extra.tsx:actionColumn</code>, branch on workflow id, read <code>owners[state]</code></td><td class="eff">M ~180</td></tr>
-    <tr><td>1.5</td><td class="test"><code>scripts/__manual_tests__/ship-spanda.test.sh</code>: dry-run works; missing tarball exits 1; logs "swapping runtime"</td><td class="impl"><code>scripts/ship-spanda.sh</code>: build:runtime → stop → swap → start → curl health</td><td class="eff">S ~50</td></tr>
-  </tbody>
-</table>
-<div class="gate">
-  <h4>phase 1 ship gate, green tests not hand-checks</h4>
-  <pre>cd ~/code/spanda
-bun run lint && bun run test && bunx tsc --noEmit && bun run build
-bun run test -- workflows-spanda-profiles      # 1.1 + 1.2
-bun run test -- workflows-runtime-routing      # 1.3
-bun run test -- beat-column-action-spanda      # 1.4
-bun run test:manual -- ship-spanda             # 1.5
-bash scripts/ship-spanda.sh && bash scripts/smoke-spanda.sh</pre>
-</div>
-
-<!-- Phase 2 -->
-<div class="phase-head">
-  <span class="ph-label">phase 2</span>
-  <h3>daily-driver polish</h3>
-  <span class="ph-meta">~2 days · each item ships independently</span>
-</div>
-<table class="phase">
-  <thead><tr><th>item</th><th>test-first</th><th>then implement</th><th>effort</th></tr></thead>
-  <tbody>
-    <tr><td>2.1</td><td class="test"><code>app/today/__tests__/page.test.tsx</code>: <code>getTodayBeats(fixture)</code> returns due-today + P0 ready + in-progress in priority order; excludes future, closed</td><td class="impl">New <code>app/today/page.tsx</code> + <code>today-list.tsx</code>; daily HTML template points at <code>/today</code></td><td class="eff">M ~230</td></tr>
-    <tr><td>2.2</td><td class="test">Extend <code>filter-bar.test.tsx</code>: selecting <code>work:ic</code> hides coord/followup; multi-label = OR; URL state persists</td><td class="impl"><code>filter-bar.tsx</code>, checkbox group from observed labels; state in existing Zustand store</td><td class="eff">S ~140</td></tr>
-    <tr><td>2.3</td><td class="test"><code>stale-badge.test.tsx</code>: &gt;7d shows "stale Nd"; ≤7d none; closed none. <code>stale_grooming</code> pool routes correctly</td><td class="impl"><code>beat-table-columns.tsx</code>, badge cell; <code>settings.toml</code>, claude in <code>stale_grooming</code></td><td class="eff">S ~75</td></tr>
-    <tr><td>2.4</td><td class="test"><code>beat-quick-create.test.tsx</code>: <code>/</code> opens; missing acceptance → fail-loud; valid POSTs to <code>/api/beats</code>; ESC closes; focus-trap a11y; <code>/</code> in input does NOT trigger</td><td class="impl">New <code>beat-quick-create.tsx</code>; register global shortcut in <code>layout.tsx</code></td><td class="eff">M ~220</td></tr>
-  </tbody>
-</table>
-
-<!-- Phase 3 -->
-<div class="phase-head">
-  <span class="ph-label">phase 3</span>
-  <h3>share-ready + Hermes integration</h3>
-  <span class="ph-meta">~2-3 days · pulled in when Phases 1+2 prove load-bearing</span>
-</div>
-<table class="phase">
-  <thead><tr><th>item</th><th>test-first</th><th>then implement</th><th>effort</th></tr></thead>
-  <tbody>
-    <tr><td>3.1</td><td class="test"><code>scripts/__manual_tests__/spanda-init.test.sh</code>: dry-run produces TOML that passes <code>foolery config validate</code>; idempotent; refuses to clobber non-default without <code>--force</code></td><td class="impl"><code>scripts/spanda-init.sh</code>, bash, writes template TOML (claude pool + personal-os repo + autopilot_no_planning)</td><td class="eff">S ~120</td></tr>
-    <tr><td>3.2</td><td class="test">Hermes-side <code>telegram-intake.test.py</code>: valid POST → bead via <code>bd create --no-lint --labels work:capture</code>; invalid sig → 401; duplicate msg_id ≤5min idempotent</td><td class="impl">New <code>~/.hermes/webhooks/telegram-intake.py</code>. Spanda: zero changes</td><td class="eff">S ~90</td></tr>
-    <tr><td>3.3</td><td class="test"><code>use-terminal-stream-notify.test.ts</code>: terminal complete → fetch fires; failure events do NOT notify; missing URL → silent no-op (opt-in, NOT fail-loud)</td><td class="impl"><code>use-terminal-stream.ts</code> + Hermes webhook for Telegram DM</td><td class="eff">M ~200</td></tr>
-    <tr><td>3.4</td><td class="test">No tests (docs)</td><td class="impl"><code>README.md</code> rewrite, fork purpose, install for non-Aravinth, links to <code>ROADMAP.md</code></td><td class="eff">S ~150</td></tr>
-    <tr><td>3.5</td><td class="test">Tests from 1.1 + 1.2 ship with the PR</td><td class="impl">Clean PR to <code>acartine/foolery</code> proposing coord + followup as builtins</td><td class="eff">varies</td></tr>
-  </tbody>
-</table>
-
-<!-- Decisions locked -->
-<h2 class="section-head"><span class="eyebrow">locked in this session</span>decisions already made</h2>
-<div class="constraints">
-  <ul>
-    <li><strong>Phase 1 includes 1.4</strong>, workflow-aware row actions ship Day 1, not a misleading Take.</li>
-    <li><strong>Phase 2 order</strong>, <code>/today</code> → label filter → stale → quick capture. Each ships independently.</li>
-    <li><strong>Phase 3 kept on roadmap</strong> as eventual work. No date commitment yet.</li>
-    <li><strong>No rebrand</strong>, Beat/Take/Scene vocabulary stays internal; brand layer (subdomain, daily HTML link, systemd unit name) is the only external rename surface.</li>
-    <li><strong>Reversibility</strong>, vanilla Foolery reinstall in ~60s via upstream <code>curl|bash</code>, settings/data preserved.</li>
-  </ul>
-</div>
-
-<!-- Open questions to talk through -->
-<h2 class="section-head"><span class="eyebrow">what I need from you before code starts</span>open items to agree</h2>
-<div class="constraints">
-  <ol style="margin: 0; padding-left: 22px; color: var(--color-body); font-size: 14px; line-height: 24px;">
-    <li>Walk down the 11 cards above. Mark each <strong>agree</strong> / <strong>discuss</strong> / <strong>defer</strong>. Anything marked <strong>discuss</strong> we talk through before I start writing code.</li>
-    <li>Confirm the <strong>"two work: labels = fail loudly"</strong> rule for label routing (per CLAUDE.md). Alternative is "first label wins" which is silent.</li>
-    <li>Confirm the <strong>brand layer rename</strong> scope: systemd unit <code>foolery.service</code> → <code>spanda.service</code> + subdomain <code>foolery.onyourdevice.ai</code> → <code>spanda.onyourdevice.ai</code> (yes / no / defer until v0.1 ships).</li>
-    <li>The <strong>floating-notepad widget</strong> from the daily uses a Copy-to-Claude payload. Do you want this execution page to do the same, i.e. paste a finalized markdown summary back into a new daily-review note, or just into chat?</li>
+<!-- BUILD ORDER -->
+<div class="order">
+  <h2>Build order</h2>
+  <p>Dependency-aware sequence. A2 is the keystone &mdash; one shared form reused by the tracker, the promote flow, and Board capture.</p>
+  <ol>
+    <li><span class="ph now">NOW</span><span class="sid">A2</span><span>Shared Add/Update task form &mdash; the keystone, unblocks everything</span></li>
+    <li><span class="ph now">NOW</span><span class="sid">A1</span><span>Collapse nine tabs &rarr; four + Plan</span></li>
+    <li><span class="ph now">NOW</span><span class="sid">A3</span><span>Task tracker actions (needs A2)</span></li>
+    <li><span class="ph now">NOW</span><span class="sid">B2</span><span>/today &rarr; promote a line to the Board (needs A2)</span></li>
+    <li><span class="ph next">NEXT</span><span class="sid">A4</span><span>Filter + stale + routing wireups</span></li>
+    <li><span class="ph next">NEXT</span><span class="sid">C1</span><span>Project as a first-class unit</span></li>
+    <li><span class="ph next">NEXT</span><span class="sid">C2</span><span>Portfolio health view (needs C1)</span></li>
+    <li><span class="ph later">LATER</span><span class="sid">B3</span><span>Triage states before a task exists</span></li>
+    <li><span class="ph later">LATER</span><span class="sid">C3</span><span>Project metrics / leverage (horizon)</span></li>
   </ol>
+  <p class="why">B1 (/today reads like the clarity daily) is prototyped and live at spanda-dev.</p>
 </div>
 
-<!-- Sticky export bar -->
-<div class="export-bar">
-  <div class="counts">
-    <span class="chip good"><span id="c-agree">0</span> agree</span>
-    <span class="chip warn"><span id="c-discuss">0</span> discuss</span>
-    <span class="chip neutral"><span id="c-defer">0</span> defer</span>
-    <span><strong id="c-pending">11</strong> pending</span>
-  </div>
-  <div>
-    <button class="btn tertiary" id="reset-btn" title="Clear all decisions">reset</button>
-    <button class="btn primary" id="copy-btn" title="Copy a markdown summary of your decisions">copy as markdown</button>
-  </div>
+<!-- ============ EPIC A ============ -->
+<h2 class="epic">Epic A &mdash; <span class="epic-tag">make the Board the daily driver</span></h2>
+<p class="epic-note">The execution altitude. Today the board has nine tabs; cut it to a basic kanban and make tasks actionable. Most of the logic shipped in Phase 2 &mdash; this is the UI layer over it.</p>
+
+<div class="card">
+  <div class="head"><div><h3>Shared Add / Update task form</h3><div class="ref">A2 &middot; keystone</div></div><div class="badges"><span class="badge b-now">now</span><span class="badge b-partial">pure layer done</span></div></div>
+  <div class="story"><b>As an operator,</b> I want one form to <b>Add</b> and <b>Update</b> tasks, so capture and edits feel identical and I never relearn a screen.</div>
+  <div class="ach">Acceptance</div>
+  <ul class="ac">
+    <li>Add opens a blank form; <b>Update opens the same form pre-filled</b> with the task's current values (edit in place)</li>
+    <li>Editable fields: title, description, acceptance, priority, labels (incl. bucket), profile</li>
+    <li>Bucket-aware validation: <code>do</code>&rarr;acceptance required; <code>coordinate</code>/<code>followup</code>&rarr;person required; <code>decide</code>&rarr;none</li>
+    <li>Add &rarr; <code>POST /api/beats</code>; Update &rarr; <code>PATCH /api/beats/:id</code></li>
+    <li>Nothing saves with a required field blank &mdash; errors surface inline (fail-loud)</li>
+    <li>Update edits fields only; <b>state changes happen on the Board / via Complete</b>, not in this form</li>
+  </ul>
+  <div class="reuse">reuses the shipped quick-capture validate/normalize pure layer · build once, reused by A3 + B2 + Board capture</div>
 </div>
 
-<div class="toast" id="toast">copied</div>
-
+<div class="card">
+  <div class="head"><div><h3>Collapse nine tabs to four</h3><div class="ref">A1</div></div><span class="badge b-now">now</span></div>
+  <div class="story"><b>As an operator,</b> I want <b>Projects / Today / Board / Review</b> (+ a "More" menu), so I see queued&rarr;running&rarr;review&rarr;done without learning a console.</div>
+  <div class="ach">Acceptance</div>
+  <ul class="ac">
+    <li>Four top-level views; Queues + Active fold into Board; Escalations + ReTakes fold into Review; History + Diagnostics &rarr; More</li>
+    <li>An initiative is one expandable card; a single task is a plain card &mdash; same columns, no separate mode</li>
+    <li>The old Setlist becomes <b>Plan</b>, the inner view of an initiative</li>
+    <li>Given a first-time user, When they open the app, Then nothing on screen requires a glossary</li>
+  </ul>
+  <div class="reuse">no new backend &mdash; IA + view consolidation over existing data</div>
 </div>
 
-<script>
-(function() {
-  var STORAGE_KEY = "spanda-execution-decisions-v1";
-  var painCards = document.querySelectorAll(".pain");
-  var counts = { agree: 0, discuss: 0, defer: 0 };
-  var state = {};
+<div class="card">
+  <div class="head"><div><h3>Task tracker actions</h3><div class="ref">A3</div></div><span class="badge b-now">now</span></div>
+  <div class="story"><b>As an operator,</b> I want <b>+ Add / Update / ✓ Complete</b> on tasks, all backed by the beads system, so the tracker is live, not a readout.</div>
+  <div class="ach">Acceptance</div>
+  <ul class="ac">
+    <li>Add and Update open the A2 form (blank / pre-filled)</li>
+    <li>Complete = one click + confirm &rarr; <code>POST /api/beats/:id/close</code></li>
+    <li>Filter pills: All / Do / Co-ordinate / Follow-up / Closed</li>
+    <li>Every action writes to beads; the tracker is a view, not a second store</li>
+  </ul>
+  <div class="dep">depends on A2</div>
+</div>
 
-  function load() {
-    try { var raw = localStorage.getItem(STORAGE_KEY); if (raw) state = JSON.parse(raw); } catch (e) {}
-  }
-  function save() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
-  }
-  function applyState() {
-    counts = { agree: 0, discuss: 0, defer: 0 };
-    painCards.forEach(function(card) {
-      var id = card.getAttribute("data-id");
-      var rec = state[id] || {};
-      card.classList.remove("agree", "discuss", "defer");
-      if (rec.decision) card.classList.add(rec.decision);
-      card.querySelectorAll(".dec-btn").forEach(function(b) {
-        b.classList.toggle("active", b.getAttribute("data-d") === rec.decision);
-      });
-      var notes = card.querySelector(".notes-input");
-      notes.value = rec.notes || "";
-      if (rec.decision && counts[rec.decision] !== undefined) counts[rec.decision]++;
-    });
-    document.getElementById("c-agree").textContent = counts.agree;
-    document.getElementById("c-discuss").textContent = counts.discuss;
-    document.getElementById("c-defer").textContent = counts.defer;
-    document.getElementById("c-pending").textContent =
-      painCards.length - (counts.agree + counts.discuss + counts.defer);
-  }
-  function setDecision(id, dec) {
-    if (!state[id]) state[id] = {};
-    state[id].decision = (state[id].decision === dec) ? null : dec;
-    save(); applyState();
-  }
-  function setNotes(id, notes) {
-    if (!state[id]) state[id] = {};
-    state[id].notes = notes;
-    save();
-  }
-  function buildMarkdown() {
-    var lines = ["# spanda execution, review decisions",
-                 "",
-                 "Generated by execution.html, " + new Date().toISOString().slice(0, 10),
-                 ""];
-    ["agree","discuss","defer"].forEach(function(group) {
-      var members = [];
-      painCards.forEach(function(card) {
-        var id = card.getAttribute("data-id");
-        var rec = state[id] || {};
-        if (rec.decision !== group) return;
-        var title = card.querySelector(".pain-head .title").textContent.trim();
-        var line = "- **" + id + "** " + title;
-        if (rec.notes) line += ", _" + rec.notes + "_";
-        members.push(line);
-      });
-      if (members.length) {
-        lines.push("## " + group + " (" + members.length + ")");
-        lines.push("");
-        lines = lines.concat(members);
-        lines.push("");
-      }
-    });
-    var pending = [];
-    painCards.forEach(function(card) {
-      var id = card.getAttribute("data-id");
-      if (!state[id] || !state[id].decision) pending.push("- " + id);
-    });
-    if (pending.length) {
-      lines.push("## pending (" + pending.length + ")");
-      lines.push("");
-      lines = lines.concat(pending);
-      lines.push("");
-    }
-    return lines.join("\n");
-  }
-  function copyMarkdown() {
-    var md = buildMarkdown();
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(md).then(function() { toast("copied " + md.length + " chars"); });
-    } else {
-      var ta = document.createElement("textarea");
-      ta.value = md; document.body.appendChild(ta); ta.select();
-      try { document.execCommand("copy"); toast("copied"); } catch (e) { toast("copy failed, select manually"); }
-      document.body.removeChild(ta);
-    }
-  }
-  var toastEl = document.getElementById("toast");
-  var toastTimer;
-  function toast(msg) {
-    toastEl.textContent = msg;
-    toastEl.classList.add("show");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function() { toastEl.classList.remove("show"); }, 1600);
-  }
+<div class="card">
+  <div class="head"><div><h3>Finish the deferred wireups</h3><div class="ref">A4 &middot; from Phase 2</div></div><div class="badges"><span class="badge b-next">next</span><span class="badge b-partial">pure layers done</span></div></div>
+  <div class="story"><b>As an operator,</b> I want filter, stale flags, and auto-routing visible, so the logic that already shipped becomes usable.</div>
+  <div class="ach">Acceptance</div>
+  <ul class="ac">
+    <li>Label-filter checkboxes in the Board, URL-synced</li>
+    <li>Stale badge on tasks older than 7 days</li>
+    <li>Profile routing: a <code>work:do/coordinate/followup/decide</code> label auto-selects the lifecycle</li>
+  </ul>
+  <div class="reuse">label-filter, stale-badge, profile-routing pure layers all shipped &mdash; thin UI consumers. See <a href="/phase2.html">shipped work</a></div>
+</div>
 
-  painCards.forEach(function(card) {
-    var id = card.getAttribute("data-id");
-    card.querySelectorAll(".dec-btn").forEach(function(b) {
-      b.addEventListener("click", function() { setDecision(id, b.getAttribute("data-d")); });
-    });
-    var notes = card.querySelector(".notes-input");
-    notes.addEventListener("input", function() { setNotes(id, notes.value); });
-  });
-  document.getElementById("copy-btn").addEventListener("click", copyMarkdown);
-  document.getElementById("reset-btn").addEventListener("click", function() {
-    if (!confirm("clear all decisions?")) return;
-    state = {}; save(); applyState();
-  });
+<!-- ============ EPIC B ============ -->
+<h2 class="epic">Epic B &mdash; <span class="epic-tag">Today as a launchpad</span></h2>
+<p class="epic-note">The triage altitude. Read the daily, decide what matters, turn it into runnable work. Triage decides <em>what</em>; the Board does <em>how</em>.</p>
 
-  load(); applyState();
-})();
-</script>
+<div class="card">
+  <div class="head"><div><h3>/today reads like the clarity daily</h3><div class="ref">B1</div></div><div class="badges"><span class="badge b-now">now</span><span class="badge b-done">prototype live</span></div></div>
+  <div class="story"><b>As an operator,</b> I want /today to read like my clarity daily, so mornings answer "what now?" in 30 seconds.</div>
+  <div class="ach">Acceptance</div>
+  <ul class="ac">
+    <li class="y">Full daily structure in spanda tokens: scoreboard, today/tomorrow/week pyramid, projects, tracker, metrics, insights, KB, appendix</li>
+    <li class="y">Prototype live at <a href="/today-prototype.html">spanda-dev/today-prototype</a></li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="head"><div><h3>Promote a today line into a task</h3><div class="ref">B2</div></div><span class="badge b-now">now</span></div>
+  <div class="story"><b>As an operator,</b> I want a <b>"→ make it work"</b> action on a today line, so what I noticed this morning becomes work the agent can run &mdash; without re-typing it.</div>
+  <div class="ach">Acceptance</div>
+  <ul class="ac">
+    <li>Each actionable line in /today has the action &rarr; opens the A2 form pre-filled (title from line, <code>do</code> default, acceptance stub)</li>
+    <li>On confirm &rarr; <code>POST /api/beats</code> &rarr; the task lands in the Board's <b>queued</b> column</li>
+    <li>From the Board I decide how to run it (the Board is where execution choices happen)</li>
+    <li>Created task carries <code>source:today-YYYY-MM-DD</code> for traceability</li>
+    <li>Given an ambiguous line, When promoted, Then I edit before write &mdash; nothing is created silently</li>
+  </ul>
+  <div class="dep">depends on A2</div>
+  <div class="reuse">reuses quick-capture (shipped) + the /today loader (shipped)</div>
+</div>
+
+<div class="card">
+  <div class="head"><div><h3>Triage states before a task exists</h3><div class="ref">B3</div></div><span class="badge b-later">later</span></div>
+  <div class="story"><b>As an operator,</b> I want a captured-but-not-yet-clear item to hold a triage state, so half-thoughts don't clutter the Board.</div>
+  <div class="ach">Acceptance</div>
+  <ul class="ac">
+    <li>An inbox item carries: <code>capture &rarr; needs-context &rarr; ready &rarr; promoted</code></li>
+    <li>Only <code>promoted</code> items become tasks</li>
+    <li>Unclear items get one sharp clarifying prompt, not silent limbo</li>
+  </ul>
+</div>
+
+<!-- ============ EPIC C ============ -->
+<h2 class="epic">Epic C &mdash; <span class="epic-tag">Projects (bird's-eye)</span></h2>
+<p class="epic-note">The strategy altitude. A project is the unit above the task: a named bet with the work nested under it and a health rollup. Built generically &mdash; any PM's portfolio, on the same beads.</p>
+
+<div class="card">
+  <div class="head"><div><h3>Project as a first-class unit</h3><div class="ref">C1</div></div><span class="badge b-next">next</span></div>
+  <div class="story"><b>As a PM,</b> I want to group tasks under a named <b>project</b>, so my work is legible as strategy, not a flat list.</div>
+  <div class="ach">Acceptance</div>
+  <ul class="ac">
+    <li>A project has: name, one-line bet/intent, owner, member tasks (via a <code>project:*</code> label namespace)</li>
+    <li>A task belongs to one project; unassigned tasks land in "unsorted"</li>
+    <li>Projects are derived from existing labels, not a second source of truth</li>
+    <li>Creating/renaming a project never mutates a task's own lifecycle</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="head"><div><h3>Portfolio view: health at a glance</h3><div class="ref">C2</div></div><span class="badge b-next">next</span></div>
+  <div class="story"><b>As a PM,</b> I want one screen of per-project health, so I answer "how are my projects doing?" in ten seconds without opening tasks.</div>
+  <div class="ach">Acceptance</div>
+  <ul class="ac">
+    <li>One card per project: active / in-review / shipped-this-period / stalled counts</li>
+    <li>A health signal per project (moving / stalled / blocked) derived from task activity</li>
+    <li>Click a project &rarr; the Board filtered to its tasks</li>
+    <li>Given a project with no movement in N days, When the portfolio loads, Then it reads "stalled"</li>
+  </ul>
+  <div class="dep">depends on C1</div>
+  <div class="reuse">rollup over task states + updated_at; reuses the stale logic already shipped</div>
+</div>
+
+<div class="card">
+  <div class="head"><div><h3>Roll execution up to the bet</h3><div class="ref">C3 &middot; horizon</div></div><span class="badge b-later">later</span></div>
+  <div class="story"><b>As a PM,</b> I want each project tied to an outcome metric + check-by date, so I see "this feature served this bet which moved this number" and decide where the next agent-hours go.</div>
+  <div class="ach">Acceptance (exploratory &mdash; validate after C1/C2)</div>
+  <ul class="ac">
+    <li>A project can carry a target metric + a check-by date</li>
+    <li>The portfolio flags bets past their check-by with no metric movement</li>
+    <li>A leverage view ranks where attention is over- vs under-invested</li>
+  </ul>
+  <div class="reuse">maps to Evolve-Aravinth outcome&rarr;lever tracking + the scorecard</div>
+</div>
+
+<div class="ink">
+  <h2>North star</h2>
+  <p class="q">"Hierarchical work units are a good start. Now we want a bird's-eye view of the managed products &mdash; a strategic approach to product evolution, not just knee-deep tactical execution."</p>
+  <p>Spanda grows from one altitude (the task) to three: a simplified execution board (A), a triage launchpad (B), and a strategic portfolio of projects (C). One source of truth &mdash; tasks in the beads system &mdash; with new layers as views and rollups over it. It sits inside the Evolve Aravinth program: free the operator from N-level work so they can do N+1-level work.</p>
+</div>
+
+<div class="foot">spanda &middot; roadmap &middot; epics A/B/C &middot; vocabulary: Project &rarr; Initiative &rarr; Task (+ Batch) &middot; one source of truth: tasks in the beads system &middot; <a href="/today-prototype.html">/today prototype</a> &middot; <a href="/phase2.html">shipped work</a></div>
+
+</div>
 </body>
 </html>

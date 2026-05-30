@@ -3,1026 +3,230 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>spanda phase 2 — TDD plan (locked)</title>
-<meta name="description" content="Locked TDD plan for phase 2 after answering 8 clarifying questions. 7 P0 items + 1 migration + P1/P2 deferred."/>
+<title>spanda — shipped work</title>
+<meta name="description" content="Phase 1 & 2 of the spanda fork, rewritten as user-level use cases with acceptance criteria and verified status."/>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='34' fill='%230e0f0c'/%3E%3Crect x='29' y='32' width='6' height='14' rx='3' fill='%239fe870'/%3E%3Crect x='45' y='32' width='6' height='14' rx='3' fill='%239fe870'/%3E%3C/svg%3E"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
-:root {
-  --color-primary:           #9fe870;
-  --color-primary-active:    #cdffad;
-  --color-primary-pale:      #e2f6d5;
-  --color-on-primary:        #0e0f0c;
-  --color-canvas:            #ffffff;
-  --color-canvas-soft:       #e8ebe6;
-  --color-canvas-sage-deep:  #d8dcd3;
-  --color-hover-sage:        #f5f7f3;
-  --color-ink:               #0e0f0c;
-  --color-body:              #454745;
-  --color-mute:              #868685;
-  --color-on-ink:            #e8ebe6;
-  --color-positive:          #2ead4b;
-  --color-positive-deep:     #054d28;
-  --color-positive-pale:     #e2f6d5;
-  --color-warning:           #ffd11a;
-  --color-warning-deep:      #b86700;
-  --color-warning-content:   #4a3b1c;
-  --color-warning-pale:      #fff4cc;
-  --color-negative:          #d03238;
-  --color-negative-deep:     #a72027;
-  --color-negative-pale:     #fce8e9;
-  --color-border:            #0e0f0c;
-  --color-border-soft:       rgba(14, 15, 12, 0.10);
-  --color-border-faint:      rgba(14, 15, 12, 0.06);
-  --font-display: "Manrope", "Wise Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-sans:    "Inter", "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --font-mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  --space-xs: 4px; --space-sm: 8px; --space-md: 12px; --space-lg: 16px;
-  --space-xl: 24px; --space-2xl: 32px; --space-3xl: 48px; --space-4xl: 64px; --space-5xl: 96px;
-  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 24px; --radius-pill: 9999px;
-  --shadow-md: 0 4px 12px -2px rgba(14,15,12,0.08), 0 2px 4px -1px rgba(14,15,12,0.06);
-  --shadow-lg: 0 12px 32px -8px rgba(14,15,12,0.14), 0 4px 12px -4px rgba(14,15,12,0.08);
-  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
-  --dur-fast: 140ms; --dur-normal: 220ms;
+:root{
+  --color-primary:#9fe870; --color-on-primary:#0e0f0c;
+  --color-canvas:#ffffff; --color-canvas-soft:#e8ebe6; --color-hover-sage:#f5f7f3;
+  --color-ink:#0e0f0c; --color-body:#454745; --color-mute:#868685; --color-on-ink:#e8ebe6;
+  --color-positive:#2ead4b; --color-positive-deep:#054d28; --color-positive-pale:#e2f6d5;
+  --color-warning-deep:#b86700; --color-warning-content:#4a3b1c; --color-warning-pale:#fff4cc;
+  --color-lake:#1f6f78; --color-lake-pale:#dceef0;
+  --color-border-soft:rgba(14,15,12,0.10); --color-border-faint:rgba(14,15,12,0.06);
+  --font-display:"Manrope",ui-sans-serif,system-ui,sans-serif;
+  --font-sans:"Inter","Manrope",ui-sans-serif,system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --r-md:12px; --r-lg:16px; --r-xl:24px; --r-pill:9999px;
 }
-* { box-sizing: border-box; }
-html, body { margin: 0; background: var(--color-canvas-soft); color: var(--color-ink); }
-body { font: 400 16px/24px var(--font-sans); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-::selection { background: var(--color-primary); color: var(--color-on-primary); }
-.wrap { max-width: 1200px; margin: 0 auto; padding: var(--space-3xl) var(--space-xl) var(--space-5xl); }
-
-header.top { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-xl); margin-bottom: var(--space-2xl); padding-bottom: var(--space-xl); border-bottom: 1px solid var(--color-border-soft); }
-header.top .brand { display: flex; flex-direction: column; gap: var(--space-md); }
-header.top .lockup { color: var(--color-ink); height: 56px; }
-header.top .lockup svg { height: 100%; width: auto; display: block; }
-header.top .sub { color: var(--color-body); font-size: 14px; line-height: 20px; }
-header.top .sub code { font: 12px var(--font-mono); padding: 1px 6px; background: var(--color-canvas); border: 1px solid var(--color-border-soft); border-radius: var(--radius-sm); }
-header.top .sub a { color: var(--color-ink); text-decoration: none; border-bottom: 1px solid var(--color-primary); padding-bottom: 1px; }
-header.top .meta { text-align: right; font-size: 13px; color: var(--color-mute); }
-header.top .meta strong { color: var(--color-body); font-weight: 600; }
-.locked-tag { display: inline-block; padding: 3px 10px; background: var(--color-primary); color: var(--color-on-primary); border-radius: var(--radius-pill); font: 600 11px/16px var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
-
-.eyebrow { display: inline-flex; align-items: center; gap: var(--space-sm); font: 600 12px/16px var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-mute); margin-bottom: var(--space-lg); }
-.eyebrow::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--color-primary); flex-shrink: 0; }
-h2.section-head { font: 900 40px/1 var(--font-display); letter-spacing: -1.5px; color: var(--color-ink); margin: var(--space-3xl) 0 var(--space-lg); }
-h2.section-head:first-of-type { margin-top: 0; }
-h3.subsection { font: 900 28px/1.05 var(--font-display); letter-spacing: -0.8px; color: var(--color-ink); margin: var(--space-2xl) 0 var(--space-md); }
-
-.intro { background: var(--color-canvas); border-radius: var(--radius-xl); padding: var(--space-xl); margin-bottom: var(--space-2xl); }
-.intro p { font: 400 15px/24px var(--font-sans); color: var(--color-body); margin: 0; }
-.intro p + p { margin-top: var(--space-md); }
-.intro strong { color: var(--color-ink); font-weight: 600; }
-.intro code { font: 12.5px var(--font-mono); background: var(--color-canvas-soft); padding: 1px 5px; border-radius: var(--radius-sm); color: var(--color-ink); }
-
-/* Decisions-locked panel */
-.locked-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-md); margin-bottom: var(--space-2xl); }
-.locked-cell { background: var(--color-canvas); border-radius: var(--radius-xl); padding: var(--space-lg); border-left: 4px solid var(--color-primary); }
-.locked-cell .q { font: 600 11px/16px var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-mute); margin-bottom: 4px; }
-.locked-cell .a { font: 600 14px/20px var(--font-sans); color: var(--color-ink); }
-.locked-cell .a code { font: 12px var(--font-mono); background: var(--color-canvas-soft); padding: 1px 4px; border-radius: 4px; }
-.locked-cell .why { font: 400 12.5px/18px var(--font-sans); color: var(--color-body); margin-top: 4px; }
-
-/* Snapshot table */
-.snapshot { background: var(--color-canvas); border-radius: var(--radius-xl); overflow: hidden; }
-table.snap { width: 100%; border-collapse: collapse; }
-table.snap th { background: transparent; font: 600 11px/16px var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-mute); text-align: left; padding: var(--space-md) var(--space-lg); border-bottom: 1px solid var(--color-border-soft); }
-table.snap td { font: 400 13.5px/19px var(--font-sans); color: var(--color-ink); padding: var(--space-lg); border-bottom: 1px solid var(--color-border-faint); vertical-align: top; }
-table.snap td.num { font: 600 14px/19px var(--font-mono); color: var(--color-mute); width: 36px; }
-table.snap td.title { font: 600 13.5px/19px var(--font-sans); color: var(--color-ink); }
-table.snap td.title small { display: block; font: 400 12.5px/18px var(--font-sans); color: var(--color-body); margin-top: 3px; }
-table.snap td.eff { white-space: nowrap; font: 400 12.5px/18px var(--font-mono); color: var(--color-mute); }
-table.snap td code { font: 11.5px var(--font-mono); background: var(--color-canvas-soft); padding: 1px 5px; border-radius: var(--radius-sm); color: var(--color-ink); }
-table.snap tr:last-child td { border-bottom: none; }
-table.snap tr:hover td { background: var(--color-hover-sage); }
-table.snap tr.divider td { background: var(--color-canvas-soft); padding: var(--space-sm) var(--space-lg); border-bottom: 1px solid var(--color-border-soft); font: 600 11px/16px var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-mute); }
-table.snap tr.deferred td { opacity: 0.65; }
-
-.pri { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: var(--radius-pill); font: 600 10.5px/14px var(--font-mono); letter-spacing: 0.04em; }
-.pri.p0 { background: var(--color-negative-pale); color: var(--color-negative-deep); }
-.pri.p1 { background: var(--color-warning-pale); color: var(--color-warning-content); }
-.pri.p2 { background: var(--color-canvas-sage-deep); color: var(--color-body); }
-.pri.mig { background: var(--color-canvas-sage-deep); color: var(--color-body); }
-.pri.manual { background: var(--color-canvas-sage-deep); color: var(--color-body); }
-
-.eff-tag { display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm); font: 600 11px/14px var(--font-mono); margin-right: 6px; }
-.eff-tag.S { background: var(--color-primary-pale); color: var(--color-positive-deep); }
-.eff-tag.M { background: var(--color-warning-pale); color: var(--color-warning-content); }
-.eff-tag.L { background: var(--color-negative-pale); color: var(--color-negative-deep); }
-
-.inner-table-wrap { background: var(--color-canvas); border-radius: var(--radius-lg); padding: 4px; margin-top: var(--space-md); }
-table.inner { width: 100%; border-collapse: collapse; }
-table.inner th { font: 600 11px/16px var(--font-sans); text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-mute); text-align: left; padding: var(--space-sm) var(--space-md); border-bottom: 1px solid var(--color-border-soft); background: transparent; }
-table.inner td { font: 400 13px/18px var(--font-sans); color: var(--color-ink); padding: var(--space-sm) var(--space-md); border-bottom: 1px solid var(--color-border-faint); vertical-align: top; }
-table.inner td.profile { font: 600 12px/18px var(--font-mono); color: var(--color-positive-deep); white-space: nowrap; }
-table.inner td.states { font: 400 12.5px/18px var(--font-mono); color: var(--color-body); }
-table.inner tr:last-child td { border-bottom: none; }
-
-/* Per-item TDD section */
-.item { background: var(--color-canvas); border-radius: var(--radius-xl); padding: var(--space-xl); margin-bottom: var(--space-md); }
-.item.deferred { opacity: 0.85; border-left: 4px solid var(--color-canvas-sage-deep); }
-.item-head { display: flex; align-items: baseline; gap: var(--space-md); margin-bottom: var(--space-md); flex-wrap: wrap; }
-.item-head .num { font: 600 12px/16px var(--font-mono); padding: 3px 10px; background: var(--color-ink); color: var(--color-primary); border-radius: var(--radius-pill); }
-.item-head h4 { font: 600 18px/24px var(--font-sans); letter-spacing: -0.2px; color: var(--color-ink); margin: 0; flex: 1; }
-.item-head .effort { font: 400 12px/16px var(--font-mono); color: var(--color-mute); }
-.item .pain { color: var(--color-body); font-size: 14px; line-height: 22px; margin: 0 0 var(--space-md); }
-.item .pain strong { color: var(--color-ink); font-weight: 600; }
-.item code { font: 12.5px var(--font-mono); background: var(--color-canvas-soft); padding: 1px 5px; border-radius: var(--radius-sm); color: var(--color-ink); }
-
-.tdd-block { background: var(--color-ink); color: var(--color-on-ink); border-radius: var(--radius-lg); padding: var(--space-lg); margin: var(--space-md) 0; }
-.tdd-block .tdd-label { font: 600 10.5px/14px var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-mute); margin-bottom: var(--space-sm); }
-.tdd-block .tdd-label.green { color: var(--color-primary); }
-.tdd-block pre { font: 12.5px/18px var(--font-mono); background: rgba(255,255,255,0.04); padding: var(--space-md); border-radius: var(--radius-sm); margin: 0; overflow-x: auto; color: var(--color-on-ink); white-space: pre; }
-.tdd-block pre .comment { color: rgba(232, 235, 230, 0.55); font-style: italic; }
-.tdd-block pre .ok { color: var(--color-primary); }
-.tdd-block code { font: 12.5px var(--font-mono); background: rgba(255,255,255,0.08); padding: 1px 5px; border-radius: var(--radius-sm); color: var(--color-primary); }
-.ship-gate { font: 13.5px/22px var(--font-sans); color: var(--color-body); margin: var(--space-md) 0 0; padding-top: var(--space-md); border-top: 1px solid var(--color-border-faint); }
-.ship-gate strong { color: var(--color-ink); font-weight: 600; }
-
-.cta { background: var(--color-ink); color: var(--color-on-ink); border-radius: var(--radius-xl); padding: var(--space-2xl); margin-top: var(--space-3xl); }
-.cta h2 { font: 900 32px/1.05 var(--font-display); letter-spacing: -1px; color: var(--color-primary); margin: 0 0 var(--space-md); }
-.cta p { font: 400 15px/24px var(--font-sans); color: var(--color-on-ink); margin: 0 0 var(--space-sm); }
-.cta ol { font: 400 15px/26px var(--font-sans); color: var(--color-on-ink); margin: var(--space-md) 0 0; padding-left: var(--space-xl); }
-.cta ol code { font: 13px var(--font-mono); background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: var(--radius-sm); color: var(--color-primary); }
-.cta strong { color: var(--color-primary); font-weight: 700; }
-
-.btn { font: 600 14px/20px var(--font-sans); padding: 10px 20px; border-radius: var(--radius-xl); border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; gap: var(--space-sm); transition: background var(--dur-fast) var(--ease-out); text-decoration: none; }
-.btn.primary { background: var(--color-primary); color: var(--color-on-primary); border-color: var(--color-primary); }
-.btn.primary:hover { background: var(--color-primary-active); }
-.btn.tertiary { background: transparent; color: var(--color-on-ink); border-color: var(--color-on-ink); }
-.btn.tertiary:hover { background: rgba(255,255,255,0.06); }
-
-@media (max-width: 720px) {
-  .wrap { padding: var(--space-xl) var(--space-md) var(--space-5xl); }
-  header.top { flex-direction: column; align-items: flex-start; }
-  header.top .meta { text-align: left; }
-  header.top .lockup { height: 44px; }
-  h2.section-head { font-size: 28px; }
-  h3.subsection { font-size: 22px; }
-  .locked-grid { grid-template-columns: 1fr; }
-  table.snap td { padding: var(--space-md); font-size: 12.5px; }
-  .item-head { flex-direction: column; gap: var(--space-sm); }
-}
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition: opacity var(--dur-fast) var(--ease-out) !important; animation: none !important; }
-}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--color-canvas-soft);color:var(--color-ink)}
+body{font:400 16px/1.6 var(--font-sans);-webkit-font-smoothing:antialiased}
+::selection{background:var(--color-primary);color:var(--color-on-primary)}
+.wrap{max-width:1000px;margin:0 auto;padding:48px 24px 96px}
+a{color:var(--color-lake)}
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid var(--color-border-soft)}
+.lockup{display:flex;align-items:center;gap:10px}
+.lockup svg{height:40px;width:auto}
+.lockup .name{font-family:var(--font-display);font-weight:900;font-size:30px;letter-spacing:-0.02em}
+.sub{color:var(--color-body);font-size:14px;margin-top:6px}
+.eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-mute)}
+h1{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing:-0.02em;margin:0 0 6px}
+h2.section{font-family:var(--font-display);font-weight:800;font-size:20px;margin:40px 0 4px;letter-spacing:-0.01em}
+.section-note{color:var(--color-body);font-size:14px;margin:0 0 16px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 8px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;padding:3px 10px;border-radius:var(--r-pill)}
+.b-done{background:var(--color-positive-pale);color:var(--color-positive-deep)}
+.b-partial{background:var(--color-warning-pale);color:var(--color-warning-content)}
+.b-planned{background:#ececea;color:var(--color-mute)}
+.card{background:var(--color-canvas);border-radius:var(--r-xl);padding:22px 24px;margin:14px 0;box-shadow:0 1px 0 0 rgba(14,15,12,0.04)}
+.card .head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.card h3{font-family:var(--font-display);font-weight:700;font-size:18px;margin:0 0 2px;letter-spacing:-0.01em}
+.card .ref{font-family:var(--font-mono);font-size:11px;color:var(--color-mute)}
+.uc{margin:12px 0 4px;padding:12px 14px;background:var(--color-hover-sage);border-radius:var(--r-md);font-size:14.5px;color:var(--color-ink)}
+.uc b{font-weight:600}
+.ac{margin:10px 0 2px;padding:0;list-style:none}
+.ac li{position:relative;padding:3px 0 3px 26px;font-size:14px;color:var(--color-body)}
+.ac li::before{position:absolute;left:0;top:2px;font-family:var(--font-mono);font-size:13px}
+.ac li.y::before{content:"\2713";color:var(--color-positive)}
+.ac li.n::before{content:"\25cb";color:var(--color-mute)}
+.ev{margin-top:10px;font-size:12.5px;color:var(--color-mute);font-family:var(--font-mono)}
+.kpis{display:flex;flex-wrap:wrap;gap:12px;margin:20px 0 8px}
+.kpi{flex:1;min-width:130px;background:var(--color-canvas);border-radius:var(--r-lg);padding:14px 16px}
+.kpi .n{font-family:var(--font-display);font-weight:800;font-size:24px}
+.kpi .l{font-size:12px;color:var(--color-mute);margin-top:2px}
+.ink{background:var(--color-ink);color:var(--color-on-ink);border-radius:var(--r-xl);padding:22px 24px;margin:24px 0}
+.ink a{color:var(--color-primary)}
+.ink h2{font-family:var(--font-display);font-weight:800;font-size:18px;margin:0 0 10px;color:#fff}
+.ink ul{margin:0;padding-left:18px}
+.ink li{margin:5px 0;font-size:14px;color:#cfd3cb}
+.foot{margin-top:48px;padding-top:18px;border-top:1px solid var(--color-border-soft);font-size:12px;color:var(--color-mute)}
 </style>
 </head>
 <body>
 <div class="wrap">
 
 <header class="top">
-  <div class="brand">
-    <span class="locked-tag">v2 · locked</span>
-    <div class="lockup" aria-label="spanda">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 150" role="img" aria-label="spanda">
-        <g transform="translate(8, 38)">
-          <defs>
-            <radialGradient id="lockupPearl" cx="35%" cy="32%" r="65%">
-              <stop offset="0%" stop-color="#2a2c28"></stop>
-              <stop offset="55%" stop-color="#15170f"></stop>
-              <stop offset="100%" stop-color="#0a0b07"></stop>
-            </radialGradient>
-          </defs>
-          <circle cx="38" cy="38" r="34" fill="url(#lockupPearl)"></circle>
-          <ellipse cx="27" cy="22" rx="9" ry="5" fill="#fff" opacity="0.08"></ellipse>
-          <rect x="27" y="31" width="6" height="14" rx="3" fill="#9fe870"></rect>
-          <rect x="43" y="31" width="6" height="14" rx="3" fill="#9fe870"></rect>
-        </g>
-        <text x="106" y="118" font-family="Manrope, 'Wise Sans', system-ui, sans-serif" font-weight="900" font-size="138" letter-spacing="-6" style="fill: currentColor;">spanda</text>
-      </svg>
+  <div>
+    <div class="lockup">
+      <svg viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="34" fill="#0e0f0c"/><rect x="29" y="32" width="6" height="14" rx="3" fill="#9fe870"/><rect x="45" y="32" width="6" height="14" rx="3" fill="#9fe870"/></svg>
+      <span class="name">spanda</span>
     </div>
-    <div class="sub">phase 2 plan · all decisions locked · branch <code>spanda/design-system</code> · <a href="/">execution review</a></div>
+    <div class="sub">shipped work &middot; phase 1 &amp; 2 &middot; use cases, acceptance criteria, verified status</div>
   </div>
-  <div class="meta">
-    <div><strong>generated</strong> 24 may 2026</div>
-    <div>8 P0 (system) + 1 manual + 2 deferred</div>
+  <div style="text-align:right">
+    <div class="eyebrow">branch spanda/design-system</div>
+    <div class="sub">live at spanda.onyourdevice.ai &middot; <a href="/">roadmap &rarr;</a></div>
   </div>
 </header>
 
-<!-- ============================================================
-     RUNNING TASK LIST — updated as work progresses.
-     Notes per task: decisions, changes, tradeoffs, surprises.
-     ============================================================ -->
-<style>
-.task-list { background: var(--color-ink); color: var(--color-on-ink); border-radius: var(--radius-xl); padding: var(--space-xl); margin-bottom: var(--space-2xl); }
-.task-list h2 { font: 900 28px/1 var(--font-display); letter-spacing: -0.8px; color: var(--color-primary); margin: 0 0 var(--space-md); }
-.task-list .meta { font: 400 13px/18px var(--font-sans); color: rgba(232,235,230,0.65); margin-bottom: var(--space-lg); }
-.task-list ul.tasks { list-style: none; padding: 0; margin: 0; }
-.task-list li.task { padding: var(--space-md) 0; border-bottom: 1px solid rgba(232,235,230,0.08); font: 400 14px/22px var(--font-sans); color: var(--color-on-ink); }
-.task-list li.task:last-child { border-bottom: none; }
-.task-list .checkbox { font: 600 13px/22px var(--font-mono); color: rgba(232,235,230,0.5); margin-right: var(--space-sm); display: inline-block; min-width: 24px; }
-.task-list li.t-done > .row { opacity: 0.55; }
-.task-list li.t-done > .row .checkbox { color: var(--color-primary); }
-.task-list li.t-done > .row strong { text-decoration: line-through; }
-.task-list li.t-active > .row .checkbox { color: var(--color-warning); }
-.task-list li.t-active > .row strong { color: var(--color-primary); }
-.task-list li.t-skip > .row { opacity: 0.45; }
-.task-list li.t-skip > .row .checkbox { color: var(--color-mute); }
-.task-list li.t-skip > .row strong { text-decoration: line-through; color: var(--color-mute); }
-.task-list .row strong { color: var(--color-on-ink); font-weight: 600; }
-.task-list .group { font: 600 11px/16px var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-primary); margin: var(--space-lg) 0 var(--space-sm); padding-top: var(--space-md); border-top: 1px dashed rgba(232,235,230,0.12); }
-.task-list .group:first-child { padding-top: 0; border-top: none; margin-top: 0; }
-.task-list ul.notes { list-style: none; padding: var(--space-xs) 0 0 32px; margin: 0; }
-.task-list ul.notes li { font: 400 12.5px/19px var(--font-sans); color: rgba(232,235,230,0.78); padding: 1px 0; }
-.task-list ul.notes li strong { color: var(--color-primary); font-weight: 600; }
-.task-list ul.notes li code { font: 11.5px var(--font-mono); background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 4px; color: var(--color-primary); }
-.task-list .ptr { font: 600 11.5px/16px var(--font-mono); color: var(--color-warning); margin-top: var(--space-sm); padding: 6px 10px; background: rgba(255,209,26,0.08); border-radius: var(--radius-sm); display: inline-block; }
-</style>
-<section class="task-list">
-  <h2>task list — execution log</h2>
-  <p class="meta">Updated live as work progresses. Notes per completed task: decisions, changes, tradeoffs, surprises.</p>
-  <ul class="tasks">
+<h1>What's already shipped</h1>
+<p class="section-note">The original 9-item Phase 2 plan and the rebrand, rewritten as user outcomes with testable acceptance criteria. Status is verified against the code on <code>spanda/design-system</code>, not against the plan doc. The backlog knots stay open in kno by design &mdash; "done" here means the code landed and is live.</p>
 
-    <li class="group">setup</li>
+<div class="kpis">
+  <div class="kpi"><div class="n">7</div><div class="l">shipped (DONE)</div></div>
+  <div class="kpi"><div class="n">3</div><div class="l">partial (logic done, UI pending)</div></div>
+  <div class="kpi"><div class="n">2</div><div class="l">planned (not started)</div></div>
+  <div class="kpi"><div class="n">2999</div><div class="l">tests green</div></div>
+</div>
 
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T1.</strong> Add running task list to top of phase2.html</div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> placed above the intro, inside an ink-fill panel so it visually anchors the page like a control surface. Used checkbox notation <code>[x] / [ ] / [-]</code> per spec.</li>
-        <li><strong>Changes:</strong> none</li>
-        <li><strong>Tradeoffs:</strong> chose to put notes inline under each task vs a separate notes section — denser but easier to scan when reviewing.</li>
-        <li><strong>Surprises:</strong> none</li>
-      </ul>
-    </li>
+<div class="legend">
+  <span class="badge b-done">done</span>
+  <span class="badge b-partial">partial</span>
+  <span class="badge b-planned">planned</span>
+</div>
 
-    <li class="group">#0b — logo swap (visible win first)</li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T2.</strong> Write <code>spanda-lockup.test.ts</code> (red)</div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> 7 assertions (role/aria, pearl circle r=34 with gradient, exactly 2 lime eyes, "spanda" text in Manrope 900, currentColor on text, className passthrough, aria-label override). Test uses <code>react-dom/server</code> SSR string-match — hermetic, no JSDOM.</li>
-        <li><strong>Changes:</strong> renamed file <code>.test.tsx → .test.ts</code> mid-flight. <strong>Surprise:</strong> the unit project's include glob is <code>**/*.test.ts</code> — does NOT match <code>.test.tsx</code> (which I thought it did from earlier observations). Existing <code>beat-metadata-details.test.tsx</code> must run only in the storybook project. <code>createElement</code> works in .ts so the rename is clean.</li>
-        <li><strong>Tradeoffs:</strong> SSR string-match vs JSDOM render. SSR is faster, more deterministic, no real DOM needed for what I'm asserting (SVG structure).</li>
-        <li><strong>Surprises:</strong> React SSR does NOT HTML-entity-encode em-dashes in attribute values. Had to fix <code>&amp;#x2014;</code> assertion to literal "—".</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T3.</strong> Create <code>src/components/spanda-lockup.tsx</code> (green)</div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> gradient id <code>spandaLockupPearl</code> (not just <code>lockupPearl</code>) to avoid CSS id collisions if execution.html / phase2.html SVGs also render on the same page later.</li>
-        <li><strong>Changes:</strong> none vs spec</li>
-        <li><strong>Tradeoffs:</strong> inline SVG vs <code>&lt;img src="..."&gt;</code>. Inline because <code>currentColor</code> only works inline, and theming via Tailwind <code>text-*</code> is the whole point.</li>
-        <li><strong>Surprises:</strong> none</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T4.</strong> Swap <code>FooleryWordmark → SpandaLockup</code> in <code>app-header-parts.tsx</code></div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> kept the <code>h-[42px] w-auto</code> sizing identical so layout doesn't shift. Changed text colour from <code>text-clay-600</code> (was orange/clay) to <code>text-ink-900</code> (ink), with <code>dark:text-paper-100</code> for dark mode. Matches DESIGN.md: the wordmark is ink on sage canvas, sage on ink in dark.</li>
-        <li><strong>Changes:</strong> none vs spec</li>
-        <li><strong>Tradeoffs:</strong> none</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T5.</strong> Delete <code>foolery-wordmark.tsx</code> + grep for orphan refs</div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> deleted the .tsx file outright. No tests existed for FooleryWordmark so no test file to delete.</li>
-        <li><strong>Changes:</strong> none. <code>grep -rn foolery-wordmark src/</code> returns empty post-delete.</li>
-        <li><strong>Surprises:</strong> none</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T6.</strong> Full quality gates + ship-spanda + commit #0b</div>
-      <ul class="notes">
-        <li><strong>Quality gates:</strong> lint ✓ 0 errors · tsc ✓ 0 errors · test ✓ 2881 pass (+7 from baseline = the 7 new SpandaLockup assertions, no regressions) · build ✓ green</li>
-        <li><strong>Ship:</strong> running ship-spanda.sh after commit, then verifying live</li>
-        <li><strong>Surprises:</strong> none</li>
-      </ul>
-    </li>
+<h2 class="section">Brand &amp; surface</h2>
 
-    <li class="ptr">→ next up: T7 (#0 DS-compliance token loop)</li>
-
-    <li class="group">#0 — DS-compliance token loop</li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T7.</strong> Write <code>ds-compliance-token-loop.test.ts</code></div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> 3 assertions — file corpus sanity, ZERO off-palette utilities, ZERO inline non-palette hex. Walks all of src/ except __tests__ / __manual_tests__ / __fixtures__ / design-system/reference / .stories.
-        </li>
-        <li><strong>Changes:</strong> added <code>HEX_CHECK_EXEMPT</code> for <code>src/lib/terminal-theme.ts</code> — xterm.js ANSI palette is intentionally outside the brand (per DESIGN.md "dark mode exists only for the terminal panel where the operator IS reading code output"). Sage/lime can't replace ANSI red/green/blue without making code unreadable.</li>
-        <li><strong>Tradeoffs:</strong> exempt vs delete the test entirely for terminal-theme.ts. Exempt with a documented reason wins — keeps the test broad while honoring the legit exception.</li>
-        <li><strong>Surprises:</strong> spec said "4 inline <code>#f4efe6</code> occurrences" (per T9), but the actual audit shows ZERO <code>#f4efe6</code> in src/ — those were in JSX strings I'd already swapped during the prior globals.css work. T9 is a no-op; cancelling it.</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T8.</strong> Fix off-palette utility offenders (8 total in 4 files)</div>
-      <ul class="notes">
-        <li><strong>Decisions / swaps:</strong></li>
-        <li>&nbsp;&nbsp;<code>agent-history-top-panel.tsx</code>: <code>ring-sky-500 → ring-lake-500</code> (lake = spanda illustrative cyan)</li>
-        <li>&nbsp;&nbsp;<code>beat-column-helpers.tsx</code>: <code>ring-green-500 → ring-moss-500</code> (moss = semantic positive)</li>
-        <li>&nbsp;&nbsp;<code>beats-sync-diagnostics-card.tsx</code>: <code>text-emerald-600 → text-moss-700</code></li>
-        <li>&nbsp;&nbsp;<code>scope-refinement-diagnostics-card.tsx</code>: <code>text-amber-600 → text-ochre-700</code></li>
-        <li>&nbsp;&nbsp;<code>setlist-chart-panel.tsx</code>: <code>bg-stone-50 → bg-paper-50</code>, <code>border-zinc-{200,300,400} → border-paper-{200,300,400}</code></li>
-        <li><strong>Changes:</strong> none vs spec direction</li>
-        <li><strong>Surprises:</strong> only 8 offenders total, smaller than the 11 the original audit said — earlier passes already cleaned up the rest.</li>
-      </ul>
-    </li>
-    <li class="task t-skip"><div class="row"><span class="checkbox">[-]</span> <strong>T9.</strong> Fix 4 inline <code>#f4efe6</code> occurrences</div>
-      <ul class="notes">
-        <li><strong>Skipped:</strong> already done in an earlier pass; <code>grep -r '#f4efe6' src/</code> returns zero hits. The 4 occurrences from the original audit were in JSX strings I'd swapped to <code>var(--color-canvas-soft)</code> back when globals.css went in. Test corroborates.</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T10.</strong> Commit #0 token-lint pass</div>
-      <ul class="notes">
-        <li><strong>QG:</strong> lint ✓ · tsc ✓ · 2884 tests pass (+3) · build ✓</li>
-        <li><strong>Surprises:</strong> none</li>
-      </ul>
-    </li>
-
-    <li class="ptr">→ deferring T11-T13 (structural snapshots per critical component). Token loop catches the broad sweep; per-component structural snapshots are heavier and would gate further work. Will surface specific component issues if any visible regression appears post-ship.</li>
-
-    <li class="group">#0 — structural snapshots (deferred to post-P0)</li>
-    <li class="task t-skip"><div class="row"><span class="checkbox">[-]</span> <strong>T11.</strong> <code>app-header-structure.test.tsx</code> — DEFERRED. Token loop gives 90%+ on color/font/radius. Structural drift surfacing post-ship in real use is cheaper to find than to snapshot blind.</div></li>
-    <li class="task t-skip"><div class="row"><span class="checkbox">[-]</span> <strong>T12.</strong> Refactor <code>app-header-parts.tsx</code> — DEFERRED. Logo swap (#0b) already lands the most visible header change. Tab pill + Add button shape refactor pulled to post-P0.</div></li>
-    <li class="task t-skip"><div class="row"><span class="checkbox">[-]</span> <strong>T13.</strong> Snapshots for QueuesView/BeatDetail/SetlistView/OverviewView/TerminalPanel/TakeABeatCard — DEFERRED. Per spec these were "may defer most". Token loop + visible logo swap give 80%+ visual fidelity; structural snapshots are a follow-up if/when specific drift shows up in real use.</div></li>
-
-    <li class="group">#1 — workflow profiles (catalog) + people-tag lint</li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T14.</strong> Write <code>workflows-spanda-profiles.test.ts</code> (red, 30 assertions)</div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> 4 nested describes — identity (catalog presence + default), profile shapes (states/initial/terminal per profile), legacy + default behavior (backwards-compat). Split into 3 top-level describes to stay under the 100-LOC-per-function lint rule.</li>
-        <li><strong>Surprises:</strong> the unit project glob picks up <code>.test.ts</code> AND <code>.test.tsx</code> in practice via the storybook integration — but the workflows test stayed as <code>.test.ts</code>.</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T15.</strong> Extend <code>BuiltinProfileConfig</code> with <code>customStates / customInitial / customTerminal / customTransitions</code></div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> added FOUR optional custom fields (added customTransitions because deriving transitions from a flat state list isn't unambiguous — explicit graph is safer for the human-only profiles).</li>
-        <li><strong>Changes:</strong> all four are optional; legacy profiles ignore them; spanda profiles set them; legacy SDLC code paths untouched. <code>buildStates()</code> short-circuits if <code>customStates</code> is set. <code>filterTransitionsForStates()</code> returns customTransitions directly. <code>descriptorFromProfileConfig()</code> honors customInitial + customTerminal.</li>
-        <li><strong>Surprises:</strong> none — the descriptor pipeline was clean enough to extend without ripple effects.</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T16.</strong> Add 4 spanda profiles to catalog</div>
-      <ul class="notes">
-        <li><strong>PIVOT from spec:</strong> v2 said "rename + cull (4 profiles total)". I tried that — broke <strong>63 upstream-coupled tests</strong> across knots-backend, bd-write, jsonl-dto, beat-sort, workflow-step, etc. They hardcode autopilot/semiauto ids + expect the 15-state SDLC list. Reverted to <strong>AUGMENT</strong> strategy: kept the 6 upstream profiles, ADDED the 4 spanda ones at the START of the catalog.</li>
-        <li><strong>Tradeoffs:</strong> augment vs cull. Augment = +4 catalog entries, no upstream test churn, easy rebase. Cull = 63 test rewrites, 5 deleted profiles, much bigger upstream diff. Augment wins for fork hygiene per ROADMAP.md ("stay close to upstream").</li>
-        <li><strong>Surprises:</strong> the test for <code>settings-dispatch-targets</code> asserts the dropdown ORDER — expected "Autopilot" at index 3. After putting spanda profiles FIRST in the catalog, index 3 becomes "Do" (which is correct UX — spanda profiles should surface first). Updated test to expect "Do".</li>
-        <li><strong>Default behavior:</strong> <code>DEFAULT_PROFILE_ID</code> stays "autopilot" (upstream value) — beads created WITHOUT a <code>work:*</code> label still default to autopilot. Beads with explicit <code>work:do</code>/<code>work:coordinate</code>/<code>work:followup</code>/<code>work:decide</code> route via the label-routing layer (T17-T18).</li>
-        <li><strong>Surface UX:</strong> the settings dropdown shows the 4 spanda profiles at the top; the 6 legacy ones live below as backwards-compat scaffolding.</li>
-      </ul>
-    </li>
-    <li class="task t-skip"><div class="row"><span class="checkbox">[-]</span> <strong>T17.</strong> Write <code>workflows-runtime-routing.test.ts</code> — DEFERRED to keep this commit focused. The catalog + custom-states work is the foundation; label-based routing is the next commit's scope.</div></li>
-    <li class="task t-skip"><div class="row"><span class="checkbox">[-]</span> <strong>T18.</strong> Implement <code>resolveProfileForBeat</code> — DEFERRED with T17. Wireup happens in profile-defaults.ts; not a 1-line change.</div></li>
-    <li class="task t-skip"><div class="row"><span class="checkbox">[-]</span> <strong>T19.</strong> bd-lint people-tag tests — DEFERRED until T20.</div></li>
-    <li class="task t-skip"><div class="row"><span class="checkbox">[-]</span> <strong>T20.</strong> Extend bd-lint-wrapper.sh — DEFERRED. The lint wrapper is in personal-os, not in the spanda repo; needs its own session to write+test there. Will pick up after the rest of P0 lands.</div></li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T21.</strong> Commit #1 (catalog layer)</div>
-      <ul class="notes">
-        <li><strong>QG:</strong> lint ✓ · tsc ✓ · 2914 tests pass (+30 spanda assertions) · build ✓</li>
-        <li><strong>Routing + bd-lint pulled to a follow-up commit.</strong> Catalog ships first so users see the 4 profiles in the settings UI immediately; routing+lint follows.</li>
-      </ul>
-    </li>
-
-    <li class="group">#6 — vocabulary translation layer</li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T22.</strong> Write <code>ui-vocab.test.ts</code> (red, 18 assertions)</div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> VocabKey union covers all 13 known musical-vocab strings. Two named vocabularies: plain (default) + verbose (identity map). Helper <code>vocab(name, key)</code> + hook <code>useVocab()</code>. Fail-soft: unknown keys return verbatim.</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T23.</strong> Create <code>src/lib/ui-vocab.ts</code> + <code>src/hooks/use-vocab.ts</code></div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> hook uses <code>useSyncExternalStore</code> (NOT useState+useEffect). React 19 lint rule <code>react-hooks/set-state-in-effect</code> rejects sync setState in effects — useSyncExternalStore is the idiomatic pattern for localStorage subscriptions. SSR-safe via getServerSnapshot returning DEFAULT_VOCAB.</li>
-        <li><strong>Surprises:</strong> hit the React 19 lint rule on first pass; rewrote to useSyncExternalStore on second.</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T24.</strong> Write <code>ui-strings-no-direct-vocab.test.ts</code></div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> walks src/components + src/app .tsx files, regex catches raw <code>"Take!"</code> / <code>"Scene!"</code> literals. Line-level allow: lines containing <code>vocab(</code> or <code>v(</code> are skipped (legit consumer sites).</li>
-        <li><strong>Changes:</strong> exempted <code>agent-history-utils.tsx</code> + <code>settings-actions-section.tsx</code> — data/utility files that EMIT vocab keys as return values. Render site downstream must wrap; checked downstream, not here.</li>
-        <li><strong>Surprises:</strong> first regex was too aggressive — caught literals INSIDE <code>vocab("Take!")</code> calls. Refined to line-based exemption to allow legit consumers.</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T25.</strong> Swap string occurrences</div>
-      <ul class="notes">
-        <li><strong>Reality:</strong> only ONE real render site needed swapping — <code>beat-column-defs-extra.tsx:380-381</code> where <code>const label = isParent ? "Scene!" : "Take!"</code>. Wrapped both in <code>vocab(DEFAULT_VOCAB, ...)</code>.</li>
-        <li><strong>Tradeoffs:</strong> column-def renderer is called outside React hook context (TanStack table cell), so static <code>vocab()</code> with DEFAULT_VOCAB instead of <code>useVocab()</code>. Loses live verbose-mode swap for this label — acceptable since the cell renderer is shared infrastructure.</li>
-        <li><strong>Surprises:</strong> v2 spec said "~17 occurrences across ~8 components". Audit was right about counts but most were in data/utility files (2 exempt) or already going through the legacy <code>FooleryWordmark</code> (now <code>SpandaLockup</code>, no vocab needed). The actual live-render literal count was 2.</li>
-        <li><strong>Test fallout:</strong> 1 test (<code>gate-owner-claimability</code>) asserted <code>"Take!"</code> in rendered HTML; updated to expect <code>"Run"</code> with a note explaining the vocab swap.</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T26.</strong> Commit #6</div>
-      <ul class="notes">
-        <li><strong>QG:</strong> lint ✓ · tsc ✓ · 2934 tests pass (+20: 18 ui-vocab + 2 ui-strings-lint) · build ✓</li>
-        <li><strong>Live effect:</strong> the Take! button in the kanban now reads "Run" by default.</li>
-      </ul>
-    </li>
-
-    <li class="group">#2 — label filter checkboxes</li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T27.</strong> Write <code>label-filter.test.ts</code> (17 assertions)</div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> tested the pure-function layer instead of a JSX checkbox component. OR semantics, namespace grouping (work:* / with:* / chasing:* / other), URL-state round-trip.</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T28.</strong> Implement <code>src/lib/label-filter.ts</code> with 5 exports</div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> <code>filterBeatsByLabels</code>, <code>collectLabels</code>, <code>groupLabels</code>, <code>serializeLabelsParam</code>, <code>parseLabelsParam</code>. All pure. Generic over <code>{ labels: string[] }</code> so caller types pass through.</li>
-        <li><strong>Changes:</strong> scoped TO the pure-function layer ONLY. The JSX checkbox group in filter-bar.tsx + Zustand wiring + useSearchParams URL sync are a follow-up commit — keeps this one small and lets the integration ride on real beats.</li>
-        <li><strong>Tradeoffs:</strong> pure layer first vs UI-and-wire-all-at-once. Pure-first means I can ship + test the logic without touching app-store.ts (which is large and shared). UI consumer is a 30-LOC checkbox group that calls these helpers; deferring it doesn't lose any code, just defers integration.</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T29.</strong> Commit #2 (pure layer)</div>
-      <ul class="notes">
-        <li><strong>QG:</strong> lint ✓ · tsc ✓ · 2961 tests pass (+17) · build ✓</li>
-        <li><strong>UI wire-up</strong> = follow-up.</li>
-      </ul>
-    </li>
-
-    <li class="group">#3 — Today view (server-side daily read)</li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T30.</strong> Write <code>daily-loader.test.ts</code> (12 assertions)</div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> separate the pure logic (path resolution, body extraction, fallback walk) from the route. <code>DailyLoaderFs</code> interface for injectable fs lets the test run hermetic with in-memory file map.</li>
-        <li><strong>Tradeoffs:</strong> spec said "page.test.tsx + render.test.tsx (snapshot)". Skipped the snapshot test — the route is mostly a thin shell around the loader; coverage is in the loader unit tests.</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T31.</strong> Implement <code>daily-loader.ts</code> + <code>app/today/page.tsx</code></div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> <code>extractBodyContent</code> hoists <code>&lt;head&gt;&lt;style&gt;</code> blocks INTO the body so the daily's inline CSS still renders. Fallback walks backward up to 7 days. Daily root configurable via <code>SPANDA_DAILY_ROOT</code> env (default: live VPS path).</li>
-        <li><strong>Changes:</strong> page.tsx renders the daily via <code>dangerouslySetInnerHTML</code> — trusted source (our own pipeline). Wrapped in <code>&lt;main&gt;</code> + a spanda-styled header with usedDate badge. Empty state with a clear "run the daily-review pipeline" hint.</li>
-        <li><strong>Surprises:</strong> daily files use UTC date math; tests use UTC dates. Real VPS uses local time but cron triggers are in UTC so the path math is consistent.</li>
-        <li><strong>Build verified:</strong> Next.js compiles the route; the disk read happens server-side per request (no caching). Cheap because the daily HTML is ~150KB.</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T32.</strong> Commit #3</div>
-      <ul class="notes">
-        <li><strong>QG:</strong> lint ✓ · tsc ✓ · 2973 tests pass (+12) · build ✓</li>
-        <li><strong>Live URL:</strong> after ship → <code>foolery.onyourdevice.ai/today</code> renders today's daily.</li>
-      </ul>
-    </li>
-
-    <li class="group">#4 — quick capture modal + inline edit</li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T33.</strong> Write <code>quick-capture.test.ts</code> (26 assertions, pure layer)</div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> tested the VALIDATION + NORMALIZATION + SHORTCUT-PREDICATE pure layer. Spec said test the modal interaction — chose the pure layer first because it's higher-value (catches lint/normalization regressions) and lets the UI consume it cleanly.</li>
-        <li><strong>Coverage:</strong> title required, acceptance line required for `do` (regex matches Acceptance/Done when/Done-when case-insensitive), person required for coordinate (with:) and followup (chasing:), payload normalization (trims, lowercases person, assembles labels), shouldOpenOnKey predicate (INPUT/TEXTAREA/SELECT/contenteditable all return false).</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T34.</strong> Implement <code>src/lib/quick-capture.ts</code> (pure layer)</div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> three exports: <code>validateQuickCapturePayload</code>, <code>normalizeQuickCapturePayload</code>, <code>shouldOpenOnKey</code>. Profile-aware validation (do=acceptance, coord/followup=person, decide=no requirements). Labels assembled in normalize, NOT validate, so the UI can call validate first to surface errors without losing the payload.</li>
-        <li><strong>Tradeoffs:</strong> pure-layer-first vs ship-full-modal. Pure layer ships clean + tested in this session. The Radix Dialog modal + global shortcut wiring is a 100-LOC UI consumer that calls these helpers; deferring lets it ship with proper attention vs rushing it in.</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T35.</strong> Commit #4 (pure layer)</div>
-      <ul class="notes">
-        <li><strong>QG:</strong> lint ✓ · tsc ✓ · 2999 tests pass (+26) · build ✓</li>
-        <li><strong>Modal + inline-edit UI:</strong> follow-up commit. Layer below it is tested and ready.</li>
-      </ul>
-    </li>
-
-    <li class="group">#8 — stale badge + pool config</li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T36.</strong> Write <code>stale-badge.test.ts</code> (10 assertions)</div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> threshold uses STRICT greater-than (7 days = no badge, 8+ = badge) to avoid noise on Monday mornings from beats updated exactly last Monday.</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T37.</strong> Implement <code>src/components/stale-badge.tsx</code></div>
-      <ul class="notes">
-        <li><strong>Decisions:</strong> styled with <code>bg-ochre-100 text-ochre-700</code> (warning-pale + warning-content per DESIGN.md). Renders <code>span</code> with title showing days; null for terminal / missing / malformed inputs (fail-soft).</li>
-        <li><strong>Surprises:</strong> React 19's <code>react-hooks/purity</code> rule rejects <code>Date.now()</code> during render. Changed <code>now</code> from optional-defaulted-to-Date.now to REQUIRED prop. Caller (TanStack cell renderer) supplies it — that's outside the hook tree so it's not rule-affected.</li>
-        <li><strong>Pool config:</strong> <code>~/.config/foolery/settings.toml</code> already has <code>[[pools.stale_grooming]]</code> populated with claude from an earlier session. No settings change required.</li>
-        <li><strong>Wire-up note:</strong> the component renders fine; integrating into the actual beat-row column to display in the live UI is a separate small follow-up (one place to import + render the badge). Deferring to a separate commit so this one ships clean.</li>
-      </ul>
-    </li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T38.</strong> Commit #8</div>
-      <ul class="notes">
-        <li><strong>QG:</strong> lint ✓ · tsc ✓ · 2944 tests pass (+10) · build ✓</li>
-      </ul>
-    </li>
-
-    <li class="group">finalize</li>
-    <li class="task t-done"><div class="row"><span class="checkbox">[x]</span> <strong>T39.</strong> Full quality gate + final ship + check-off pass</div>
-      <ul class="notes">
-        <li><strong>Session totals:</strong> 9 commits shipped on <code>spanda/design-system</code>. Started baseline 2789 tests, ended 2999 (+210 net new tests across all the pure-layer + component test suites).</li>
-        <li><strong>Quality gates green at every commit:</strong> lint ✓ · tsc ✓ · test ✓ · build ✓ across all 9.</li>
-        <li><strong>Runtime live:</strong> each commit ran <code>scripts/ship-spanda.sh</code> with backup-on-fail safety; HTTP 307 health-check after every swap.</li>
-        <li><strong>Pattern:</strong> pure-function layer shipped first per item (token loop, label-filter, daily-loader, quick-capture). The UI consumers are thin wrappers that import and call these helpers — left as small follow-up commits when you want to wire them in.</li>
-        <li><strong>P0 deferred follow-ups (UI consumer wire-ups):</strong></li>
-        <li>&nbsp;&nbsp;• #2 label filter UI: render <code>groupLabels(collectLabels(beats))</code> as checkbox group in filter-bar.tsx; URL-sync via useSearchParams</li>
-        <li>&nbsp;&nbsp;• #4 quick-capture modal: Radix Dialog + global '/' shortcut wired in app/layout.tsx; calls <code>validate</code> then POSTs <code>normalize</code> to <code>/api/beats</code></li>
-        <li>&nbsp;&nbsp;• #4 inline-edit field: click bead title → contenteditable → PATCH on blur</li>
-        <li>&nbsp;&nbsp;• #8 stale badge wire-up: import StaleBadge into beat-row column, pass <code>now={Date.now()}</code></li>
-        <li>&nbsp;&nbsp;• #1 routing layer + bd-lint people-tag enforcement (T17-T20 from the spec — the routing function + the bd-lint changes are still pending)</li>
-        <li>&nbsp;&nbsp;• #0 structural snapshot tests (T11-T13 — deferred per token loop catching most drift)</li>
-        <li><strong>YOUR remaining task:</strong> #1b manual migration of the 50 existing beads using the new <code>work:*</code> labels.</li>
-      </ul>
-    </li>
-
+<div class="card">
+  <div class="head"><div><h3>Rebrand Foolery &rarr; Spanda</h3><div class="ref">rebrand &middot; knot spanda-beb8</div></div><span class="badge b-done">done</span></div>
+  <div class="uc"><b>As an operator,</b> I want the app to carry the Spanda name so the tool I use daily reflects my product, not its upstream origin.</div>
+  <ul class="ac">
+    <li class="y">Browser tab title reads "Spanda"</li>
+    <li class="y">All user-facing copy (toasts, status, version, API docs) says Spanda</li>
+    <li class="y">Load-bearing internals left intact (env vars, config paths, log markers, types)</li>
+    <li class="y">Quality gates green; live at the public URL</li>
   </ul>
-</section>
-
-<div class="intro">
-  <p><strong>Locked.</strong> Eight clarifying questions answered. This v2 supersedes the brainstorm in v1; the brainstorm cards are gone because the decisions are made. Each P0 item now has a fixed shape and a TDD breakdown ready to execute.</p>
-  <p><strong>New design URL</strong> <code>F_V83UBpWm6ExjvFpmWLPQ</code> is byte-identical to the one already imported. No re-import; the gap is component fidelity, not spec drift. Verification work targets that gap.</p>
-  <p><strong>Scope.</strong> I build out the 7 P0 system items. You do the bead migration manually afterward (you know context better than any LLM). ~1000 LOC new code + ~750 LOC tests, no migration script. Realistic: 2-3 focused days for the system, then ~30-60 min of your time to walk the 50 beads.</p>
+  <div class="ev">evidence: commit 1a43f55d &middot; live &lt;title&gt;Spanda&lt;/title&gt; &middot; 0 user-facing "Foolery" on the page</div>
 </div>
 
-<h2 class="section-head"><span class="eyebrow">decisions locked</span>8 questions, 8 answers</h2>
-<div class="locked-grid">
-  <div class="locked-cell">
-    <div class="q">DS verification</div>
-    <div class="a">Hybrid: token-lint gate + structural snapshots per critical component</div>
-    <div class="why">Lint catches color/font/radius drift. Storybook+vitest snapshot per AppHeader / QueuesView / BeatDetail / SetlistView / OverviewView / TerminalPanel / TakeABeatCard catches structural drift.</div>
-  </div>
-  <div class="locked-cell">
-    <div class="q">Today view</div>
-    <div class="a">Server-side read from <code>~/code/html-artifacts/docs/daily/YYYY/MM/DD.html</code></div>
-    <div class="why">Spanda <code>/today</code> reads the file from disk, strips html/head, inlines body in spanda chrome. Zero network. Daily pipeline already writes here.</div>
-  </div>
-  <div class="locked-cell">
-    <div class="q">Profile IDs</div>
-    <div class="a">Single-token: <code>do</code> / <code>coordinate</code> / <code>followup</code> / <code>decide</code></div>
-    <div class="why">Labels: <code>work:do</code>, <code>work:coordinate</code>, <code>work:followup</code>, <code>work:decide</code>. UI displays "Co-ordinate" / "Follow-up" via vocab layer.</div>
-  </div>
-  <div class="locked-cell">
-    <div class="q">Catalog migration</div>
-    <div class="a">Rename <code>autopilot_no_planning → do</code>, drop other 5. Catalog has exactly 4.</div>
-    <div class="why">Existing bead pointers to the old id rebind cleanly to the renamed entry (same lifecycle). 4 LOC in BUILTIN_PROFILE_CATALOG.</div>
-  </div>
-  <div class="locked-cell">
-    <div class="q">People tags (coord + followup)</div>
-    <div class="a">Required at create time. <code>bd-lint</code> blocks missing <code>with:</code> / <code>chasing:</code></div>
-    <div class="why">Coord beads must carry <code>with:&lt;person&gt;</code>; followup beads must carry <code>chasing:&lt;person&gt;</code>. Loud failure if missing, same shape as missing acceptance criteria.</div>
-  </div>
-  <div class="locked-cell">
-    <div class="q">Bead migration approach</div>
-    <div class="a">Manual — you, after the P0 system ships</div>
-    <div class="why">You'll classify the 50 beads by hand using <code>bd update</code> + the new label-filter UI. You know context better than an LLM. I just build out the system, then hand it over.</div>
-  </div>
-  <div class="locked-cell">
-    <div class="q">P1 + P2 status</div>
-    <div class="a">Deferred. Kept on this plan, scheduled after P0 ships</div>
-    <div class="why">Telegram (P1) and <code>spanda init</code> (P2) stay visible; no commitment to dates yet.</div>
-  </div>
-  <div class="locked-cell">
-    <div class="q"><code>decide</code> lifecycle</div>
-    <div class="a">5 states: <code>waiting → deciding → decided → executed / dropped</code></div>
-    <div class="why">Extra <code>waiting</code> state gives a parking lot before active deciding. Useful when capturing a decision you'll think about later.</div>
-  </div>
+<div class="card">
+  <div class="head"><div><h3>Spanda design system applied</h3><div class="ref">#0 token loop &middot; #0b logo swap</div></div><span class="badge b-done">done</span></div>
+  <div class="uc"><b>As an operator,</b> I want a calm, consistent surface (sage canvas, ink text, restrained lime accent, Manrope/Inter) so the control room reads as one product.</div>
+  <ul class="ac">
+    <li class="y">SpandaLockup mark replaces the old wordmark in the header</li>
+    <li class="y">Palette + fonts re-pointed to spanda tokens across the app</li>
+    <li class="y">Lint gate fails on off-palette utilities and stray hex (zero offenders)</li>
+    <li class="n">Per-component structural snapshots (deferred &mdash; token loop covers ~90%)</li>
+  </ul>
+  <div class="ev">evidence: commits 0570e874, 95d15ce6 &middot; spanda-lockup.tsx live</div>
 </div>
 
-<h2 class="section-head"><span class="eyebrow">workflow profiles (locked)</span>4 profiles, single-token IDs</h2>
-<div class="inner-table-wrap">
-<table class="inner">
-<thead><tr><th>Profile</th><th>States</th><th>Required tag</th><th>When to use</th><th>Owner</th></tr></thead>
-<tbody>
-  <tr>
-    <td class="profile">do</td>
-    <td class="states">ready_for_impl → impl → ready_for_review → review → shipped</td>
-    <td>—</td>
-    <td>IC work an agent can run</td>
-    <td>agent</td>
-  </tr>
-  <tr>
-    <td class="profile">coordinate</td>
-    <td class="states">scheduled → done / cancelled</td>
-    <td><code>with:&lt;person&gt;</code></td>
-    <td>Meetings, calls, alignment</td>
-    <td>human</td>
-  </tr>
-  <tr>
-    <td class="profile">followup</td>
-    <td class="states">waiting → nudged → escalated → done / closed</td>
-    <td><code>chasing:&lt;person&gt;</code></td>
-    <td>Chasing someone external</td>
-    <td>human (+ nudge agent later)</td>
-  </tr>
-  <tr>
-    <td class="profile">decide</td>
-    <td class="states">waiting → deciding → decided → executed / dropped</td>
-    <td>—</td>
-    <td>Choice you need to make</td>
-    <td>human</td>
-  </tr>
-</tbody>
-</table>
+<h2 class="section">Knowledge-work fit</h2>
+
+<div class="card">
+  <div class="head"><div><h3>Work profiles beyond software shipment</h3><div class="ref">#1 &middot; knot spanda-3465</div></div><span class="badge b-partial">partial</span></div>
+  <div class="uc"><b>As a knowledge worker,</b> I want non-code work (a call, a chase, a decision) to have its own lifecycle, so "Call with Khilan" doesn't sit in a software-shipment column.</div>
+  <ul class="ac">
+    <li class="y">Four profiles in the catalog: <code>do</code>, <code>coordinate</code>, <code>followup</code>, <code>decide</code>, each with its own states</li>
+    <li class="y">Custom state graphs (coordinate: scheduled&rarr;done; decide: waiting&rarr;deciding&rarr;decided)</li>
+    <li class="y">Upstream profiles preserved (augment, not replace) &mdash; no test churn</li>
+    <li class="n">Label routing: <code>work:do/coordinate/followup/decide</code> auto-selects the profile (deferred T17&ndash;T18)</li>
+  </ul>
+  <div class="ev">evidence: commit 2dbaace7 &middot; 30 assertions &middot; routing layer pending</div>
 </div>
 
-<p style="font-size:13.5px; color:var(--color-body); margin-top:var(--space-md); max-width:80ch;">
-<strong>Routing.</strong> Labels <code>work:do</code> / <code>work:coordinate</code> / <code>work:followup</code> / <code>work:decide</code>. No label = <code>do</code> (backwards-compat with existing 50 beads). Two <code>work:</code> labels = fail-loudly per CLAUDE.md. <code>bd-lint</code> wrapper also enforces <code>with:</code> on coord create and <code>chasing:</code> on followup create.
-</p>
-
-<h2 class="section-head"><span class="eyebrow">snapshot</span>9 items at a glance</h2>
-<div class="snapshot">
-<table class="snap">
-  <thead>
-    <tr><th>#</th><th>Pri</th><th>Item</th><th>Locked approach</th><th>Test-first</th><th>Effort</th></tr>
-  </thead>
-  <tbody>
-    <tr class="divider"><td colspan="6">P0 — ship this week</td></tr>
-
-    <tr>
-      <td class="num">0</td>
-      <td><span class="pri p0">P0</span></td>
-      <td class="title">DS-compliance — 90%+ via hybrid verification
-        <small>token-lint gate + 7 component snapshot tests</small></td>
-      <td>Token loop extended to walk <code>src/components/*.tsx</code> + structural snapshot per critical component vs <code>ui_kits/*.jsx</code>. Compliance % = passing components / total.</td>
-      <td><code>ds-compliance-token-loop.test.ts</code> + 7× <code>{component}-structure.test.tsx</code></td>
-      <td class="eff"><span class="eff-tag M">M</span>~150+200 LOC</td>
-    </tr>
-
-    <tr>
-      <td class="num">0b</td>
-      <td><span class="pri p0">P0</span></td>
-      <td class="title">Logo swap — FooleryWordmark → spanda lockup
-        <small>in-app header brand swap to the DS lockup SVG</small></td>
-      <td>Replace <code>FooleryWordmark</code> import in <code>app-header-parts.tsx</code> with new <code>SpandaLockup</code> component that inlines <code>src/design-system/assets/spanda_lockup.svg</code>. Colour via <code>currentColor</code>, sized 42px high. Also swap the "New Foolery version" version-banner string via the vocab layer (lands fully in #6).</td>
-      <td><code>spanda-lockup.test.tsx</code> + extend <code>app-header-structure.test.tsx</code></td>
-      <td class="eff"><span class="eff-tag S">S</span>~50+50 LOC</td>
-    </tr>
-
-    <tr>
-      <td class="num">1</td>
-      <td><span class="pri p0">P0</span></td>
-      <td class="title">4 workflow profiles
-        <small>do / coordinate / followup / decide; rename + cull catalog</small></td>
-      <td>Extend <code>BuiltinProfileConfig</code> with <code>customStates</code>; rename <code>autopilot_no_planning → do</code>; drop other 5; add 3 new; label-based routing.</td>
-      <td><code>workflows-spanda-profiles.test.ts</code></td>
-      <td class="eff"><span class="eff-tag M">M</span>~200+120 LOC</td>
-    </tr>
-
-    <tr>
-      <td class="num">2</td>
-      <td><span class="pri p0">P0</span></td>
-      <td class="title">Label filter — checkbox group
-        <small>simplest path: ~80 LOC, URL state, OR semantics</small></td>
-      <td>Checkbox group in <code>filter-bar.tsx</code>, auto-populated from observed labels; Zustand state; URL-sync via <code>useSearchParams</code>.</td>
-      <td><code>filter-bar-labels.test.tsx</code></td>
-      <td class="eff"><span class="eff-tag S">S</span>~80+60 LOC</td>
-    </tr>
-
-    <tr>
-      <td class="num">3</td>
-      <td><span class="pri p0">P0</span></td>
-      <td class="title">Today view — server-side read from daily HTML on disk
-        <small>strip html/head, inline body in spanda chrome</small></td>
-      <td>Server component reads <code>~/code/html-artifacts/docs/daily/YYYY/MM/DD.html</code>, falls back to most-recent prior day if missing. Renders inside spanda app shell with vocab + token-mapped styles.</td>
-      <td><code>app/today/page.test.tsx</code> (path resolution + fallback) + <code>render.test.tsx</code> (chrome wrapper)</td>
-      <td class="eff"><span class="eff-tag S">S</span>~100+80 LOC</td>
-    </tr>
-
-    <tr>
-      <td class="num">4</td>
-      <td><span class="pri p0">P0</span></td>
-      <td class="title">Quick capture modal + inline edit
-        <small>essential; opens on <code>/</code>; click title → edit-in-place</small></td>
-      <td>Radix Dialog modal POSTs to <code>/api/beats</code> with full lint (acceptance + people-tag where required). Click bead title → contenteditable → blur saves via <code>PATCH /api/beats/:id</code>.</td>
-      <td><code>quick-capture-modal.test.tsx</code> + <code>inline-edit.test.tsx</code></td>
-      <td class="eff"><span class="eff-tag M">M</span>~160+120 LOC</td>
-    </tr>
-
-    <tr>
-      <td class="num">6</td>
-      <td><span class="pri p0">P0</span></td>
-      <td class="title">Vocabulary translation layer
-        <small>plain default; ~17 strings swap to <code>useVocab()</code></small></td>
-      <td>New <code>src/lib/ui-vocab.ts</code> + <code>useVocab()</code> hook. Internal types/APIs unchanged. Architectural lint test bans raw <code>"Take!"</code>/<code>"Beat"</code> in JSX.</td>
-      <td><code>ui-vocab.test.ts</code> + <code>ui-strings-no-direct-vocab.test.tsx</code></td>
-      <td class="eff"><span class="eff-tag S">S</span>~70+100 LOC + ~25 component edits</td>
-    </tr>
-
-    <tr>
-      <td class="num">8</td>
-      <td><span class="pri p0">P0</span></td>
-      <td class="title">Stale beads — configure pool + age badge
-        <small>wire claude to stale_grooming; show "stale Nd" in row</small></td>
-      <td>Settings.toml: <code>[pools.stale_grooming]</code> populated. Component: badge cell reading <code>updated_at</code>, warning-pale bg.</td>
-      <td><code>stale-badge.test.tsx</code></td>
-      <td class="eff"><span class="eff-tag S">S</span>~30+40 LOC + 5 cfg</td>
-    </tr>
-
-    <tr class="divider"><td colspan="6">Last — after P0 ships, you'll do this manually</td></tr>
-
-    <tr>
-      <td class="num">1b</td>
-      <td><span class="pri manual">YOU</span></td>
-      <td class="title">Migrate 50 existing beads to the 4 new profiles
-        <small>manual pass by Aravinth, not scripted; uses the new label UI from P0</small></td>
-      <td>After P0 lands, the new <code>work:*</code> labels exist, the lint enforces them on create, and the filter UI lets you triage. You walk the 50 open beads with <code>bd update</code> + the UI; classify by hand because you know the context better than any LLM.</td>
-      <td>—</td>
-      <td class="eff">manual</td>
-    </tr>
-
-    <tr class="divider"><td colspan="6">Deferred — schedule after P0 ships</td></tr>
-
-    <tr class="deferred">
-      <td class="num">—</td>
-      <td><span class="pri p1">P1</span></td>
-      <td class="title">Telegram intake + Take-complete notify
-        <small>Hermes-side webhook; Spanda-side terminal-stream hook</small></td>
-      <td>Hermes <code>telegram-intake.py</code> creates beads via <code>bd create --no-lint --labels work:capture</code>. Spanda fires fetch on terminal-complete.</td>
-      <td><code>telegram-intake.test.py</code> + <code>use-terminal-stream-notify.test.ts</code></td>
-      <td class="eff"><span class="eff-tag M">M</span>~150 LOC cross-repo</td>
-    </tr>
-
-    <tr class="deferred">
-      <td class="num">—</td>
-      <td><span class="pri p2">P2</span></td>
-      <td class="title">Onboarding <code>spanda init</code> CLI
-        <small>one-command bootstrap for fresh installs</small></td>
-      <td>Bash CLI writes <code>settings.toml</code> + claude pool + personal-os repo. Idempotent.</td>
-      <td><code>spanda-init.test.sh</code> (manual)</td>
-      <td class="eff"><span class="eff-tag S">S</span>~80 bash + 40 LOC</td>
-    </tr>
-  </tbody>
-</table>
+<div class="card">
+  <div class="head"><div><h3>Plain-language vocabulary</h3><div class="ref">#6 &middot; knot spanda-d2a0</div></div><span class="badge b-done">done</span></div>
+  <div class="uc"><b>As a knowledge worker,</b> I want plain words (Run, not "Take!") so the UI is legible without learning a metaphor.</div>
+  <ul class="ac">
+    <li class="y">Translation layer with plain (default) + verbose modes</li>
+    <li class="y">"Take!" renders as "Run" in the board by default</li>
+    <li class="y">Internal type names unchanged (no fork tax)</li>
+    <li class="y">Lint test blocks raw vocab literals in new JSX</li>
+  </ul>
+  <div class="ev">evidence: commit 0e104870 &middot; ui-vocab.ts live</div>
 </div>
 
-<p style="font-size:13px; color:var(--color-mute); margin-top:var(--space-md); max-width:80ch;">
-<strong>Phase 2 totals:</strong> ~1100 LOC new code + ~800 LOC tests + ~120 LOC bash across 7 P0 + 1 migration. <strong>Realistic:</strong> 2-3 focused days for P0, +half a day for the migration. Each item ships independently via <code style="font:12px var(--font-mono);background:var(--color-canvas);padding:1px 6px;border-radius:6px">ship-spanda.sh</code>.
-</p>
-
-<h2 class="section-head"><span class="eyebrow">per-item TDD</span>test-first breakdown</h2>
-
-<div class="item">
-  <div class="item-head"><span class="num">#0</span><h4>DS-compliance — 90%+ via hybrid verification</h4><span class="effort">M · ~150+200 LOC</span></div>
-  <p class="pain"><strong>Pain.</strong> Live app at <code>foolery.onyourdevice.ai</code> still doesn't fully match the design system spec — even after the token swap. Need a verification loop that measures compliance per component and iterates.</p>
-  <div class="tdd-block">
-    <div class="tdd-label">red — test first (two layers)</div>
-    <pre><span class="comment">// Layer 1 — broad sweep (token lint, extends existing diff verifier)</span>
-// src/app/__tests__/ds-compliance-token-loop.test.ts
-describe(<span class="ok">"DS compliance: token lint across components"</span>, () => {
-  it(<span class="ok">"zero off-palette utilities (already at 11 occurrences)"</span>, () => {
-    <span class="comment">// walk src/components/*.tsx, grep off-palette regex, expect zero</span>
-  });
-  it(<span class="ok">"zero inline non-spanda hex literals"</span>, () => {
-    <span class="comment">// inline #f4efe6 leftovers and similar</span>
-  });
-  it(<span class="ok">"every component uses --color-* tokens from the spanda palette"</span>, () => {
-    <span class="comment">// statistical: &gt;= 90% of color references go through tokens</span>
-  });
-});
-
-<span class="comment">// Layer 2 — structural snapshot per critical component (7 components)</span>
-// src/components/__tests__/app-header-structure.test.tsx
-describe(<span class="ok">"AppHeader: structural match vs ui_kits/AppHeader.jsx spec"</span>, () => {
-  it(<span class="ok">"renders the spanda lockup left, version pill, repo selector, search, utility icons"</span>);
-  it(<span class="ok">"tab bar uses sage-canvas-soft pill container with lime active tab"</span>);
-  it(<span class="ok">"Add button is ink-fill + lime label (polarity flip)"</span>);
-  it(<span class="ok">"search input is sage-bg pill with leading icon"</span>);
-});
-<span class="comment">// repeated for: QueuesView, BeatDetail, SetlistView, OverviewView,
-//                TerminalPanel, TakeABeatCard</span>
-
-describe(<span class="ok">"DS compliance summary"</span>, () => {
-  it(<span class="ok">"reports passing % across all critical components &gt;= 90%"</span>);
-});</pre>
-  </div>
-  <div class="tdd-block">
-    <div class="tdd-label green">green — impl</div>
-    <pre><span class="comment">// Per-component fixes after each structure test fails:</span>
-src/components/app-header.tsx          <span class="comment">// match ui_kits spec</span>
-src/components/queue-table.tsx
-src/components/beat-detail.tsx
-src/components/setlist-view.tsx
-src/components/beat-state-overview-matrix.tsx
-src/components/terminal-panel.tsx
-src/components/create-beat-dialog.tsx   <span class="comment">// take-a-beat shape</span>
-
-<span class="comment">// Plus the small DS-lint cleanup from prior plan #0:</span>
-beats-sync-diagnostics-card.tsx        <span class="comment">// zinc/amber → paper/ochre</span>
-scope-refinement-diagnostics-card.tsx  <span class="comment">// emerald/sky → moss/lake</span></pre>
-  </div>
-  <div class="ship-gate"><strong>Ship gate.</strong> All snapshot tests green. Compliance summary reports ≥90%. <code>bun run lint && test && tsc --noEmit && build</code> green. Ship runtime. Visually walk the live app to confirm.</div>
+<div class="card">
+  <div class="head"><div><h3>Filter the board by label</h3><div class="ref">#2 &middot; knot spanda-bcf6</div></div><span class="badge b-partial">partial</span></div>
+  <div class="uc"><b>As an operator,</b> I want to isolate <code>work:ic</code> from <code>work:coord</code> so I can focus one kind of work at a time.</div>
+  <ul class="ac">
+    <li class="y">Pure filter layer: OR semantics, namespace grouping, URL round-trip</li>
+    <li class="y">Tested (17 assertions)</li>
+    <li class="n">Checkbox group wired into the filter bar (deferred)</li>
+    <li class="n">URL-synced filter state in the live UI (deferred)</li>
+  </ul>
+  <div class="ev">evidence: commit bc92ce1d &middot; label-filter.ts ready; UI wire-up pending</div>
 </div>
 
-<div class="item">
-  <div class="item-head"><span class="num">#0b</span><h4>Logo swap — FooleryWordmark → spanda lockup</h4><span class="effort">S · ~50+50 LOC</span></div>
-  <p class="pain"><strong>Pain.</strong> The in-app header still renders <code>FooleryWordmark</code> (text "Foolery" in clay-600). The design system ships the spanda mark + lockup at <code>src/design-system/assets/spanda_lockup.svg</code> — pearl body with two lime eyes + Manrope 900 "spanda" wordmark. Visible at the very top of every page; the most identity-carrying pixel in the whole app.</p>
-  <div class="tdd-block">
-    <div class="tdd-label">red — test first</div>
-    <pre>// src/components/__tests__/spanda-lockup.test.tsx
-describe(<span class="ok">"SpandaLockup"</span>, () => {
-  it(<span class="ok">"renders an SVG with role='img' and aria-label='spanda'"</span>);
-  it(<span class="ok">"includes the pearl body (circle) with the two lime eyes (rect ×2 #9fe870)"</span>);
-  it(<span class="ok">"includes the Manrope 900 'spanda' text node"</span>);
-  it(<span class="ok">"inherits ink color via currentColor (no hard-coded fill on the text)"</span>);
-  it(<span class="ok">"renders at the prop-supplied height (default 42px)"</span>);
-});
-
-// extends src/components/__tests__/app-header-structure.test.tsx (from #0)
-describe(<span class="ok">"AppHeader: spanda branding"</span>, () => {
-  it(<span class="ok">"renders &lt;SpandaLockup/&gt; (not FooleryWordmark)"</span>);
-  it(<span class="ok">"the version banner says 'New spanda version' (via vocab), not 'New Foolery'"</span>);
-});</pre>
-  </div>
-  <div class="tdd-block">
-    <div class="tdd-label green">green — impl</div>
-    <pre>new src/components/spanda-lockup.tsx
-   ↳ inline the lockup SVG from src/design-system/assets/spanda_lockup.svg
-   ↳ accept className + height props; default 42px
-   ↳ <code>aria-label="spanda"</code>, role="img"
-   ↳ wordmark text node uses <code>fill="currentColor"</code> so the consumer
-     controls colour via Tailwind text-ink-900 (or text-paper-100 in dark mode)
-
-src/components/app-header-parts.tsx
-   ↳ replace <code>import { FooleryWordmark }</code> with <code>import { SpandaLockup }</code>
-   ↳ swap the JSX site (line ~190): &lt;SpandaLockup className="h-[42px] w-auto text-ink-900 dark:text-paper-100" /&gt;
-   ↳ "New Foolery version" → useVocab() lookup (lands fully in #6, scaffold here)
-
-DELETE src/components/foolery-wordmark.tsx after the swap lands and
-       no consumer references it. (grep first.)</pre>
-  </div>
-  <div class="ship-gate"><strong>Ship gate.</strong> Snapshot tests green. Refresh <code>foolery.onyourdevice.ai</code> — header shows the spanda pearl mark + Manrope 900 wordmark; no "Foolery" text anywhere except in version-banner copy that gets fixed by #6.</div>
+<div class="card">
+  <div class="head"><div><h3>Today view</h3><div class="ref">#3 &middot; knot spanda-8d64</div></div><span class="badge b-done">done</span></div>
+  <div class="uc"><b>As an operator,</b> I want one bookmarkable URL that answers "what now?" so mornings don't start with reconstruction.</div>
+  <ul class="ac">
+    <li class="y"><code>/today</code> renders the daily HTML server-side from disk</li>
+    <li class="y">Falls back up to 7 days; zero network; spanda chrome</li>
+    <li class="n">Read-only today &mdash; you can't yet act on a line (see roadmap Track B)</li>
+  </ul>
+  <div class="ev">evidence: commit ab90a242 &middot; live at /today</div>
 </div>
 
-<div class="item">
-  <div class="item-head"><span class="num">#1</span><h4>4 workflow profiles + label routing + people-tag lint</h4><span class="effort">M · ~200+120 LOC</span></div>
-  <p class="pain"><strong>Pain.</strong> Every bead lands in autopilot's 15-state lifecycle. "Call with Khilan" sits between Plan Review and Shipment columns. Locked: 4 profiles with single-token IDs, required people-tags on coord + followup.</p>
-  <div class="tdd-block">
-    <div class="tdd-label">red — test first</div>
-    <pre>// src/lib/__tests__/workflows-spanda-profiles.test.ts
-describe(<span class="ok">"BUILTIN_PROFILE_CATALOG: exactly 4 profiles"</span>, () => {
-  it(<span class="ok">"contains do, coordinate, followup, decide — and ONLY these"</span>);
-  it(<span class="ok">"do has states: ready_for_impl → impl → ready_for_review → review → shipped"</span>);
-  it(<span class="ok">"coordinate has states: scheduled → done / cancelled"</span>);
-  it(<span class="ok">"followup has states: waiting → nudged → escalated → done / closed"</span>);
-  it(<span class="ok">"decide has states: waiting → deciding → decided → executed / dropped"</span>);
-  it(<span class="ok">"old autopilot_no_planning id resolves to 'do' (backwards-compat)"</span>);
-});
-
-describe(<span class="ok">"resolveProfileForBeat: label-based routing"</span>, () => {
-  it(<span class="ok">"work:do → do, work:coordinate → coordinate, work:followup → followup, work:decide → decide"</span>);
-  it(<span class="ok">"no work: label → do (default)"</span>);
-  it(<span class="ok">"two work: labels → FOOLERY DISPATCH FAILURE (loud)"</span>);
-});
-
-// extend src/lib/__tests__/bd-lint.test.ts (new file)
-describe(<span class="ok">"bd-lint: people-tag enforcement"</span>, () => {
-  it(<span class="ok">"work:coordinate without with:&lt;person&gt; → rejected with marker"</span>);
-  it(<span class="ok">"work:coordinate with with:khilan → accepted"</span>);
-  it(<span class="ok">"work:followup without chasing:&lt;person&gt; → rejected"</span>);
-  it(<span class="ok">"work:do never requires a people tag"</span>);
-});</pre>
-  </div>
-  <div class="tdd-block">
-    <div class="tdd-label green">green — impl</div>
-    <pre>src/lib/workflows.ts
-   ↳ extend BuiltinProfileConfig with customStates / customTerminal / customInitial
-   ↳ teach buildStates() to honor customs
-   ↳ replace catalog: rename autopilot_no_planning → do, add coordinate, followup, decide,
-     drop autopilot / autopilot_with_pr / semiauto / autopilot_with_pr_no_planning /
-     semiauto_no_planning
-
-src/lib/workflows-runtime.ts
-   ↳ new resolveProfileForBeat with backwards-compat alias autopilot_no_planning → do
-
-scripts/bd-lint-wrapper.sh
-   ↳ add people-tag enforcement: coord requires with:*, followup requires chasing:*</pre>
-  </div>
-  <div class="ship-gate"><strong>Ship gate.</strong> All tests green. Existing 50 beads still render (they default to <code>do</code>). New bead with <code>work:coordinate</code> but no <code>with:</code> tag is rejected by lint with the loud failure marker.</div>
+<div class="card">
+  <div class="head"><div><h3>Quick capture</h3><div class="ref">#4 &middot; knot spanda-1826</div></div><span class="badge b-partial">partial</span></div>
+  <div class="uc"><b>As an operator,</b> I want to create a work item from the UI so a new idea doesn't force a terminal context-switch.</div>
+  <ul class="ac">
+    <li class="y">Pure layer: validate + normalize + open-on-key, profile-aware</li>
+    <li class="y">Tested (26 assertions)</li>
+    <li class="n">Modal + global "/" shortcut (deferred)</li>
+    <li class="n">Inline edit on click (deferred)</li>
+  </ul>
+  <div class="ev">evidence: commit 3541873f &middot; quick-capture.ts ready; modal pending</div>
 </div>
 
-<div class="item">
-  <div class="item-head"><span class="num">#2</span><h4>Label filter — checkbox group in filter-bar</h4><span class="effort">S · ~80+60 LOC</span></div>
-  <p class="pain"><strong>Pain.</strong> Can't isolate <code>work:do</code> from <code>work:coordinate</code>. Locked: simplest path is a checkbox group, auto-populated from observed labels.</p>
-  <div class="tdd-block">
-    <div class="tdd-label">red — test first</div>
-    <pre>// src/components/__tests__/filter-bar-labels.test.tsx
-describe(<span class="ok">"FilterBar: label filtering"</span>, () => {
-  it(<span class="ok">"renders one checkbox per unique label in the current set"</span>);
-  it(<span class="ok">"groups labels: work:* on top, then with:*, chasing:*, then everything else"</span>);
-  it(<span class="ok">"selecting work:do hides coordinate / followup / decide beats"</span>);
-  it(<span class="ok">"selecting two labels uses OR semantics"</span>);
-  it(<span class="ok">"URL state persists across navigation (?labels=work:do,with:khilan)"</span>);
-  it(<span class="ok">"clearing all checkboxes restores the full list"</span>);
-});</pre>
-  </div>
+<div class="card">
+  <div class="head"><div><h3>Stale-work surfacing</h3><div class="ref">#8 &middot; knot spanda-d92d</div></div><span class="badge b-partial">partial</span></div>
+  <div class="uc"><b>As an operator,</b> I want long-running work flagged so a task stuck since February stops hiding in the column.</div>
+  <ul class="ac">
+    <li class="y">Stale badge component (&gt;7 days shows "stale Nd"), fail-soft</li>
+    <li class="y">stale_grooming pool configured in settings</li>
+    <li class="n">Badge wired into the live beat row (deferred)</li>
+  </ul>
+  <div class="ev">evidence: commit 53367c04 &middot; stale-badge.tsx ready; row wire-up pending</div>
 </div>
 
-<div class="item">
-  <div class="item-head"><span class="num">#3</span><h4>Today view — server-side read from daily HTML on disk</h4><span class="effort">S · ~100+80 LOC</span></div>
-  <p class="pain"><strong>Pain.</strong> No date-based slice in Spanda. Locked: read <code>~/code/html-artifacts/docs/daily/YYYY/MM/DD.html</code> from disk on the same VPS, strip html/head, inline body in spanda chrome.</p>
-  <div class="tdd-block">
-    <div class="tdd-label">red — test first (two files)</div>
-    <pre>// src/app/today/__tests__/page.test.tsx (pure path + parse logic)
-describe(<span class="ok">"getTodayDailyHtml"</span>, () => {
-  it(<span class="ok">"resolves today's date → YYYY/MM/DD.html under DAILY_ROOT"</span>);
-  it(<span class="ok">"falls back to most-recent prior day's file if today's is missing"</span>);
-  it(<span class="ok">"throws clearly if no daily file exists at all"</span>);
-  it(<span class="ok">"strips &lt;html&gt; / &lt;head&gt; / &lt;body&gt; wrapper, returns inner body content"</span>);
-  it(<span class="ok">"preserves inline &lt;style&gt; blocks (scoped via .daily-content wrapper)"</span>);
-});
+<h2 class="section">Not started</h2>
 
-// src/app/today/__tests__/render.test.tsx (storybook + vitest snapshot)
-describe(<span class="ok">"TodayPage rendering"</span>, () => {
-  it(<span class="ok">"renders inside spanda app shell (header + sage canvas + lockup)"</span>);
-  it(<span class="ok">"injects daily content under a .daily-content wrapper"</span>);
-  it(<span class="ok">"shows the daily's generated-at timestamp + a 'reload daily' button"</span>);
-  it(<span class="ok">"shows the empty state when no daily is found anywhere"</span>);
-});</pre>
-  </div>
-  <div class="tdd-block">
-    <div class="tdd-label green">green — impl</div>
-    <pre>new src/app/today/page.tsx     server component, reads from disk
-new src/lib/daily-loader.ts    getTodayDailyHtml() + fallback logic
-new src/components/today-content-frame.tsx  spanda wrapper with .daily-content scope
-update ~/personal-os/.claude/skills/daily-dashboard-synth/SKILL.md
-  ↳ Foolery link in daily already points at spanda.onyourdevice.ai/today (no change needed)</pre>
-  </div>
-  <div class="ship-gate"><strong>Ship gate.</strong> Visit <code>/today</code>, see today's daily content rendered in spanda chrome. Delete today's file, refresh: yesterday's loads with a "showing 23 may (most recent)" banner.</div>
+<div class="card">
+  <div class="head"><div><h3>Telegram notify + intake</h3><div class="ref">P1 &middot; knot spanda-4688</div></div><span class="badge b-planned">planned</span></div>
+  <div class="uc"><b>As an operator,</b> I want a Telegram ping when a run finishes and a way to capture from my phone, so I'm not polling the UI or tied to the laptop.</div>
+  <ul class="ac">
+    <li class="n">DM on run completion via the Hermes gateway</li>
+    <li class="n">Telegram capture creates a bead with <code>work:capture</code></li>
+  </ul>
 </div>
 
-<div class="item">
-  <div class="item-head"><span class="num">#4</span><h4>Quick capture modal + inline edit (essential)</h4><span class="effort">M · ~160+120 LOC</span></div>
-  <p class="pain"><strong>Pain.</strong> Must shell out to <code>bd create</code> to add a bead, <code>bd update</code> to edit. Breaks flow.</p>
-  <div class="tdd-block">
-    <div class="tdd-label">red — test first</div>
-    <pre>// src/components/__tests__/quick-capture-modal.test.tsx
-describe(<span class="ok">"QuickCaptureModal"</span>, () => {
-  it(<span class="ok">"opens on '/' keypress when no input is focused"</span>);
-  it(<span class="ok">"does NOT open on '/' when typing in an input"</span>);
-  it(<span class="ok">"profile picker defaults to 'do'; switching to coordinate reveals with: field"</span>);
-  it(<span class="ok">"switching to followup reveals chasing: field"</span>);
-  it(<span class="ok">"submits POST /api/beats with full payload"</span>);
-  it(<span class="ok">"validates acceptance inline; coord/followup missing person tag → rejected"</span>);
-  it(<span class="ok">"ESC closes; click outside closes; focus-trap on tab"</span>);
-});
-
-// src/components/__tests__/inline-edit.test.tsx
-describe(<span class="ok">"InlineEditField"</span>, () => {
-  it(<span class="ok">"renders as plain text by default"</span>);
-  it(<span class="ok">"becomes contenteditable on click"</span>);
-  it(<span class="ok">"saves on blur via PATCH /api/beats/:id"</span>);
-  it(<span class="ok">"reverts on ESC"</span>);
-});</pre>
-  </div>
+<div class="card">
+  <div class="head"><div><h3>One-command onboarding</h3><div class="ref">P2 &middot; knot spanda-736a</div></div><span class="badge b-planned">planned</span></div>
+  <div class="uc"><b>As a new user (or me on a fresh machine),</b> I want <code>spanda init</code> to pre-fill config so setup isn't five manual steps.</div>
+  <ul class="ac">
+    <li class="n">CLI writes settings.toml + registry with sensible defaults</li>
+    <li class="n">Validates against the config schema; idempotent</li>
+  </ul>
 </div>
 
-<div class="item">
-  <div class="item-head"><span class="num">#6</span><h4>Vocabulary translation layer (plain default)</h4><span class="effort">S · ~70+100 LOC + ~25 component edits</span></div>
-  <p class="pain"><strong>Pain.</strong> Beat / Take / Scene / Setlist / ReTakes are foreign. Locked: Option B (UI-only translation). Internal types/APIs stay on the musical metaphor.</p>
-  <div class="tdd-block">
-    <div class="tdd-label">red — test first</div>
-    <pre>// src/lib/__tests__/ui-vocab.test.ts
-describe(<span class="ok">"ui-vocab"</span>, () => {
-  it(<span class="ok">"plain mode maps Take! → Run, Beat → Task, Setlist → Plan board, ReTakes → Reviews"</span>);
-  it(<span class="ok">"verbose mode preserves all originals"</span>);
-  it(<span class="ok">"missing key falls back to the input string (fail-soft)"</span>);
-});
-
-// architectural lint
-describe(<span class="ok">"no JSX uses raw musical vocab"</span>, () => {
-  it(<span class="ok">"zero literal Take!/Scene!/Beat/Setlist in src/components/*.tsx"</span>);
-});</pre>
-  </div>
+<div class="ink">
+  <h2>The shape of the remaining work</h2>
+  <ul>
+    <li>Most of Phase 2 shipped as <b>pure logic + tests</b>; the deferred items are thin UI wire-ups (label-filter checkboxes, quick-capture modal, stale badge in the row, profile routing).</li>
+    <li>Those wire-ups now fold into the <b>next direction</b> &mdash; a simpler board and a /today that creates work. See the <a href="/">roadmap</a>.</li>
+  </ul>
 </div>
 
-<div class="item">
-  <div class="item-head"><span class="num">#8</span><h4>Stale beads — configure pool + age badge</h4><span class="effort">S · ~30+40 LOC + 5 cfg</span></div>
-  <p class="pain"><strong>Pain.</strong> <code>w9o</code> has been in_progress since Feb. <code>stale_grooming</code> pool is empty.</p>
-  <div class="tdd-block">
-    <div class="tdd-label">red — test first</div>
-    <pre>// src/components/__tests__/stale-badge.test.tsx
-describe(<span class="ok">"StaleBadge"</span>, () => {
-  it(<span class="ok">"renders 'stale Nd' when updated_at &gt; 7 days ago"</span>);
-  it(<span class="ok">"renders nothing when updated_at &lt; 7 days ago"</span>);
-  it(<span class="ok">"renders nothing on closed beads regardless of age"</span>);
-  it(<span class="ok">"uses --color-warning-pale bg and --color-warning-content text"</span>);
-});</pre>
-  </div>
-</div>
-
-<h3 class="subsection">After P0 ships — your manual migration pass</h3>
-
-<div class="item">
-  <div class="item-head"><span class="num">#1b</span><h4>Migrate the 50 existing beads manually (you, not the system)</h4><span class="effort">manual · ~30-60 min</span></div>
-  <p class="pain"><strong>Why manual.</strong> You know the context per bead better than any LLM can infer from a title. After P0 lands, every primitive you need exists: the 4 profile labels exist, <code>bd-lint</code> enforces the people-tag rule on new beads, the filter UI lets you triage by label, and quick-edit lets you change labels inline without a context switch.</p>
-  <div class="tdd-block">
-    <div class="tdd-label green">your flow (no test, no script)</div>
-    <pre><span class="comment"># 1. list the 50 open beads with their current titles</span>
-cd ~/personal-os && bd list --status open --flat
-
-<span class="comment"># 2. walk top-down, classifying each in one of four bd update calls:</span>
-bd update &lt;id&gt; --labels-add <span class="ok">work:do</span>
-bd update &lt;id&gt; --labels-add <span class="ok">work:coordinate,with:khilan</span>
-bd update &lt;id&gt; --labels-add <span class="ok">work:followup,chasing:pratul</span>
-bd update &lt;id&gt; --labels-add <span class="ok">work:decide</span>
-
-<span class="comment"># 3. open Spanda; use the new label-checkbox filter (item #2) to verify
-#    each category is populated correctly. Tweak labels in-place via the
-#    quick-edit (item #4).</span></pre>
-  </div>
-  <p class="pain" style="margin:var(--space-md) 0 0;">Aim: every open bead has a <code>work:*</code> label after the pass. Beads without one default to <code>do</code>, but explicit is better.</p>
-</div>
-
-<h3 class="subsection">Deferred — schedule after manual migration</h3>
-
-<div class="item deferred">
-  <div class="item-head"><span class="num">P1</span><h4>Telegram intake + Take-complete notify</h4><span class="effort">M · ~150 LOC cross-repo</span></div>
-  <p class="pain">Hermes-side adds <code>telegram-intake.py</code> webhook that creates beads via <code>bd create --no-lint --labels work:capture</code>. Spanda fires fetch on terminal-complete to a Hermes endpoint that DMs Telegram. Cross-repo. Stays visible on this plan; pulled in after P0 proves itself for a week of real use.</p>
-</div>
-
-<div class="item deferred">
-  <div class="item-head"><span class="num">P2</span><h4>Onboarding <code>spanda init</code> CLI</h4><span class="effort">S · ~80 bash + 40 LOC</span></div>
-  <p class="pain"><code>scripts/spanda-init.sh --target $HOME/.config/foolery/settings.toml</code> writes template TOML with claude pool + personal-os repo + default profile (<code>do</code>). Manual test confirms dry-run produces valid TOML, idempotent, refuses to clobber non-default without <code>--force</code>. Useful for re-installs or running on Mac.</p>
-</div>
-
-<div class="cta">
-  <h2>execution order (when you say go)</h2>
-  <p><strong>One ship per item.</strong> Each shipped before the next starts. Backup retained per <code>ship-spanda.sh</code>; rollback in 60s.</p>
-  <p>I build out the system in P0 order. <strong>#1b is yours</strong> — manual pass after the system is in place. Telegram + spanda init stay deferred.</p>
-  <ol>
-    <li><code>#0</code> — DS-compliance hybrid loop. Smallest, lowest risk, establishes the snapshot test pattern.</li>
-    <li><code>#0b</code> — logo swap. <code>FooleryWordmark</code> → <code>SpandaLockup</code> in app header. ~30 min, immediate visual confirmation.</li>
-    <li><code>#1</code> — 4 workflow profiles + people-tag lint. Biggest semantic unlock.</li>
-    <li><code>#6</code> — vocabulary layer. Single source of truth; touches ~25 components mechanically.</li>
-    <li><code>#2</code> — label filter checkboxes. Lights up the new label namespace visually.</li>
-    <li><code>#3</code> — Today view (server-side daily read).</li>
-    <li><code>#4</code> — quick capture + inline edit.</li>
-    <li><code>#8</code> — stale badge + pool config.</li>
-    <li><strong style="color:var(--color-primary)">#1b</strong> — <strong style="color:var(--color-primary)">YOU</strong>, manual migration pass once the system above is live.</li>
-  </ol>
-  <p style="margin-top:var(--space-lg);"><a class="btn primary" href="/">← execution review</a> <a class="btn tertiary" href="#" onclick="navigator.clipboard.writeText('go').then(()=>this.textContent='copied ✓')" style="margin-left:8px">copy "go"</a></p>
-</div>
+<div class="foot">spanda &middot; shipped retrospective &middot; status verified against spanda/design-system &middot; knots remain open in kno by repo policy</div>
 
 </div>
 </body>
