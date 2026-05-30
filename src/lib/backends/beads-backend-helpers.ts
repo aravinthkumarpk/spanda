@@ -80,7 +80,9 @@ function matchesBeatFilter(b: Beat, filters: BeatListFilters): boolean {
   if (filters.workflowId && b.workflowId !== filters.workflowId) {
     return false;
   }
-  if (filters.state) {
+  // "all" is the show-every-state sentinel (used by the Board/Projects/Overview
+  // views), NOT a literal state to match — skip state filtering entirely.
+  if (filters.state && filters.state !== "all") {
     const beatWorkflow = builtinProfileDescriptor(
       b.profileId ?? b.workflowId,
     );
