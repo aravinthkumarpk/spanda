@@ -27,7 +27,7 @@ import { SetlistView } from "@/components/setlist-view";
 import {
   BeatStateOverviewScreen,
 } from "@/components/beat-state-overview";
-import { BoardView } from "@/components/board-view";
+import { ScopedBoardView } from "./scoped-board-view";
 import { ProjectsView } from "@/components/projects-view";
 import { LabelFilterChips } from "@/components/label-filter-chips";
 import { useLabelFilter } from "./use-label-filter";
@@ -362,7 +362,7 @@ function BeatsViewBody({
           streamingProgress={s.streamingProgress}
         />
       ) : isBoardView ? (
-        <BoardView
+        <ScopedBoardView
           isLoading={s.isLoading}
           loadError={s.loadError}
           beats={s.beats}

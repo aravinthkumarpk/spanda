@@ -39,9 +39,14 @@ export function BoardCard({
   const [editOpen, setEditOpen] = useState(false);
   return (
     <div
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData("text/plain", beat.id);
+        e.dataTransfer.effectAllowed = "move";
+      }}
       className={
-        "rounded-lg border border-paper-200 bg-paper-50 p-3"
-        + " shadow-sm transition-colors hover:border-lake-300"
+        "cursor-grab rounded-lg border border-paper-200 bg-paper-50 p-3"
+        + " shadow-sm transition-colors hover:border-lake-300 active:cursor-grabbing"
         + " dark:border-walnut-100 dark:bg-walnut-100/40"
       }
     >

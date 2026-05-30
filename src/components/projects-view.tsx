@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { Beat } from "@/lib/types";
 import {
@@ -124,7 +125,19 @@ function ProjectCard({
         >
           <span className="line-clamp-2">{project.title}</span>
         </button>
-        <ProjectHealthBadge health={health} />
+        <div className="flex shrink-0 items-center gap-1.5">
+          <Link
+            href={`/beats?view=board&project=${encodeURIComponent(project.id)}`}
+            title="Open the board scoped to this project"
+            className={
+              "text-xs font-medium text-lake-700 hover:underline"
+              + " dark:text-lake-100"
+            }
+          >
+            Board →
+          </Link>
+          <ProjectHealthBadge health={health} />
+        </div>
       </header>
       <p className="text-xs text-ink-500">
         {initiativeCount} initiative{initiativeCount === 1 ? "" : "s"}

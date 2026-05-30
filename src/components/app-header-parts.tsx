@@ -2,16 +2,14 @@
 
 import type { useRouter, useSearchParams } from "next/navigation";
 import {
-  Plus, Megaphone, RotateCcw, Settings,
-  X, History, PartyPopper,
-  Zap, Inbox, BarChart3, ListMusic,
-  LayoutDashboard, Columns3, FolderKanban,
+  Plus, Settings, X, PartyPopper,
 } from "lucide-react";
 import { SpandaLockup } from "@/components/spanda-lockup";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { VersionBadge } from "@/components/version-badge";
 import { RepoSwitcher } from "@/components/repo-switcher";
 import { SearchBar } from "@/components/search-bar";
+import { ViewSwitcherTabs } from "@/components/app-header-view-tabs";
 import {
   VERSION_UPDATE_COMMAND,
 } from "@/components/version-update-action";
@@ -19,7 +17,6 @@ import type { AppUpdateStatus } from "@/lib/app-update-types";
 import {
   NotificationBell,
 } from "@/components/notification-bell";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -283,46 +280,6 @@ export function ActionButton(props: {
 }
 
 // -----------------------------------------------------------
-// ViewTab
-// -----------------------------------------------------------
-
-function ViewTab(props: {
-  view: BeatsViewId;
-  current: string;
-  icon: React.ReactNode;
-  label: string;
-  title: string;
-  setView: (v: BeatsViewId) => void;
-  badge?: number;
-}) {
-  const {
-    view, current, icon, label, title,
-    setView, badge,
-  } = props;
-  return (
-    <Button
-      size="lg"
-      variant={current === view ? "default" : "ghost"}
-      className="h-8 gap-1.5 px-2.5"
-      title={title}
-      onClick={() => setView(view)}
-    >
-      {icon}
-      {label}
-      {badge != null && badge > 0 && (
-        <Badge variant="secondary" className="ml-1">
-          {badge > 9 ? "9+" : badge}
-        </Badge>
-      )}
-    </Button>
-  );
-}
-
-// -----------------------------------------------------------
-// ViewSwitcher
-// -----------------------------------------------------------
-
-// -----------------------------------------------------------
 // HeaderToolbar
 // -----------------------------------------------------------
 
@@ -377,94 +334,6 @@ export function HeaderToolbar(props: {
 // ViewSwitcher
 // -----------------------------------------------------------
 
-function ViewSwitcherTabs(props: {
-  beatsView: string;
-  setView: (v: BeatsViewId) => void;
-  escalationsCount: number;
-}) {
-  const {
-    beatsView, setView, escalationsCount,
-  } = props;
-  return (
-    <div className={
-      "flex min-w-max shrink-0 items-center gap-1"
-      + " rounded-lg border bg-muted/20 p-1"
-    }>
-      <ViewTab
-        view="setlist" current={beatsView}
-        icon={<ListMusic className="size-4" />}
-        label="Setlist"
-        title="Execution plans and gantt-style setlist"
-        setView={setView}
-      />
-      <ViewTab
-        view="overview" current={beatsView}
-        icon={<LayoutDashboard className="size-4" />}
-        label="Overview"
-        title="Beat state overview"
-        setView={setView}
-      />
-      <ViewTab
-        view="board" current={beatsView}
-        icon={<Columns3 className="size-4" />}
-        label="Board"
-        title="Normalized board — To do / Doing / Review / Done"
-        setView={setView}
-      />
-      <ViewTab
-        view="projects" current={beatsView}
-        icon={<FolderKanban className="size-4" />}
-        label="Projects"
-        title="Projects — hierarchy and activity-based health"
-        setView={setView}
-      />
-      <ViewTab
-        view="queues" current={beatsView}
-        icon={<Inbox className="size-4" />}
-        label="Queues"
-        title="Queue beats (ready for action)"
-        setView={setView}
-      />
-      <ViewTab
-        view="active" current={beatsView}
-        icon={<Zap className="size-4" />}
-        label="Active"
-        title="Active beats (in progress)"
-        setView={setView}
-      />
-      <ViewTab
-        view="finalcut" current={beatsView}
-        icon={<Megaphone className="size-4" />}
-        label="Escalations"
-        title="Escalations queue"
-        setView={setView}
-        badge={escalationsCount}
-      />
-      <ViewTab
-        view="retakes" current={beatsView}
-        icon={<RotateCcw className="size-4" />}
-        label="ReTakes"
-        title="Regression tracking for beats in retake"
-        setView={setView}
-      />
-      <ViewTab
-        view="history" current={beatsView}
-        icon={<History className="size-4" />}
-        label="History"
-        title="Take!/Scene agent history"
-        setView={setView}
-      />
-      <ViewTab
-        view="diagnostics" current={beatsView}
-        icon={<BarChart3 className="size-4" />}
-        label="Diagnostics"
-        title="Runtime diagnostics and lease analytics"
-        setView={setView}
-      />
-    </div>
-  );
-}
-
 export function ViewSwitcher(props: {
   beatsView: string;
   setView: (v: BeatsViewId) => void;
@@ -483,7 +352,7 @@ export function ViewSwitcher(props: {
     <div className={
       "order-4 flex w-full min-w-0 items-center"
       + " gap-2 overflow-x-auto pb-1"
-      + " md:order-none md:ml-auto md:w-auto"
+      + " md:order-none md:mr-auto md:w-auto"
       + " md:overflow-visible md:pb-0"
     }>
       <ViewSwitcherTabs
