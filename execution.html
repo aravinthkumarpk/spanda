@@ -116,7 +116,7 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:22px;margin:44
   </div>
   <div style="text-align:right">
     <div class="eyebrow">refreshed 30 may 2026</div>
-    <div class="sub toplinks"><a href="/today-prototype.html">/today prototype &rarr;</a> <a href="/phase2.html">shipped work &rarr;</a></div>
+    <div class="sub toplinks"><a href="/dogfood.html"><b>try it &middot; dogfood guide &rarr;</b></a> <a href="/today-prototype.html">/today prototype &rarr;</a> <a href="/phase2.html">shipped work &rarr;</a></div>
   </div>
 </header>
 
@@ -136,7 +136,7 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:22px;margin:44
       <span style="font-family:var(--font-mono);font-size:12px;font-weight:600;background:var(--color-positive-pale);color:var(--color-positive-deep);border-radius:var(--r-pill);padding:4px 12px">test 294 files / 3219 pass</span>
     </div>
   </div>
-  <p style="color:var(--color-body);font-size:14px;margin:0 0 12px">All four quality gates green on branch <code style="font-family:var(--font-mono);font-size:12px">spanda/impl-design</code> (worktree, unpushed). TDD-first: the pure-function layer for every epic shipped <b>before</b> any UI wiring (+207 new tests over the 2999 baseline). Built via a recon &rarr; parallel-pure-logic &rarr; sequential-integration workflow. <b>Live now:</b> Board (<code style="font-family:var(--font-mono);font-size:12px">?view=board</code>) and Projects (<code style="font-family:var(--font-mono);font-size:12px">?view=projects</code>). Running detail in <a href="/implementation-notes.html">implementation notes</a>.</p>
+  <p style="color:var(--color-body);font-size:14px;margin:0 0 12px">All four quality gates green and pushed to <code style="font-family:var(--font-mono);font-size:12px">origin/spanda/design-system</code>. TDD-first: the pure-function layer for every epic shipped <b>before</b> any UI wiring (+220 tests over the 2999 baseline). Built via a recon &rarr; parallel-pure-logic &rarr; sequential-integration workflow. <b>Try it:</b> the <a href="/dogfood.html">dogfood guide</a> walks a first run of Board, Projects, Edit and /today promote at <code style="font-family:var(--font-mono);font-size:12px">spanda.onyourdevice.ai</code>. Running detail in <a href="/implementation-notes.html">implementation notes</a>.</p>
   <table class="vtable" style="font-size:13px">
     <tr><th>Epic</th><th>Pure logic (tested)</th><th>UI wired</th></tr>
     <tr><td><b>D</b> &middot; beads backfill</td><td>&check; planner + self-parent fix, 25 tests</td><td>&check; <b>APPLIED</b> to the live DB &mdash; 76/79 parented, hygiene done, idempotent, committed (not pushed)*</td></tr>

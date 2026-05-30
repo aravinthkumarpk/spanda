@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Spanda — try it out (dogfood guide)</title>
+<meta name="description" content="A simple, step-by-step manual for trying Spanda for the first time." />
+<style>
+  :root{
+    --paper-50:#faf8f4; --paper-100:#f4f1ea; --paper-200:#e8e2d6;
+    --ink-900:#1c1a17; --ink-700:#46413a; --ink-500:#736c61; --ink-400:#9a9388;
+    --moss-700:#4a6b3f; --moss-100:#e7efe2; --lake-700:#2f5d6b; --lake-100:#dcecf0;
+    --ochre-700:#9a6516; --ochre-100:#f6ecd6; --rust-600:#a8452f; --rust-100:#f3e2dc;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper-100);color:var(--ink-900);
+    font:17px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+  .wrap{max-width:760px;margin:0 auto;padding:40px 22px 120px;}
+  a{color:var(--lake-700);}
+  header{border-bottom:1px solid var(--paper-200);padding-bottom:18px;margin-bottom:8px;}
+  h1{font-size:32px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px;}
+  .sub{color:var(--ink-700);font-size:15px;margin:0;}
+  .banner{background:var(--ochre-100);border:1px solid #e3cF9b;border-left:4px solid var(--ochre-700);
+    border-radius:10px;padding:14px 16px;margin:22px 0;font-size:15px;color:var(--ink-700);}
+  .banner b{color:var(--ink-900);}
+  h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-500);
+    font-weight:700;margin:34px 0 4px;}
+  .step{background:var(--paper-50);border:1px solid var(--paper-200);border-radius:14px;
+    padding:18px 20px;margin-top:14px;}
+  .step .n{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;
+    border-radius:50%;background:var(--ink-900);color:var(--paper-50);font-size:14px;font-weight:700;
+    margin-right:10px;vertical-align:middle;}
+  .step h3{display:inline;font-size:19px;font-weight:700;letter-spacing:-.01em;}
+  .step .do{margin:12px 0 0;}
+  .step .see{margin:10px 0 0;background:var(--moss-100);border-radius:8px;padding:8px 12px;
+    font-size:15px;color:var(--moss-700);}
+  .step .see b{color:var(--ink-900);}
+  .step ul{margin:8px 0 0;padding-left:22px;} .step li{margin:4px 0;}
+  kbd{font-family:ui-monospace,Menlo,monospace;font-size:13px;background:var(--paper-200);
+    padding:1px 6px;border-radius:5px;}
+  .pill{display:inline-block;background:var(--paper-200);border-radius:999px;padding:1px 9px;
+    font-size:13px;font-weight:600;color:var(--ink-700);}
+  .url{font-family:ui-monospace,Menlo,monospace;font-size:15px;font-weight:600;}
+  .foot{margin-top:34px;color:var(--ink-500);font-size:14px;border-top:1px solid var(--paper-200);
+    padding-top:16px;}
+  .back{font-size:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Try Spanda</h1>
+  <p class="sub">A 5-minute first run. No prior knowledge needed — just follow the steps and tick them off.
+  <a class="back" href="/">← roadmap</a></p>
+</header>
+
+<p style="margin-top:18px">Spanda is a simple board for your real tasks. Both you and AI agents work the
+same board. Everything you see is your live task list (the “beads” system) — Spanda is just a clean window
+onto it.</p>
+
+<div class="banner">
+  <b>Before you start — is the latest version live?</b> Open the app and check the top bar shows
+  <b>Projects · Board · Today</b> tabs. If you don’t see a <b>Board</b> tab, the server is running an old
+  build — ask for a redeploy first, or the steps below won’t match.
+</div>
+
+<h2>Open it</h2>
+<div class="step">
+  <p class="do" style="margin-top:0"><span class="n">0</span><span><b>Go to</b>
+  <span class="url">https://spanda.onyourdevice.ai</span></span></p>
+  <p class="do">Sign in if it asks (Cloudflare Access — your normal login). It opens straight onto the
+  <b>Board</b>.</p>
+  <p class="see"><b>You should see</b> four columns left-to-right: <b>To do · Doing · Review · Done</b>,
+  with your real tasks shown as cards.</p>
+</div>
+
+<h2>The Board — your tasks at a glance</h2>
+<div class="step">
+  <p class="do" style="margin-top:0"><span class="n">1</span><span><b>Read a card.</b> Each card shows the
+  task title, a small coloured <b>state</b> tag, and a <span class="pill">bucket</span> chip (do / coordinate /
+  followup).</span></p>
+  <p class="see"><b>Look for</b> a small orange <b>“stale 8d”</b> tag on cards that haven’t moved in a while.</p>
+</div>
+<div class="step">
+  <p class="do" style="margin-top:0"><span class="n">2</span><span><b>Filter by bucket.</b> Above the columns,
+  click a chip like <b>Do</b> or <b>Coordinate</b>.</span></p>
+  <p class="see"><b>You should see</b> the board narrow to just that bucket. Click <b>All</b> to reset.</p>
+</div>
+<div class="step">
+  <p class="do" style="margin-top:0"><span class="n">3</span><span><b>Edit a task.</b> On any card, click the
+  little <b>pencil</b>. Change the title, then press <b>Update</b>.</span></p>
+  <p class="see"><b>You should see</b> a “Task updated” message and the card show the new title. Tip: for a
+  <b>do</b> task, the form won’t let you save without <b>acceptance criteria</b> — that’s on purpose.</p>
+</div>
+
+<h2>Projects — the bird’s-eye view</h2>
+<div class="step">
+  <p class="do" style="margin-top:0"><span class="n">4</span><span><b>Click the <span class="pill">Projects</span>
+  tab</b> in the top bar.</span></p>
+  <p class="see"><b>You should see</b> your projects as cards — e.g. <b>Launch Agent Marketplace</b>,
+  <b>AI Transformation</b>, <b>Personal &amp; Family</b> — each with a <b>health</b> badge
+  (<span style="color:var(--moss-700)">Moving</span> / <span style="color:var(--ochre-700)">Stalled</span> /
+  <span style="color:var(--rust-600)">Blocked</span> / Done) and a count of tasks under it.</p>
+</div>
+
+<h2>Today — your daily review</h2>
+<div class="step">
+  <p class="do" style="margin-top:0"><span class="n">5</span><span><b>Click <span class="pill">Today</span></b>
+  (top bar) or go to <span class="url">/today</span>.</span></p>
+  <p class="see"><b>You should see</b> today’s written review. On lines your daily marks as actionable, a small
+  green <b>“make it work”</b> button appears — click it to turn that line into a real task (a form opens
+  pre-filled; review and confirm). <i>If you see no buttons yet, your daily pipeline hasn’t tagged any lines —
+  that’s expected.</i></p>
+</div>
+
+<h2>Add a task from scratch</h2>
+<div class="step">
+  <p class="do" style="margin-top:0"><span class="n">6</span><span><b>Create one.</b> Hit <kbd>/</kbd> or the
+  <b>+ Add</b> button. Type a title. If it’s a <b>do</b> task, fill the <b>Acceptance criteria</b> too. Press
+  <b>Done</b>.</span></p>
+  <p class="see"><b>You should see</b> the new task land in the <b>To do</b> column.</p>
+</div>
+
+<h2>What to jot down as you go</h2>
+<div class="step" style="margin-top:14px">
+  <ul style="margin-top:0">
+    <li>Did each screen load, and show your <b>real</b> tasks (not an empty board)?</li>
+    <li>Anything confusing, mislabeled, or in the wrong column?</li>
+    <li>Did edit / add / promote actually save (and survive a refresh)?</li>
+    <li>Did any project show the wrong health, or tasks under the wrong project?</li>
+    <li>Anything slow, broken, or ugly.</li>
+  </ul>
+</div>
+
+<p class="foot">That’s the whole tour. The four things to trust: the <b>Board</b> reflects your real tasks,
+<b>edit/add/promote</b> write straight to the task system (one source of truth), <b>Projects</b> rolls them up,
+and <b>Today</b> turns the daily into real work. Found a problem? Note the screen + what you expected.
+<a href="/">← back to the roadmap</a> · <a href="/implementation-notes.html">build notes</a></p>
+</div>
+</body>
+</html>
