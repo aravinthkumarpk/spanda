@@ -44,6 +44,10 @@ interface CreateBeatDialogProps {
   onOpenChange: (open: boolean) => void;
   onCreated: () => void;
   repo?: string | null;
+  /** Prefilled values (e.g. a /today promote: title, acceptance, labels). */
+  defaultValues?: Partial<CreateBeatInput>;
+  /** Override the dialog title/description (e.g. "Promote to a task"). */
+  heading?: { title: string; description: string };
 }
 
 function buildToastAction(
@@ -146,6 +150,8 @@ export function CreateBeatDialog({
   onOpenChange,
   onCreated,
   repo,
+  defaultValues,
+  heading,
 }: CreateBeatDialogProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -209,9 +215,9 @@ export function CreateBeatDialog({
         className="max-w-lg max-h-[90vh] overflow-y-auto"
       >
         <DialogHeader>
-          <DialogTitle>Create New</DialogTitle>
+          <DialogTitle>{heading?.title ?? "Create New"}</DialogTitle>
           <DialogDescription>
-            Add a new issue or task to your project.
+            {heading?.description ?? "Add a new issue or task to your project."}
           </DialogDescription>
         </DialogHeader>
         <BeatForm
@@ -222,6 +228,7 @@ export function CreateBeatDialog({
           defaultValues={{
             profileId: defaultProfileId,
             workflowId: undefined,
+            ...defaultValues,
           }}
           onSubmit={handleSubmit}
           onCreateMore={handleCreateMore}

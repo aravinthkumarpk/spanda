@@ -24,19 +24,26 @@ import type { QuickCaptureInput } from "@/lib/quick-capture";
 function input(overrides: Partial<QuickCaptureInput> = {}): QuickCaptureInput {
   return {
     title: "Sample bead",
-    description: "Acceptance: writes hello to /tmp/x",
+    description: "writes hello to /tmp/x",
     profile: "do",
+    acceptance: "file /tmp/x exists",
     person: null,
     ...overrides,
   };
 }
 
-function beat(
-  overrides: Partial<{ title: string; description?: string; labels: string[] }> = {},
-): { title: string; description?: string; labels: string[] } {
+type BeatFixture = {
+  title: string;
+  description?: string;
+  acceptance?: string;
+  labels: string[];
+};
+
+function beat(overrides: Partial<BeatFixture> = {}): BeatFixture {
   return {
     title: "Stored title",
     description: "Stored description",
+    acceptance: "Stored acceptance",
     labels: [],
     ...overrides,
   };
@@ -70,6 +77,19 @@ describe("beatToQuickCaptureInput: scalar fields", () => {
   it("uses the resolved profile passed by the caller", () => {
     const result = beatToQuickCaptureInput(beat(), "decide");
     expect(result.profile).toBe("decide");
+  });
+
+  it("prefills acceptance from the beat's native field", () => {
+    const result = beatToQuickCaptureInput(
+      beat({ acceptance: "ships to prod" }),
+      "do",
+    );
+    expect(result.acceptance).toBe("ships to prod");
+  });
+
+  it("maps undefined acceptance to ''", () => {
+    const result = beatToQuickCaptureInput(beat({ acceptance: undefined }), "do");
+    expect(result.acceptance).toBe("");
   });
 });
 
@@ -162,16 +182,16 @@ describe("validateQuickCaptureUpdate: same rules as create", () => {
     if (!result.ok) expect(result.errors).toContain("title is required");
   });
 
-  it("requires an acceptance line for do", () => {
+  it("requires a non-empty acceptance field for do", () => {
     const result = validateQuickCaptureUpdate(
-      input({ profile: "do", description: "no acceptance here" }),
+      input({ profile: "do", acceptance: "" }),
     );
     expect(result.ok).toBe(false);
   });
 
-  it("accepts do with an acceptance line", () => {
+  it("accepts do with a non-empty acceptance field", () => {
     const result = validateQuickCaptureUpdate(
-      input({ profile: "do", description: "Acceptance: done" }),
+      input({ profile: "do", acceptance: "done when green" }),
     );
     expect(result.ok).toBe(true);
   });
@@ -230,10 +250,17 @@ describe("diffQuickCaptureUpdate: scalar fields", () => {
   });
 
   it("emits both title and description when both changed", () => {
-    const original = input({ title: "T1", description: "Acceptance: a" });
-    const edited = input({ title: "T2", description: "Acceptance: b" });
+    const original = input({ title: "T1", description: "d1" });
+    const edited = input({ title: "T2", description: "d2" });
     const patch = diffQuickCaptureUpdate(original, edited, ["work:do"]);
-    expect(patch).toEqual({ title: "T2", description: "Acceptance: b" });
+    expect(patch).toEqual({ title: "T2", description: "d2" });
+  });
+
+  it("emits trimmed acceptance only when it changed", () => {
+    const original = input({ acceptance: "old criteria" });
+    const edited = input({ acceptance: "  new criteria  " });
+    const patch = diffQuickCaptureUpdate(original, edited, ["work:do"]);
+    expect(patch).toEqual({ acceptance: "new criteria" });
   });
 });
 

@@ -77,6 +77,7 @@ export function UpdateBeatDialog({
   const [description, setDescription] = useState(original.description);
   const [profile, setProfile] = useState<QuickCaptureProfile>(original.profile);
   const [person, setPerson] = useState(original.person ?? "");
+  const [acceptance, setAcceptance] = useState(original.acceptance);
   const [errors, setErrors] = useState<string[]>([]);
 
   const mutation = useMutation({
@@ -85,6 +86,7 @@ export function UpdateBeatDialog({
         title,
         description,
         profile,
+        acceptance,
         person: person.trim() ? person.trim() : null,
       };
       const check = validateQuickCaptureUpdate(edited);
@@ -125,8 +127,8 @@ export function UpdateBeatDialog({
           </DialogDescription>
         </DialogHeader>
         <UpdateBeatFormBody
-          values={{ title, description, profile, person }}
-          set={{ setTitle, setDescription, setProfile, setPerson }}
+          values={{ title, description, profile, person, acceptance }}
+          set={{ setTitle, setDescription, setProfile, setPerson, setAcceptance }}
           errors={errors}
           isPending={mutation.isPending}
           onCancel={() => onOpenChange(false)}
@@ -145,12 +147,14 @@ interface FormValues {
   description: string;
   profile: QuickCaptureProfile;
   person: string;
+  acceptance: string;
 }
 interface FormSetters {
   setTitle: (v: string) => void;
   setDescription: (v: string) => void;
   setProfile: (v: QuickCaptureProfile) => void;
   setPerson: (v: string) => void;
+  setAcceptance: (v: string) => void;
 }
 
 function UpdateBeatFormBody({
@@ -178,11 +182,18 @@ function UpdateBeatFormBody({
           onChange={(e) => set.setTitle(e.target.value)}
         />
       </Field>
-      <Field label="Description (include an Acceptance: line for do)">
+      <Field label="Description">
         <Textarea
-          rows={5}
+          rows={4}
           value={values.description}
           onChange={(e) => set.setDescription(e.target.value)}
+        />
+      </Field>
+      <Field label="Acceptance criteria (required for do)">
+        <Textarea
+          rows={2}
+          value={values.acceptance}
+          onChange={(e) => set.setAcceptance(e.target.value)}
         />
       </Field>
       <Field label="Bucket">

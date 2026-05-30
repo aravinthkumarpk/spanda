@@ -25,6 +25,11 @@ export interface QuickCaptureInput {
   title: string;
   description: string;
   profile: QuickCaptureProfile;
+  /**
+   * Acceptance criteria. Stored in the bead's NATIVE `acceptance_criteria`
+   * field (not embedded in the description). Required non-empty for `do`.
+   */
+  acceptance: string;
   /** Person tag value for coordinate (with:) or followup (chasing:); null otherwise. */
   person: string | null;
 }
@@ -32,8 +37,6 @@ export interface QuickCaptureInput {
 export type ValidationResult =
   | { ok: true }
   | { ok: false; errors: string[] };
-
-const ACCEPTANCE_LINE_RE = /^[\s]*(acceptance|done[-\s]when|done):/im;
 
 /**
  * Validate a quick-capture payload. Returns ok=true if all rules pass,
@@ -46,12 +49,12 @@ export function validateQuickCapturePayload(payload: QuickCaptureInput): Validat
     errors.push("title is required");
   }
 
-  // The `do` profile (agent-eligible IC work) MUST declare acceptance.
+  // The `do` profile (agent-eligible IC work) MUST declare acceptance —
+  // captured in the native acceptance_criteria field.
   if (payload.profile === "do") {
-    if (!ACCEPTANCE_LINE_RE.test(payload.description ?? "")) {
+    if (!payload.acceptance || payload.acceptance.trim().length === 0) {
       errors.push(
-        "acceptance criteria required for `do` beads (add 'Acceptance: ...' " +
-          "or 'Done when: ...' line in the description)",
+        "acceptance criteria required for `do` beads (fill the Acceptance field)",
       );
     }
   }
@@ -74,6 +77,7 @@ export function validateQuickCapturePayload(payload: QuickCaptureInput): Validat
 export interface QuickCapturePayload {
   title: string;
   description: string;
+  acceptance: string;
   labels: string[];
 }
 
@@ -93,6 +97,7 @@ export function normalizeQuickCapturePayload(
   return {
     title: input.title.trim(),
     description: input.description.trim(),
+    acceptance: input.acceptance.trim(),
     labels,
   };
 }

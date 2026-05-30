@@ -25,8 +25,9 @@ import {
 function input(overrides: Partial<QuickCaptureInput> = {}): QuickCaptureInput {
   return {
     title: "Sample bead",
-    description: "Acceptance: writes hello to /tmp/x",
+    description: "writes hello to /tmp/x",
     profile: "do",
+    acceptance: "file /tmp/x exists with 'hello'",
     person: null,
     ...overrides,
   };
@@ -51,9 +52,9 @@ describe("validateQuickCapturePayload: title", () => {
 });
 
 describe("validateQuickCapturePayload: acceptance criteria for `do`", () => {
-  it("requires Acceptance: or Done when: in the description", () => {
+  it("requires a non-empty acceptance field for `do`", () => {
     const result = validateQuickCapturePayload(
-      input({ profile: "do", description: "just a sentence with no acceptance line" }),
+      input({ profile: "do", acceptance: "" }),
     );
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -61,32 +62,25 @@ describe("validateQuickCapturePayload: acceptance criteria for `do`", () => {
     }
   });
 
-  it("accepts 'Acceptance:' line", () => {
+  it("rejects whitespace-only acceptance for `do`", () => {
     const result = validateQuickCapturePayload(
-      input({ profile: "do", description: "Acceptance: file exists" }),
+      input({ profile: "do", acceptance: "   " }),
+    );
+    expect(result.ok).toBe(false);
+  });
+
+  it("accepts `do` with a non-empty acceptance field", () => {
+    const result = validateQuickCapturePayload(
+      input({ profile: "do", acceptance: "the file exists" }),
     );
     expect(result.ok).toBe(true);
   });
 
-  it("accepts 'Done when:' (with space)", () => {
+  it("does not read acceptance from the description (native field only)", () => {
     const result = validateQuickCapturePayload(
-      input({ profile: "do", description: "Done when: file exists" }),
+      input({ profile: "do", description: "Acceptance: in description", acceptance: "" }),
     );
-    expect(result.ok).toBe(true);
-  });
-
-  it("accepts 'Done-when:' (with hyphen)", () => {
-    const result = validateQuickCapturePayload(
-      input({ profile: "do", description: "Done-when: file exists" }),
-    );
-    expect(result.ok).toBe(true);
-  });
-
-  it("accepts case-insensitively", () => {
-    const result = validateQuickCapturePayload(
-      input({ profile: "do", description: "acceptance: file exists" }),
-    );
-    expect(result.ok).toBe(true);
+    expect(result.ok).toBe(false);
   });
 });
 
@@ -149,6 +143,13 @@ describe("normalizeQuickCapturePayload: shape for POST /api/beats", () => {
     );
     expect(result.title).toBe("Foo");
     expect(result.description).toBe("Acceptance: x");
+  });
+
+  it("trims the acceptance field into the payload", () => {
+    const result = normalizeQuickCapturePayload(
+      input({ acceptance: "  done when green  " }),
+    );
+    expect(result.acceptance).toBe("done when green");
   });
 
   it("adds work:<profile> label", () => {

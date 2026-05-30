@@ -19,13 +19,30 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  buildPromotePayload,
+  buildTodayKeyLabel,
   buildTodaySourceLabel,
+  collectPromotedKeys,
   collectPromotedLines,
+  isKeyPromoted,
   isLinePromoted,
   lineToPromoteDefaults,
+  markerToQuickCaptureInput,
+  parseTodayKeyLabel,
   parseTodaySourceLabel,
+  type PromoteMarker,
 } from "@/lib/today-promote";
 import { validateQuickCapturePayload } from "@/lib/quick-capture";
+
+function marker(overrides: Partial<PromoteMarker> = {}): PromoteMarker {
+  return {
+    key: "2026-05-30:agent-studio:cart",
+    title: "Cart pass-rate fix to 95%",
+    bucket: "do",
+    acceptance: "pass rate >=95% for 72h",
+    ...overrides,
+  };
+}
 
 const CANON = "/home/deploy/code/personal-os";
 
@@ -171,22 +188,105 @@ describe("integration shape: promote defaults gate on acceptance", () => {
     const d = lineToPromoteDefaults("buy milk", opts);
     const result = validateQuickCapturePayload({
       title: d.title,
-      description: d.acceptance,
+      description: "",
       profile: "do",
+      acceptance: d.acceptance,
       person: null,
     });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.errors.join(" ")).toMatch(/acceptance/i);
   });
 
-  it("becomes VALID once an acceptance line is supplied", () => {
+  it("becomes VALID once acceptance is supplied", () => {
     const d = lineToPromoteDefaults("buy milk", opts);
     const result = validateQuickCapturePayload({
       title: d.title,
-      description: "Acceptance: 2 litres in the fridge",
+      description: "",
       profile: "do",
+      acceptance: "2 litres in the fridge",
       person: null,
     });
     expect(result.ok).toBe(true);
+  });
+});
+
+describe("today-key dedup labels", () => {
+  it("round-trips buildTodayKeyLabel / parseTodayKeyLabel", () => {
+    const label = buildTodayKeyLabel("2026-05-30:as:cart");
+    expect(label).toBe("today-key:2026-05-30:as:cart");
+    expect(parseTodayKeyLabel(label)).toBe("2026-05-30:as:cart");
+  });
+
+  it("rejects non today-key labels", () => {
+    expect(parseTodayKeyLabel("work:do")).toBeNull();
+    expect(parseTodayKeyLabel("today-key:")).toBeNull();
+  });
+
+  it("collectPromotedKeys gathers keys; isKeyPromoted matches", () => {
+    const keys = collectPromotedKeys([
+      { labels: ["work:do", "today-key:k1", "source:today-2026-05-30"] },
+      { labels: ["work:do"] },
+      { labels: ["today-key:k2"] },
+    ]);
+    expect(keys).toEqual(new Set(["k1", "k2"]));
+    expect(isKeyPromoted("k1", keys)).toBe(true);
+    expect(isKeyPromoted("nope", keys)).toBe(false);
+    expect(isKeyPromoted("  ", keys)).toBe(false);
+  });
+});
+
+describe("markerToQuickCaptureInput", () => {
+  it("maps bucket -> profile and keeps acceptance, no person for do", () => {
+    const input = markerToQuickCaptureInput(marker());
+    expect(input.profile).toBe("do");
+    expect(input.acceptance).toBe("pass rate >=95% for 72h");
+    expect(input.person).toBeNull();
+    expect(input.title).toBe("Cart pass-rate fix to 95%");
+  });
+
+  it("keeps person for coordinate, drops it for do", () => {
+    const coord = markerToQuickCaptureInput(
+      marker({ bucket: "coordinate", person: "khilan", acceptance: "" }),
+    );
+    expect(coord.profile).toBe("coordinate");
+    expect(coord.person).toBe("khilan");
+    const doMarker = markerToQuickCaptureInput(marker({ person: "khilan" }));
+    expect(doMarker.person).toBeNull();
+  });
+
+  it("tolerates a work: prefixed bucket", () => {
+    expect(markerToQuickCaptureInput(marker({ bucket: "work:do" })).profile)
+      .toBe("do");
+  });
+});
+
+describe("buildPromotePayload", () => {
+  const date = utc(2026, 5, 30);
+
+  it("assembles work, source, and today-key labels", () => {
+    const p = buildPromotePayload(marker(), date);
+    expect(p.title).toBe("Cart pass-rate fix to 95%");
+    expect(p.acceptance).toBe("pass rate >=95% for 72h");
+    expect(p.labels).toContain("work:do");
+    expect(p.labels).toContain("source:today-2026-05-30");
+    expect(p.labels).toContain("today-key:2026-05-30:agent-studio:cart");
+  });
+
+  it("adds a project label when provided, not for unsorted/empty", () => {
+    expect(buildPromotePayload(marker({ project: "agent-studio" }), date).labels)
+      .toContain("project:agent-studio");
+    expect(buildPromotePayload(marker({ project: "unsorted" }), date).labels
+      .some((l) => l.startsWith("project:"))).toBe(false);
+    expect(buildPromotePayload(marker({ project: "" }), date).labels
+      .some((l) => l.startsWith("project:"))).toBe(false);
+  });
+
+  it("adds with:<person> for a coordinate marker", () => {
+    const p = buildPromotePayload(
+      marker({ bucket: "coordinate", person: "khilan", acceptance: "" }),
+      date,
+    );
+    expect(p.labels).toContain("work:coordinate");
+    expect(p.labels).toContain("with:khilan");
   });
 });
