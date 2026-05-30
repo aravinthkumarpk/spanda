@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Spanda — Implementation Notes</title>
+<style>
+  :root{
+    --paper-50:#faf8f4; --paper-100:#f4f1ea; --paper-200:#e8e2d6;
+    --ink-900:#1c1a17; --ink-700:#46413a; --ink-500:#736c61;
+    --ochre-500:#c8852b; --moss-700:#4a6b3f; --rust-500:#b4503a; --lake-700:#2f5d6b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper-100);color:var(--ink-900);
+    font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+  .wrap{max-width:1000px;margin:0 auto;padding:40px 24px 120px;}
+  header{border-bottom:1px solid var(--paper-200);padding-bottom:20px;margin-bottom:8px;}
+  h1{font-size:30px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px;}
+  .sub{color:var(--ink-700);font-size:14px;margin:0;}
+  .legend{color:var(--ink-500);font-size:13px;margin-top:14px;}
+  .legend b{color:var(--ink-700);}
+  .entry{background:var(--paper-50);border:1px solid var(--paper-200);border-radius:14px;
+    padding:20px 22px;margin-top:22px;}
+  .entry h2{font-size:18px;margin:0 0 4px;letter-spacing:-.01em;}
+  .ts{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--ink-500);}
+  .tag{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.04em;padding:2px 8px;border-radius:999px;margin-right:6px;vertical-align:middle;}
+  .t-decision{background:#e7eef0;color:var(--lake-700);}
+  .t-change{background:#efe7e3;color:var(--rust-500);}
+  .t-tradeoff{background:#f3ecdd;color:var(--ochre-500);}
+  .t-surprise{background:#eaf0e6;color:var(--moss-700);}
+  .t-open{background:#efe7e3;color:var(--rust-500);}
+  .t-cut{background:#e8e2d6;color:var(--ink-700);}
+  .entry ul{margin:10px 0 0;padding-left:20px;}
+  .entry li{margin:5px 0;}
+  .entry p{margin:8px 0 0;}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;
+    background:var(--paper-200);padding:1px 5px;border-radius:5px;}
+  .q{color:var(--ink-700);font-style:italic;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Spanda — Implementation Notes</h1>
+  <p class="sub">Running log of decisions, changes, tradeoffs, surprises, cuts, and open questions
+  while implementing <code>SPANDA_PLAN.md</code>. Newest entries appended at the bottom.</p>
+  <p class="legend">
+    <span class="tag t-decision">decision</span>
+    <span class="tag t-change">change</span>
+    <span class="tag t-tradeoff">tradeoff</span>
+    <span class="tag t-surprise">surprise</span>
+    <span class="tag t-cut">cut</span>
+    <span class="tag t-open">open q</span>
+  </p>
+</header>
+
+<!-- ENTRIES:APPEND-BELOW -->
+
+<div class="entry">
+  <div class="ts">2026-05-30 · orchestration setup</div>
+  <h2><span class="tag t-decision">decision</span>Drive the build with a recon-first, integrate-sequential workflow</h2>
+  <p>The spec's build order (<code>D → A2 → A3 → A1 → B2 → A4 → C1 → C2 → B3 → C3</code>) is
+  dependency-aware and most epics touch overlapping UI surfaces (nav, board, routes). The Workflow
+  primitive has no merge-back for parallel <em>mutating</em> agents, so a naive parallel implementation
+  would collide. Chosen structure:</p>
+  <ul>
+    <li><b>Fan out</b> the genuinely-independent work: read-only per-epic recon (now), and later the
+      disjoint pure-logic+test files (each a brand-new <code>src/lib/*.ts</code> + its
+      <code>__tests__</code>), which don't conflict.</li>
+    <li><b>Adversarially verify</b> every recon blueprint against the actual code before trusting it
+      (refute-not-rubber-stamp pass per CLAUDE/ENGINEERING principle 12).</li>
+    <li><b>Integrate sequentially</b> in the main loop for the shared UI surfaces, in build order,
+      running the four gates as I go.</li>
+  </ul>
+  <p>Why over alternatives: full-parallel worktree-per-epic was rejected (no convergence path +
+  heavy file overlap); fully-serial hand-implementation was rejected because the pure-logic layer
+  is genuinely parallelizable and TDD wants it built first.</p>
+</div>
+
+<div class="entry">
+  <div class="ts">2026-05-30 · setup</div>
+  <h2><span class="tag t-surprise">surprise</span>The pre-wired <code>implementation-notes.html</code> symlink had no target file</h2>
+  <p>The goal said the symlink was pre-wired so I should "write to it, not create a new file." Reality:
+  <code>/home/deploy/web/spanda-dev/implementation-notes.html</code> →
+  <code>/home/deploy/code/spanda/implementation-notes.html</code>, and that <b>target did not exist</b>
+  (untracked, not in <code>dist</code>, returned 404). So I created the target file at the symlink's
+  destination in the <b>main checkout</b> (not the worktree) — writing here makes it live immediately at
+  <code>spanda-dev/implementation-notes.html</code>. Code work happens in the worktree
+  <code>/home/deploy/code/spanda-impl</code> (branch <code>spanda/impl-design</code> off
+  <code>4d3fb185</code>); notes + the final <code>execution.html</code> are deploy artifacts in the main
+  checkout.</p>
+</div>
+
+<div class="entry">
+  <div class="ts">2026-05-30 · Epic D pre-flight</div>
+  <h2><span class="tag t-open">open q</span>Epic D mutates the REAL <code>personal-os/.beads</code> — I will not run it without your go-ahead</h2>
+  <p>Per Q1/Q9/Q10 the backfill (create Project parents, set <code>parent</code> on ~78 real tasks,
+  relabel <code>work:coord → work:coordinate</code>, bucket the 5 unbucketed) operates on the
+  <em>registered</em> work DB = <code>/home/deploy/personal-os/.beads</code>, which holds real tasks —
+  not the spanda TEST <code>.knots</code>. Your standing rule is "don't move knots to terminal states /
+  don't push unless I say so." A bulk parent/label rewrite of the live DB is in that same
+  high-stakes category. <b>Plan:</b> build the backfill <em>planner</em> as a fully hermetic,
+  TDD-tested pure function (label snapshot → parent-creates + parent-sets + relabels), wire a
+  tarball-backed, dry-run-first executor script, run the dry-run, and <b>stop for your explicit
+  confirmation before any write to the real DB.</b> Recon will also confirm/refute the spec's
+  "0 tasks have a parent edge" claim and the D1-already-merged question against live data.</p>
+</div>
+
+<div class="entry">
+  <div class="ts">2026-05-30 · recon complete (10 epic blueprints + adversarial verify)</div>
+  <h2><span class="tag t-surprise">surprise</span>Epic D's central premise is refuted by live data — scope shrinks to gap-fill + hygiene</h2>
+  <p>The data-state analyst read the real <code>/home/deploy/personal-os/.beads</code> (Dolt-embedded;
+  <code>issues.jsonl</code> is an export, not the source — so mutate via <code>bd</code>, never hand-edit).
+  Findings vs the spec's "reality check":</p>
+  <ul>
+    <li>Spec: <q>0 tasks have a parent edge — everything is flat.</q> <b>Refuted.</b> 90 <code>parent-child</code>
+      edges exist; <b>49 of 79 live tasks already have a native parent</b>; only <b>30 are still flat</b>
+      (23 of them <code>project:agent-studio</code>). The epics the spec dismissed (mbu/t14/w20/gc4)
+      <em>are</em> the parents. So Epic D is a <b>gap-fill (reparent 30) + hygiene</b> pass, not a
+      greenfield "build the hierarchy."</li>
+    <li>Counts confirmed exactly: project agent-studio 36 / ai-transformation 28 / personal 14 / none 1;
+      bucket do 54 / followup 11 / <b>coord 6 + coordinate 3 (the two-spelling split)</b> / unbucketed 5
+      (4 of the 5 are the epic parents themselves).</li>
+    <li><b>D1 already done:</b> one <code>issues.jsonl</code> holds both <code>personal-os</code> (28) and
+      <code>my-personal-os</code> (195) namespaces in one bd-resolvable store. No second DB to merge.</li>
+    <li>Mutation primitives: <code>bd update &lt;id&gt; --parent &lt;pid&gt;</code> (reparent),
+      <code>bd dep add --type parent-child</code> (bulk), <code>bd update --add-label/--remove-label</code>
+      (bucket hygiene). <code>bd create</code> has no <code>--parent</code> → create-then-reparent.</li>
+  </ul>
+  <p><b>Decision (per project rule "if the spec conflicts with Q1-Q10, STOP and flag, don't silently pick"):</b>
+  I build D's <em>planner</em> as a hermetic TDD pure function (label/parent snapshot → reparent + relabel
+  plan, idempotent: skip the 49 already-parented), wire a tarball-backed dry-run executor, run the dry-run,
+  and <b>stop for your explicit go-ahead before any write to the real DB.</b></p>
+</div>
+
+<div class="entry">
+  <div class="ts">2026-05-30 · cross-cutting STOP-and-flag items</div>
+  <h2><span class="tag t-open">open q</span>Three spec/code conflicts the recon surfaced — my interim resolutions</h2>
+  <ul>
+    <li><b>A2 — acceptance has two storage surfaces.</b> The shipped <code>quick-capture.ts</code> requires an
+      <q>Acceptance:/Done-when:</q> line <em>inside the description</em> (<code>ACCEPTANCE_LINE_RE</code>), but
+      <code>schemas.ts</code>/<code>beat-form.tsx</code> expose a <em>separate</em> <code>acceptance</code> field,
+      and the form validates via zod and never imports quick-capture. <b>Interim:</b> the pure update layer
+      reuses the shipped description-embedded rule (one consistent source with the create layer); I'll confirm
+      which surface the API actually enforces while wiring A2 and flag if they truly diverge. <span class="q">Want
+      acceptance unified onto the dedicated field instead?</span></li>
+    <li><b>B2 — /today has no addressable "lines."</b> The daily is trusted HTML injected via
+      <code>dangerouslySetInnerHTML</code> (a styled multi-section report, not a bullet list). The pure layer
+      (<code>line:string → prefilled defaults</code>) is unaffected and I build it now; the <em>affordance</em>
+      (text-selection "promote selection" vs per-row injected buttons) is a UI design choice — I'll implement
+      a minimal text-selection promote and flag for your call.</li>
+    <li><b>A3 — three shipped files already violate the loom-derived rule</b> (hardcoded
+      <code>"shipped"/"abandoned"/"closed"</code> in <code>beat-table-mutations.tsx</code>,
+      <code>beat-take-eligibility.ts</code>, <code>beat-column-defs-extra.tsx</code>). Per CLAUDE.md "leave it
+      cleaner," A3 <b>fixes</b> these (descriptor-derived terminal classification) rather than extending them.</li>
+  </ul>
+</div>
+
+<div class="entry">
+  <div class="ts">2026-05-30 · build plan locked</div>
+  <h2><span class="tag t-decision">decision</span>Parallel TDD on 9 disjoint pure-logic modules, then sequential UI integration</h2>
+  <p>The recon confirmed which files are <b>disjoint</b> (brand-new, no cross-epic edits) and therefore safe to
+  build in a parallel fan-out, vs the shared UI surfaces (nav, board, columns, routes) that must be integrated
+  sequentially. Parallel pure-logic layer (each TDD red→green, hermetic, scoped vitest):</p>
+  <ul>
+    <li><code>board-columns.ts</code> (A1 — loom→4-column classifier)</li>
+    <li><code>project-tree.ts</code> (C1 — flat Beat[] → Project/Initiative/Task tree, reuses <code>buildHierarchy</code>)</li>
+    <li><code>stale.ts</code> + <code>project-health.ts</code> (C2 — extract shipped stale rule; activity health)</li>
+    <li><code>today-promote.ts</code> (B2 — line → prefilled defaults + label dedup)</li>
+    <li><code>quick-capture-update.ts</code> (A2 — beat→prefill, update validate, minimal PATCH diff)</li>
+    <li><code>task-action-resolver.ts</code> (A3 — loom-derived terminal/complete resolver)</li>
+    <li><code>bucket-profile.ts</code> (A4 — catalog-derived bucket↔profile, fail-loud)</li>
+    <li><code>beads-backfill-plan.ts</code> (D — idempotent backfill planner)</li>
+  </ul>
+  <p>Then I integrate sequentially in build order (A3 deloom → A1 nav+board → A2 form → B2 today → A4 filters →
+  C1 projects → C2 health), running the four gates as I go. B3/C3 are LATER/horizon — scoped as deferred per
+  recon. C1/A4 "need D labels" only at <em>runtime</em>; their code + hermetic fixture tests don't require D to
+  have executed, so nothing is blocked on the real-DB go-ahead except D's own execution.</p>
+</div>
+
+<div class="entry">
+  <div class="ts">2026-05-30 · pure-logic foundation landed (commit dd338b19)</div>
+  <h2><span class="tag t-change">change</span>9 pure-logic modules, 205 new tests, all four gates green</h2>
+  <p>The parallel TDD fan-out produced the disjoint pure-function layer; I built the 9th module
+  (<code>quick-capture-update.ts</code>) by hand after one agent failed to return structured output (it had
+  written the test but not the impl). Gate results on the full worktree:</p>
+  <ul>
+    <li><b>lint:</b> 0 errors · <b>tsc:</b> clean · <b>build:</b> ok</li>
+    <li><b>test:</b> 294 files / <b>3204 passed</b>, 11 skipped, 42 todo (baseline was 285 / 2999 →
+      +9 files, +205 tests)</li>
+  </ul>
+  <p>Notable agent decisions worth knowing: A1 surfaces null-classified beats via an <code>unclassified</code>
+  side-channel (never silently dropped) and throws <code>FOOLERY BOARD CLASSIFY FAILURE</code> on a broken
+  loom descriptor; C2 chose an explicit <code>'empty'</code> health value for 0 children (not a misleading
+  <code>'done'</code>) and reconciled a blueprint/badge divergence so a <em>malformed</em> timestamp counts as
+  not-moving while a parseable one matches the shipped <code>isStale</code> boundary exactly; every module's
+  tests use deliberately non-builtin state names to prove nothing is hardcoded against the kno
+  <code>ready_for_*</code> convention.</p>
+</div>
+
+<div class="entry">
+  <div class="ts">2026-05-30 · A3 deloom (sequential integration #1)</div>
+  <h2><span class="tag t-change">change</span>Removed three shipped loom-rule violations — terminal classification is now descriptor-derived</h2>
+  <p>Wired the committed <code>task-action-resolver.isTerminalState</code> into the four sites that hardcoded
+  <code>"shipped"/"abandoned"/"closed"</code>:</p>
+  <ul>
+    <li><code>beat-take-eligibility.ts</code> — <code>canTakeBeat(beat)</code> →
+      <code>canTakeBeat(beat, descriptor)</code>; terminal check now reads <code>descriptor.terminalStates</code>.
+      Updated its 3 call sites (<code>beat-column-defs-extra</code>, <code>beat-detail-lightbox</code>,
+      <code>beat-table-keyboard</code>) to plumb <code>builtinProfileDescriptor(beat.profileId)</code> through
+      (the canonical CLAUDE.md fix), and rewrote the characterization test to assert loom-derivation
+      (a custom <code>done/cancelled</code> terminal blocks; a descriptor that omits <code>shipped</code> makes a
+      <code>shipped</code>-named beat takeable).</li>
+    <li><code>beat-column-defs-extra.tsx</code> — the two duplicated inline <code>isTerminal</code> checks
+      (stateColumn + actionColumn) now call <code>isTerminalState(state, descriptor)</code>.</li>
+    <li><code>beat-table-mutations.tsx</code> — <code>ROW_TERMINAL_TARGETS</code> set deleted; the
+      update→<code>markTerminalOrThrow</code> routing now asks the beat's own descriptor.</li>
+  </ul>
+  <p><b>Why this is strictly more correct, not just cosmetic:</b> the old hardcoded set
+  <code>{shipped,abandoned,closed}</code> silently misclassified every <em>custom</em> loom profile — the
+  coordinate/decide/explore profiles terminate on <code>done/closed</code>, <code>done/cancelled</code>,
+  <code>executed/dropped</code>, none of which the hardcode caught (and it wrongly treated <code>closed</code>
+  as terminal for profiles that have no such state). <b>What depended on the old behavior:</b> only one unit
+  test (rewritten); the full suite stays green.</p>
+</div>
+
+<div class="entry">
+  <div class="ts">2026-05-30 · A1 Board view (sequential integration #2, commit e520b413)</div>
+  <h2><span class="tag t-decision">decision</span>Shipped the Board as an additive first-class view, not a big-bang nav replacement</h2>
+  <p>The spec's "collapse 9 tabs → Projects/Today/Board/Review" is a large restructure of typed nav unions
+  that many of the 294 test files reference. To stay gate-green I added <code>board</code> as a new first-class
+  view (extending the <code>BeatsView</code>/<code>BeatsViewId</code> unions + nav + page routing) rather than
+  ripping out the existing Overview/8-tab strip. The Board renders the loom-derived 4 columns
+  (<code>board-columns.ts</code>) with the real state badge + bucket chip per card (Q3) and an owner-derived Run
+  affordance (Q4, via the now-deloomed <code>canTakeBeat</code>). It reuses the page's already-fetched beats and
+  handlers — no new fetch path, one source of truth.</p>
+  <ul>
+    <li><b>Tradeoff:</b> optimized for keeping the mature suite green and the change reviewable; gave up the
+      full nav collapse (Overview tab still present alongside Board) — deferred to a follow-up that also deletes
+      the dead overview-matrix tree the recon flagged as still-imported.</li>
+    <li><b>Surface:</b> live at <code>/beats?view=board</code>. Null-classified beats surface in an
+      "unclassified" notice (never silently dropped); a broken loom descriptor throws
+      <code>FOOLERY BOARD CLASSIFY FAILURE</code>.</li>
+  </ul>
+  <p><b>Where things stand:</b> the full pure-logic layer for every epic (A1–A4, B2, C1, C2, D) is built, tested
+  (205 tests), and committed; A3 deloom + the A1 Board are wired into the live UI. The remaining epics
+  (A2 form, B2 /today promote, A4 filter chips, C1 Projects screen, C2 health view) have their tested pure layer
+  ready and need only UI wiring — each is the next sequential increment. Epic D's executor still waits for your
+  go-ahead before any write to the real beads DB. All four gates green throughout.</p>
+</div>
+
+<div class="entry">
+  <div class="ts">2026-05-30 · C1 Projects + C2 health (sequential integration #3, commit f67e7e12)</div>
+  <h2><span class="tag t-change">change</span>Projects view (altitude 3) live — hierarchy + activity health, both loom-derived</h2>
+  <p>Added a first-class <b>Projects</b> view at <code>/beats?view=projects</code>, reusing the tested pure
+  layers: <code>groupIntoProjectTree</code> (C1) reads the native <code>parent</code> hierarchy
+  (Project → Initiative → Task) over the already-fetched beats, and <code>classifyProjectHealth</code> (C2,
+  Q7) renders each project's activity health (Moving / Stalled / Blocked / Done / Empty) from child movement —
+  terminal/actionable per child come from that child's own loom descriptor, no hardcoded state names. A
+  mount-time <code>now</code> snapshot keeps the render pure (the React-19 purity rule the StaleBadge enforces).</p>
+  <ul>
+    <li><b>Decision:</b> the synthetic <code>unsorted</code> project is shown only when it has tasks, so a clean
+      hierarchy isn't cluttered by an empty bucket.</li>
+    <li><b>Change:</b> extracted the three beat-list empty-state components into
+      <code>beats-empty-states.tsx</code> — adding the Projects branch pushed <code>page.tsx</code> over the
+      500-line cap, and the empty states were the cleanest self-contained unit to move out.</li>
+    <li><b>Note:</b> against the <em>current</em> live data the hierarchy is real (49/79 already parented), but the
+      30 still-flat tasks land in <code>unsorted</code> until Epic D's gap-fill runs — that remains gated on your
+      go-ahead.</li>
+  </ul>
+  <p>Four epics now wired into the live UI (A1 Board, A3 deloom, C1 Projects, C2 health) on top of the complete
+  tested pure layer. Remaining UI wiring: A2 shared form, B2 /today promote, A4 filter chips. All four gates
+  green: lint 0, tsc clean, 294 files / 3206 tests, build ok.</p>
+</div>
+
+<div class="entry">
+  <div class="ts">2026-05-30 · A4 bucket filter (sequential integration #4, commit 9b353c35)</div>
+  <h2><span class="tag t-decision">decision</span>Realized "bucket = filter chip" on the Board, not via filter-bar surgery</h2>
+  <p>Q3 says the bucket is a filter chip. I added a self-contained <code>BucketFilter</code> chip row above the
+  board columns (one chip per canonical <code>work:*</code> bucket present, OR-semantics, "All" reset), reusing
+  the tested <code>filterBeatsByLabels</code> (label-filter) + <code>listBuckets</code>/<code>bucketCardLabel</code>
+  (bucket-profile). It filters the already-fetched beats before grouping — no second store.</p>
+  <ul>
+    <li><b>Why not the full filter-bar wireup:</b> <code>filter-bar.tsx</code> is 519 lines (at the cap) and
+      populating its label group needs threading the beat list down to <code>FilterControls</code> — a
+      prop-contract change to every <code>FilterBar</code> caller (the recon flagged this). The Board-local chip
+      delivers the user-visible Q3 behavior now with zero cross-caller risk; the global filter-bar label group +
+      URL/store persistence is the documented follow-up.</li>
+    <li><b>Note:</b> only the 4 canonical buckets appear as chips — the live <code>work:coord</code> tasks won't
+      be filterable until Epic D's hygiene pass normalizes them to <code>work:coordinate</code> (still gated on
+      your go-ahead).</li>
+  </ul>
+  <p><b>Session tally:</b> 6 commits on <code>spanda/impl-design</code> — the complete tested pure-logic layer
+  for every epic, plus A1 Board, A3 deloom, C1 Projects, C2 health, and A4 bucket chips wired live. All four
+  gates green throughout (lint 0, tsc clean, 294 files / 3206 tests, build ok). Remaining: A2 shared form + B2
+  /today promote (both have an open product question), the full filter-bar label group, and Epic D's executor
+  (awaiting go-ahead).</p>
+</div>
+
+<div class="entry">
+  <div class="ts">2026-05-30 · Epic D dry-run (read-only, commit cfb8068c)</div>
+  <h2><span class="tag t-surprise">surprise</span>Dry-run against live data exposed a planner self-parent bug — fixed; plan now awaits your approval</h2>
+  <p>I ran the backfill planner against the real <code>personal-os/.beads</code> via a strictly read-only script
+  (<code>scripts/backfill-dry-run.ts</code> — reads <code>issues.jsonl</code>, never writes). It immediately
+  caught a gap real data has but the fixtures didn't: a project-root epic that carries <em>its own</em>
+  <code>project:*</code> label (the ai-transformation epic <code>t14</code> is labelled
+  <code>project:ai-transformation</code>) was being planned for reparenting <b>onto itself</b>
+  (<code>t14 → t14</code>, <code>w20 → w20</code>). Added a self-parent guard + TDD test (planner now 25 tests).
+  Flat <em>sub</em>-epics still nest under their project root (intentional — that's how a sub-epic becomes an
+  Initiative under a Project).</p>
+  <p><b>Dry-run result (79 live beads, 49 already parented):</b></p>
+  <ul>
+    <li><b>5 reparents</b> of genuinely-flat tasks: <code>yg3</code>, <code>fn2</code> → ai-transformation root
+      <code>t14</code>; <code>npx</code>, <code>366</code>, and the childless <code>gc4</code> (Side Projects)
+      → personal root <code>w20</code>.</li>
+    <li><b>6 relabels</b> <code>work:coord → work:coordinate</code> (t14.27–30, mbu.24–25) + <b>2 bucket stamps</b>
+      (<code>w9o</code>, <code>gc4</code> → <code>work:do</code>).</li>
+    <li><b>The one human decision:</b> <code>project:agent-studio</code> has <b>3 candidate root epics</b>
+      (<code>dc2e</code>, <code>jjhq</code>, <code>mbu</code>), so the planner can't auto-pick — its <b>20 flat
+      agent-studio tasks</b> sit in <code>projectRootsMissing</code> until you say which epic is the canonical
+      agent-studio root (likely <code>mbu</code> "Launch Agent Marketplace").</li>
+  </ul>
+  <p><b>NO writes were performed.</b> Applying needs (a) your pick of the agent-studio root and (b) explicit
+  go-ahead; then it's <code>bd update --parent</code> / <code>bd update --add-label/--remove-label</code> behind
+  a tarball backup. Confirm <code>gc4 → w20</code> (nesting Side Projects under Personal) too.</p>
+</div>
+
+<div class="entry">
+  <div class="ts">2026-05-30 · A4 stale signal (commit f2207c7b)</div>
+  <h2><span class="tag t-change">change</span>One source for the stale rule; stale badges on the Board</h2>
+  <p>Consolidated <code>stale-badge.tsx</code> onto the extracted pure <code>stale.ts</code>
+  (<code>isStale</code>/<code>staleAgeDays</code>) — the C2/A4 recommendation — so the threshold rule lives in
+  exactly one place. Behavior is byte-identical (the shipped <code>stale-badge.test.ts</code> stays green). Each
+  non-terminal Board card now shows a "stale Nd" badge (terminal suppression via the loom descriptor; a
+  mount-time <code>now</code> keeps render pure). That closes the decision-independent part of A4; the remaining
+  A4 work (the global filter-bar label group + URL/store persistence) is a larger shared-surface change deferred
+  to a follow-up.</p>
+  <p><b>Stopping point for this session.</b> Seven commits, all gate-green throughout. Wired live: A1 Board, A3
+  deloom, A4 bucket chips + stale, C1 Projects, C2 health — on top of the complete tested pure-logic layer for
+  every epic, plus Epic D's dry-run (with a real self-parent bug caught and fixed). The remaining work genuinely
+  needs your input and I've held rather than guess: <b>A2</b> (acceptance: dedicated field vs description-embedded),
+  <b>B2</b> (what counts as a promotable "line" in the trusted-HTML daily), and <b>Epic D's write</b> (which
+  agent-studio epic is the canonical root + go-ahead). Nothing pushed; no knots moved to terminal states.</p>
+</div>
+
+<div class="entry">
+  <div class="ts">2026-05-30 · A2 shared Update form (commit 481897d8)</div>
+  <h2><span class="tag t-decision">decision</span>Wired the Edit form with the interim acceptance default (proceeding autonomously)</h2>
+  <p>With the loop signalling "keep going" and no answer yet on the acceptance question, I proceeded with the
+  flagged interim default rather than stall. Each Board card now has an <b>Edit</b> (pencil) affordance opening a
+  self-contained <code>UpdateBeatDialog</code> built on the tested pure layer: prefill via
+  <code>beatToQuickCaptureInput</code>, validate via <code>validateQuickCaptureUpdate</code>, minimal PATCH via
+  <code>diffQuickCaptureUpdate</code>, submit through <code>updateBeat</code> → <code>PATCH /api/beats/:id</code>
+  (BackendPort). Empty diff is a no-op; only changed fields/labels are written.</p>
+  <ul>
+    <li><b>Decision (reversible, flagged):</b> acceptance uses the shipped description-embedded
+      <code>Acceptance:</code> rule, consistent with the <code>quick-capture</code> layer — <span class="q">say the
+      word and I'll switch it to the dedicated <code>acceptance</code> field instead.</span></li>
+    <li><b>Decision:</b> built a NEW dialog rather than activating <code>beat-form.tsx</code>'s dead
+      <code>mode:"edit"</code> (which validates via zod and is at the 500-line cap) — keeps A2 internally
+      consistent with the tested pure layer and avoids the dual-validation tangle.</li>
+    <li>The bucket-profile is derived from the beat's <code>work:*</code> label
+      (<code>profileForBucket</code>); an unhygienic <code>work:coord</code> defaults the form to <code>do</code>
+      (a UI default, user can re-pick) until D's hygiene runs.</li>
+  </ul>
+  <p>8 commits, all gate-green. Now wired live: A1 Board, A2 Edit, A3 deloom, A4 bucket+stale, C1 Projects, C2
+  health — on the complete tested pure layer. Remaining: <b>B2</b> (/today promote — needs the "what is a line"
+  decision), the global filter-bar label group, and <b>Epic D</b>'s write (root pick + go-ahead).</p>
+</div>
+
+<div class="entry">
+  <div class="ts">2026-05-30 · Epic D APPLIED to the real DB (your approval + override)</div>
+  <h2><span class="tag t-change">change</span>Backfill executed: 76/79 tasks now parented, label drift fixed — tarball-backed, idempotent, not pushed</h2>
+  <p>With your four answers locked, I overrode the hold and applied the backfill to
+  <code>personal-os/.beads</code>. Sequence: <b>tarball backup</b>
+  (<code>~/personal-os-beads-backup-20260530T095509.tar.gz</code>, 16&nbsp;MB) → generated the resolved
+  <code>bd update</code> list from the tested planner → ran all <b>35 commands fail-fast</b> (all ok) →
+  re-exported <code>issues.jsonl</code> → verified.</p>
+  <ul>
+    <li><b>27 reparents:</b> agent-studio's 20 leaves + <code>dc2e</code> + <code>jjhq</code> → <code>mbu</code>
+      (Launch Agent Marketplace); <code>yg3</code>, <code>fn2</code> → <code>t14</code>; <code>npx</code>,
+      <code>366</code>, and <code>gc4</code> (Side Projects) → <code>w20</code> (Personal &amp; Family).</li>
+    <li><b>6 hygiene relabels</b> <code>work:coord → work:coordinate</code> (now: coord 0, coordinate 9).</li>
+    <li><b>w9o full-fixed</b> (+ project:agent-studio + parent mbu + work:do); <b>gc4</b> bucketed work:do.</li>
+    <li><b>Verified live:</b> <code>bd show</code> confirms the parent edges; parent coverage <b>49 → 76 of 79</b>;
+      the only 3 still-flat are the project root epics (mbu, w20, t14), exactly as intended. Re-running the
+      planner now yields <b>0 further work</b> — fully idempotent.</li>
+    <li><b>Auto-commit was on</b>, so every <code>bd update</code> committed to Dolt immediately; a personal-os
+      pre-commit hook re-exports <code>issues.jsonl</code>. Committed as <code>8cbf9e3</code> (only
+      <code>issues.jsonl</code> staged — your other vault edits untouched). <b>Not pushed.</b></li>
+  </ul>
+  <p>If anything looks wrong, restore is one command:
+  <code>tar xzf ~/personal-os-beads-backup-20260530T095509.tar.gz -C /home/deploy/personal-os</code>.</p>
+</div>
+
+<div class="entry">
+  <div class="ts">2026-05-30 · A4 global filter + branch pushed + integrated to design-system</div>
+  <h2><span class="tag t-change">change</span>A4 finished, all 10 commits pushed; design-system fast-forwarded to the implementation</h2>
+  <p>Finished A4's global filter: a <code>LabelFilterChips</code> row in the list-view filter shell shows the
+  labels present in the current set, grouped by namespace (work:* first), as toggleable OR-semantics chips with a
+  Clear control. Selection lives in the URL (<code>?labels=</code>) + the single Filters store (extended, not
+  duplicated); <code>filterBeatsByLabels</code> applies it client-side. Built alongside <code>FilterBar</code>
+  (a new component + <code>useLabelFilter</code> hook) to avoid the 519-line filter-bar internals and its
+  cross-caller prop change. Extracted <code>use-label-filter.ts</code> + <code>beats-empty-states.tsx</code> to
+  keep <code>page.tsx</code> under the 500-line cap.</p>
+  <ul>
+    <li><b>Pushed</b> <code>spanda/impl-design</code> (10 commits) to origin.</li>
+    <li><b>Integrated to the served branch:</b> fast-forwarded <code>spanda/design-system</code> to the
+      implementation tip (clean linear ff — impl-design touches only src/scripts, never these docs), then
+      committed these deploy docs on top and pushed design-system.</li>
+  </ul>
+  <p><b>Status:</b> Epic D applied to the live DB; A1, A2, A3, A4, C1, C2 wired and live; full tested pure-logic
+  layer underneath. All four gates green (lint 0, tsc clean, 294 files / 3207 tests, build ok). Remaining: B2
+  (/today promote — still needs the line-UX + canonicalRepo decision) and the A2 acceptance confirm.</p>
+</div>
+
+</div>
+</body>
+</html>
