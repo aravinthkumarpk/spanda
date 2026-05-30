@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import type { Beat } from "@/lib/types";
+import { UpdateBeatDialog } from "@/components/update-beat-dialog";
 import { BeatStateBadge } from "@/components/beat-state-badge";
 import { StaleBadge } from "@/components/stale-badge";
 import { bucketCardLabel } from "@/lib/bucket-profile";
@@ -8,7 +10,7 @@ import { canTakeBeat } from "@/lib/beat-take-eligibility";
 import { isTerminalState } from "@/lib/task-action-resolver";
 import { builtinProfileDescriptor } from "@/lib/workflows";
 import { displayBeatLabel } from "@/lib/beat-display";
-import { Clapperboard } from "lucide-react";
+import { Clapperboard, Pencil } from "lucide-react";
 
 /**
  * A single card on the normalized board. Shows the beat title, the REAL
@@ -34,6 +36,7 @@ export function BoardCard({
   const bucket = bucketCardLabel(beat.labels);
   const canRun = Boolean(onShipBeat) && canTakeBeat(beat, descriptor);
   const isTerminal = isTerminalState(beat.state, descriptor);
+  const [editOpen, setEditOpen] = useState(false);
   return (
     <div
       className={
@@ -70,6 +73,18 @@ export function BoardCard({
         <span className="ml-auto font-mono text-[10px] text-ink-500">
           {displayBeatLabel(beat.id, beat.aliases)}
         </span>
+        <button
+          type="button"
+          onClick={() => setEditOpen(true)}
+          title="Edit task"
+          className={
+            "inline-flex items-center rounded p-0.5 text-ink-500"
+            + " hover:bg-paper-100 hover:text-ink-900"
+            + " dark:hover:bg-walnut-100/40"
+          }
+        >
+          <Pencil className="size-3" />
+        </button>
         {canRun && (
           <button
             type="button"
@@ -88,6 +103,11 @@ export function BoardCard({
           </button>
         )}
       </div>
+      <UpdateBeatDialog
+        beat={beat}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+      />
     </div>
   );
 }
