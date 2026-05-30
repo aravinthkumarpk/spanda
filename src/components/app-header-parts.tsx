@@ -5,7 +5,7 @@ import {
   Plus, Megaphone, RotateCcw, Settings,
   X, History, PartyPopper,
   Zap, Inbox, BarChart3, ListMusic,
-  LayoutDashboard, Columns3,
+  LayoutDashboard, Columns3, FolderKanban,
 } from "lucide-react";
 import { SpandaLockup } from "@/components/spanda-lockup";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -409,6 +409,13 @@ function ViewSwitcherTabs(props: {
         icon={<Columns3 className="size-4" />}
         label="Board"
         title="Normalized board — To do / Doing / Review / Done"
+        setView={setView}
+      />
+      <ViewTab
+        view="projects" current={beatsView}
+        icon={<FolderKanban className="size-4" />}
+        label="Projects"
+        title="Projects — hierarchy and activity-based health"
         setView={setView}
       />
       <ViewTab

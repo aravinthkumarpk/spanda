@@ -28,6 +28,12 @@ import {
   BeatStateOverviewScreen,
 } from "@/components/beat-state-overview";
 import { BoardView } from "@/components/board-view";
+import { ProjectsView } from "@/components/projects-view";
+import {
+  AllReposEmptyState,
+  DegradedBanner,
+  StreamingEmptyState,
+} from "./beats-empty-states";
 import { RepoSwitchLoadingState } from "@/components/repo-switch-loading-state";
 import {
   StreamingProgressBar,
@@ -37,7 +43,6 @@ import type {
 } from "./use-streaming-progress";
 import { useAppStore } from "@/stores/app-store";
 import { useTerminalStore } from "@/stores/terminal-store";
-import { AlertTriangle } from "lucide-react";
 import {
   isListBeatsView, parseBeatsView,
 } from "@/lib/beats-view";
@@ -85,7 +90,9 @@ function useBeatsPageState() {
   const isListView = isListBeatsView(beatsView);
   const isOverviewView = beatsView === "overview";
   const isBoardView = beatsView === "board";
-  const shouldLoadBeats = isListView || isOverviewView || isBoardView;
+  const isProjectsView = beatsView === "projects";
+  const shouldLoadBeats =
+    isListView || isOverviewView || isBoardView || isProjectsView;
   const supportsBeatDetail =
     shouldLoadBeats || beatsView === "setlist";
   const viewPhase: ViewPhase =
@@ -157,7 +164,8 @@ function useBeatsPageState() {
     activeRepo,
   });
   return {
-    beatsView, isListView, isOverviewView, isBoardView, viewPhase,
+    beatsView, isListView, isOverviewView, isBoardView, isProjectsView,
+    viewPhase,
     supportsBeatDetail,
     isActiveView, activeRepo,
     searchQuery, detailBeatId, detailRepo,
@@ -242,6 +250,7 @@ function BeatsPageInner() {
         isHistoryView={isHistoryView}
         isOverviewView={isOverviewView}
         isBoardView={s.isBoardView}
+        isProjectsView={s.isProjectsView}
         isDiagnosticsView={isDiagnosticsView}
         state={s}
       />
@@ -286,6 +295,7 @@ function BeatsViewBody({
   isHistoryView,
   isOverviewView,
   isBoardView,
+  isProjectsView,
   isDiagnosticsView,
   state: s,
 }: {
@@ -295,6 +305,7 @@ function BeatsViewBody({
   isHistoryView: boolean;
   isOverviewView: boolean;
   isBoardView: boolean;
+  isProjectsView: boolean;
   isDiagnosticsView: boolean;
   state: PageState;
 }) {
@@ -333,6 +344,13 @@ function BeatsViewBody({
           onOpenBeat={s.handleOpenBeat}
           onShipBeat={s.handleShipBeat}
           shippingByBeatId={s.shippingByBeatId}
+        />
+      ) : isProjectsView ? (
+        <ProjectsView
+          isLoading={s.isLoading}
+          loadError={s.loadError}
+          beats={s.beats}
+          onOpenBeat={s.handleOpenBeat}
         />
       ) : isDiagnosticsView ? (
         <DiagnosticsView
@@ -471,49 +489,3 @@ function BeatsListContent(
   );
 }
 
-function StreamingEmptyState() {
-  return (
-    <div
-      data-testid="streaming-empty-state"
-      className={
-        "flex items-center justify-center"
-        + " py-6 text-sm text-muted-foreground"
-      }
-    >
-      Loading repositories...
-    </div>
-  );
-}
-
-function AllReposEmptyState() {
-  return (
-    <div
-      data-testid="all-repos-empty-state"
-      className={
-        "flex items-center justify-center"
-        + " py-6 text-sm text-muted-foreground"
-      }
-    >
-      No results found across all repositories.
-    </div>
-  );
-}
-
-function DegradedBanner(
-  { message }: { message: string | null },
-) {
-  return (
-    <div className={
-      "mb-2 flex items-center gap-2 rounded-md"
-      + " border border-feature-400 bg-feature-100"
-      + " px-3 py-2 text-sm text-feature-700"
-      + " dark:border-feature-700"
-      + " dark:bg-feature-700 dark:text-feature-100"
-    }>
-      <AlertTriangle
-        className="size-4 shrink-0"
-      />
-      <span>{message}</span>
-    </div>
-  );
-}
