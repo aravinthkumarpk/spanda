@@ -1,4 +1,5 @@
 import { readFile, writeFile, mkdir, chmod, stat } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { homedir } from "node:os";
 import type { MemoryManagerType } from "@/lib/memory-managers";
@@ -50,6 +51,48 @@ export interface RepoMemoryManagerSyncResult {
 }
 const CONFIG_DIR = `${homedir()}/.config/foolery`;
 const REGISTRY_FILE = `${CONFIG_DIR}/registry.json`;
+
+// Short-lived sync cache of repoPath -> declared memory-manager type, read
+// straight from the registry file. Used by the backend router so a repo's
+// EXPLICIT registered type wins over on-disk markers (a stale `.knots` cache
+// must never override a repo registered as beads). Fails soft to an empty map.
+let syncTypeCache: { at: number; map: Map<string, MemoryManagerType> } | null =
+  null;
+const SYNC_TYPE_TTL_MS = 5000;
+
+/**
+ * The registry-declared memory-manager type for a repo path, read
+ * synchronously (cached ~5s), or undefined if the repo is not registered or
+ * the registry is unreadable. Authoritative over marker detection.
+ */
+export function getRegisteredMemoryManagerTypeSync(
+  repoPath: string,
+): MemoryManagerType | undefined {
+  if (!syncTypeCache || Date.now() - syncTypeCache.at > SYNC_TYPE_TTL_MS) {
+    const map = new Map<string, MemoryManagerType>();
+    try {
+      const parsed = JSON.parse(readFileSync(REGISTRY_FILE, "utf-8"));
+      const repos = Array.isArray(parsed?.repos) ? parsed.repos : [];
+      for (const repo of repos) {
+        if (
+          typeof repo?.path === "string" &&
+          isKnownMemoryManagerType(repo?.memoryManagerType)
+        ) {
+          map.set(repo.path, repo.memoryManagerType);
+        }
+      }
+    } catch {
+      // Missing/unreadable registry: fall back to marker detection.
+    }
+    syncTypeCache = { at: Date.now(), map };
+  }
+  return syncTypeCache.map.get(repoPath);
+}
+
+/** Clear the sync type cache (e.g. after a registry write). */
+export function clearRegisteredTypeCache(): void {
+  syncTypeCache = null;
+}
 
 function defaultMemoryManagerType(repoPath: string): MemoryManagerType {
   return detectMemoryManagerType(repoPath) ?? "beads";
