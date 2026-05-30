@@ -34,7 +34,25 @@ const KNOWN_MEMORY_MANAGER_BY_TYPE = new Map<MemoryManagerType, MemoryManagerImp
   KNOWN_MEMORY_MANAGERS.map((memoryManager) => [memoryManager.type, memoryManager]),
 );
 
+/**
+ * Beads-only mode: when FOOLERY_DISABLE_KNOTS is set, knots is removed from the
+ * supported managers so the browser, marker detection, and the backend router
+ * never see or pick knots. Lets a beads-only install ignore a stray `.knots/`
+ * cache entirely. The knots backend code stays in the tree for installs that
+ * use it. (Server-only env; client code defaults to the full list, which it
+ * only uses for labels.)
+ */
+function knotsDisabled(): boolean {
+  const flag = process.env.FOOLERY_DISABLE_KNOTS;
+  return flag === "1" || flag === "true";
+}
+
 export function listKnownMemoryManagers(): ReadonlyArray<MemoryManagerImplementation> {
+  if (knotsDisabled()) {
+    return KNOWN_MEMORY_MANAGERS.filter(
+      (memoryManager) => memoryManager.type !== "knots",
+    );
+  }
   return KNOWN_MEMORY_MANAGERS;
 }
 
@@ -49,5 +67,7 @@ export function getMemoryManagerLabel(type: string | undefined): string {
 }
 
 export function getKnownMemoryManagerMarkers(): string[] {
-  return KNOWN_MEMORY_MANAGERS.map((memoryManager) => memoryManager.markerDirectory);
+  return listKnownMemoryManagers().map(
+    (memoryManager) => memoryManager.markerDirectory,
+  );
 }
