@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { Beat } from "@/lib/types";
 import {
   BOARD_COLUMNS,
@@ -8,7 +8,10 @@ import {
   type BoardColumnGroups,
 } from "@/lib/board-columns";
 import { builtinProfileDescriptor } from "@/lib/workflows";
+import { listBuckets } from "@/lib/bucket-profile";
+import { filterBeatsByLabels } from "@/lib/label-filter";
 import { BoardCard } from "@/components/board-card";
+import { BucketFilter } from "@/components/bucket-filter";
 
 /**
  * The normalized 4-column board (Q3). Every beat's loom-derived state is
@@ -36,13 +39,31 @@ export function BoardView({
   onShipBeat?: (beat: Beat) => void;
   shippingByBeatId?: Record<string, unknown>;
 }) {
-  const groups: BoardColumnGroups = useMemo(
+  const [selectedBuckets, setSelectedBuckets] = useState<string[]>([]);
+  const presentBuckets = useMemo(
     () =>
-      groupBeatsByBoardColumn(beats, (beat) =>
-        builtinProfileDescriptor(beat.profileId),
+      listBuckets().filter((bucket) =>
+        beats.some((beat) => beat.labels.includes(bucket)),
       ),
     [beats],
   );
+  const filtered = useMemo(
+    () => filterBeatsByLabels(beats, selectedBuckets),
+    [beats, selectedBuckets],
+  );
+  const groups: BoardColumnGroups = useMemo(
+    () =>
+      groupBeatsByBoardColumn(filtered, (beat) =>
+        builtinProfileDescriptor(beat.profileId),
+      ),
+    [filtered],
+  );
+  const toggleBucket = (bucket: string) =>
+    setSelectedBuckets((current) =>
+      current.includes(bucket)
+        ? current.filter((b) => b !== bucket)
+        : [...current, bucket],
+    );
 
   if (loadError) {
     return (
@@ -54,6 +75,12 @@ export function BoardView({
 
   return (
     <div className="flex flex-col gap-3">
+      <BucketFilter
+        buckets={presentBuckets}
+        selected={selectedBuckets}
+        onToggle={toggleBucket}
+        onClear={() => setSelectedBuckets([])}
+      />
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
         {BOARD_COLUMNS.map((column) => (
           <BoardColumnPanel
