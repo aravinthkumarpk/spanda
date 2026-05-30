@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Beat } from "@/lib/types";
-import { UpdateBeatDialog } from "@/components/update-beat-dialog";
+import { EditBeatDialog } from "@/components/edit-beat-dialog";
 import { BeatStateBadge } from "@/components/beat-state-badge";
 import { StaleBadge } from "@/components/stale-badge";
 import { bucketCardLabel } from "@/lib/bucket-profile";
@@ -103,7 +103,7 @@ export function BoardCard({
           </button>
         )}
       </div>
-      <UpdateBeatDialog
+      <EditBeatDialog
         beat={beat}
         open={editOpen}
         onOpenChange={setEditOpen}
