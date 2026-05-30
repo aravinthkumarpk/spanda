@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { resolveBeatsScope } from "@/lib/api";
+import { serializeLabelsParam } from "@/lib/label-filter";
 import { useAppStore, type Filters } from "@/stores/app-store";
 
 const DEFAULT_PAGE_SIZE = 50;
@@ -14,6 +15,7 @@ interface UrlOverrides {
   type?: string | undefined;
   priority?: number | undefined;
   assignee?: string | undefined;
+  labels?: string[] | undefined;
   pageSize?: number;
 }
 
@@ -32,6 +34,7 @@ export function useUpdateUrl() {
       const type = "type" in overrides ? overrides.type : store.filters.type;
       const priority = "priority" in overrides ? overrides.priority : store.filters.priority;
       const assignee = "assignee" in overrides ? overrides.assignee : store.filters.assignee;
+      const labels = "labels" in overrides ? overrides.labels : store.filters.labels;
       const pageSize = "pageSize" in overrides ? overrides.pageSize : store.pageSize;
 
       if (repo) params.set("repo", repo);
@@ -53,6 +56,10 @@ export function useUpdateUrl() {
       if (assignee) params.set("assignee", assignee);
       else params.delete("assignee");
 
+      const labelsParam = serializeLabelsParam(labels ?? []);
+      if (labelsParam) params.set("labels", labelsParam);
+      else params.delete("labels");
+
       if (pageSize && pageSize !== DEFAULT_PAGE_SIZE && VALID_PAGE_SIZES.includes(pageSize))
         params.set("pageSize", String(pageSize));
       else params.delete("pageSize");
@@ -69,12 +76,16 @@ export function useUpdateUrl() {
         store.setActiveRepo(nextRepo);
       }
 
-      if ("state" in overrides || "type" in overrides || "priority" in overrides || "assignee" in overrides) {
+      if (
+        "state" in overrides || "type" in overrides || "priority" in overrides
+        || "assignee" in overrides || "labels" in overrides
+      ) {
         const newFilters: Filters = {
           state: "state" in overrides ? overrides.state : store.filters.state,
           type: "type" in overrides ? overrides.type : store.filters.type,
           priority: "priority" in overrides ? overrides.priority : store.filters.priority,
           assignee: "assignee" in overrides ? overrides.assignee : store.filters.assignee,
+          labels: "labels" in overrides ? overrides.labels : store.filters.labels,
         };
         store.setFiltersFromUrl(newFilters);
       }

@@ -29,6 +29,9 @@ import {
 } from "@/components/beat-state-overview";
 import { BoardView } from "@/components/board-view";
 import { ProjectsView } from "@/components/projects-view";
+import { LabelFilterChips } from "@/components/label-filter-chips";
+import { useLabelFilter } from "./use-label-filter";
+import { useUpdateUrl } from "@/hooks/use-update-url";
 import {
   AllReposEmptyState,
   DegradedBanner,
@@ -136,7 +139,10 @@ function useBeatsPageState() {
     registeredRepos, shippingByBeatId,
   });
   const displayedBeats = useDisplayedBeats(beats);
-
+  const { selectedLabels, labelFilteredBeats } = useLabelFilter(
+    displayedBeats,
+    searchParams.get("labels"),
+  );
   const showRepoColumn =
     !activeRepo && registeredRepos.length > 1;
   const agentInfoByBeatId = useAgentInfoMap(
@@ -169,7 +175,8 @@ function useBeatsPageState() {
     supportsBeatDetail,
     isActiveView, activeRepo,
     searchQuery, detailBeatId, detailRepo,
-    beats: displayedBeats, isLoading, loadError, isDegradedError,
+    beats: labelFilteredBeats, labelSourceBeats: displayedBeats, selectedLabels,
+    isLoading, loadError, isDegradedError,
     hasRollingAncestor, showRepoColumn,
     agentInfoByBeatId, shippingByBeatId,
     overviewLeaseInfoByBeatKey,
@@ -204,6 +211,7 @@ function useDisplayedBeats(beats: Beat[]): Beat[] {
 
 function BeatsPageInner() {
   const s = useBeatsPageState();
+  const updateUrl = useUpdateUrl();
   const isFinalCutView = s.beatsView === "finalcut";
   const isSetlistView = s.beatsView === "setlist";
   const isRetakesView = s.beatsView === "retakes";
@@ -240,6 +248,22 @@ function BeatsPageInner() {
             onSceneBeats={s.handleSceneBeats}
             onMergeBeats={s.handleMergeBeats}
             onRefineScope={s.handleRefineScope}
+          />
+        </div>
+      )}
+      {s.isListView && s.labelSourceBeats.length > 0 && (
+        <div className="mb-2 pb-1" data-testid="label-filter-chips">
+          <LabelFilterChips
+            beats={s.labelSourceBeats}
+            selected={s.selectedLabels}
+            onToggle={(label) =>
+              updateUrl({
+                labels: s.selectedLabels.includes(label)
+                  ? s.selectedLabels.filter((l) => l !== label)
+                  : [...s.selectedLabels, label],
+              })
+            }
+            onClear={() => updateUrl({ labels: [] })}
           />
         </div>
       )}

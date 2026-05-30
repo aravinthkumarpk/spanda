@@ -6,6 +6,8 @@ export interface Filters {
   type?: string;
   priority?: number;
   assignee?: string;
+  /** Selected label chips (OR-semantics); empty/undefined = all. */
+  labels?: string[];
 }
 
 interface AppState {
