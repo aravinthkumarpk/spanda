@@ -4,8 +4,9 @@
  * Asserts that BUILTIN_PROFILE_CATALOG has been replaced with the
  * 4 spanda profiles per PHASE2_PLAN.md:
  *
- *   do          = ready_for_impl → impl → ready_for_review → review → shipped
- *                 (renamed autopilot_no_planning; agent-eligible IC work)
+ *   do          = Open → Plan → Plan review → Execution → Sign-off →
+ *                 Execution review → Done (ADR-0004: human-gated, two gates +
+ *                 an agent sign_off step; SEMIAUTO_OWNERS)
  *   coordinate  = scheduled → done / cancelled
  *                 (human-only; meetings, alignment)
  *   followup    = waiting → nudged → escalated → done / closed
@@ -64,18 +65,32 @@ describe("spanda 4-profile catalog: identity", () => {
 });
 
 describe("spanda 4-profile catalog: profile shapes", () => {
-  describe("profile: do (renamed autopilot_no_planning)", () => {
+  describe("profile: do (ADR-0004 human-gated Do lifecycle)", () => {
     const d = byId.get("do")!;
     it("exists", () => { expect(d).toBeDefined(); });
-    it("has the canonical IC lifecycle states", () => {
-      expect(d.states).toContain("ready_for_implementation");
+    it("runs the full planning → execution → ship lifecycle", () => {
+      expect(d.states).toContain("ready_for_planning");
+      expect(d.states).toContain("planning");
+      expect(d.states).toContain("plan_review");
       expect(d.states).toContain("implementation");
-      expect(d.states).toContain("ready_for_implementation_review");
       expect(d.states).toContain("implementation_review");
       expect(d.states).toContain("shipped");
     });
-    it("initial state is ready_for_implementation (no planning)", () => {
-      expect(d.initialState).toBe("ready_for_implementation");
+    it("has an explicit agent sign_off state before implementation_review", () => {
+      expect(d.states).toContain("sign_off");
+      // sign_off is an agent action step (Doing column), not a queue/terminal.
+      expect(d.actionStates).toContain("sign_off");
+      expect(d.queueStates).not.toContain("sign_off");
+      expect(d.terminalStates).not.toContain("sign_off");
+    });
+    it("initial state is ready_for_planning (planning is required)", () => {
+      expect(d.initialState).toBe("ready_for_planning");
+    });
+    it("has exactly two human gates: plan_review + implementation_review", () => {
+      expect(d.owners?.plan_review).toBe("human");
+      expect(d.owners?.implementation_review).toBe("human");
+      expect(d.owners?.planning).toBe("agent");
+      expect(d.owners?.sign_off).toBe("agent");
     });
     it("terminal states include shipped", () => {
       expect(d.terminalStates).toContain("shipped");

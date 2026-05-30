@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   classifyBeatRole,
   groupIntoProjectTree,
+  withAltitudeLabel,
 } from "@/lib/project-tree";
 import type { Beat } from "@/lib/types";
 
@@ -67,7 +68,7 @@ describe("classifyBeatRole", () => {
     ).toBe("project");
   });
 
-  it("honors an explicit altitude:* label over structure (ADR-0003)", () => {
+  it("uses the altitude:* label to disambiguate a CHILDLESS beat (ADR-0004)", () => {
     // The empty-initiative gap: a spec'd initiative with no children would
     // structurally read as a task; the altitude:initiative label fixes it.
     const initiative = makeBeat("i", { labels: ["altitude:initiative"] });
@@ -78,21 +79,62 @@ describe("classifyBeatRole", () => {
       }),
     ).toBe("initiative");
 
+    // An empty (childless) project, e.g. a freshly-created grouping.
     const project = makeBeat("p", { labels: ["altitude:project"] });
     expect(
-      classifyBeatRole(project, { hasParentInSet: true, hasChildren: false }),
+      classifyBeatRole(project, { hasParentInSet: false, hasChildren: false }),
     ).toBe("project");
-
-    const task = makeBeat("t", { labels: ["altitude:task"] });
-    expect(
-      classifyBeatRole(task, { hasParentInSet: false, hasChildren: true }),
-    ).toBe("task");
   });
 
-  it("falls back to structure for a malformed/absent altitude label", () => {
+  it("lets STRUCTURE win once a beat has children (label can't freeze it)", () => {
+    // ADR-0004: a top-level beat stamped altitude:initiative at create that
+    // later grows children is a container — structure (no-parent + children =
+    // project) takes back over; the stale label is ignored.
+    const grown = makeBeat("g", { labels: ["altitude:initiative"] });
+    expect(
+      classifyBeatRole(grown, { hasParentInSet: false, hasChildren: true }),
+    ).toBe("project");
+    // And a parented container is an initiative regardless of any label.
+    const nested = makeBeat("n", { labels: ["altitude:task"] });
+    expect(
+      classifyBeatRole(nested, { hasParentInSet: true, hasChildren: true }),
+    ).toBe("initiative");
+  });
+
+  it("falls back to task for a childless beat with no/ malformed altitude", () => {
     const bad = makeBeat("b", { labels: ["altitude:", "altitude:bogus"] });
     expect(
-      classifyBeatRole(bad, { hasParentInSet: true, hasChildren: true }),
+      classifyBeatRole(bad, { hasParentInSet: true, hasChildren: false }),
+    ).toBe("task");
+  });
+});
+
+describe("withAltitudeLabel (ADR-0004 create-time stamping)", () => {
+  it("adds the altitude label, preserving other labels", () => {
+    expect(withAltitudeLabel(["work:do"], "initiative")).toEqual([
+      "work:do",
+      "altitude:initiative",
+    ]);
+  });
+
+  it("is idempotent — replaces any existing altitude label", () => {
+    expect(
+      withAltitudeLabel(["altitude:task", "work:do"], "initiative"),
+    ).toEqual(["work:do", "altitude:initiative"]);
+  });
+
+  it("handles undefined labels", () => {
+    expect(withAltitudeLabel(undefined, "project")).toEqual([
+      "altitude:project",
+    ]);
+  });
+
+  it("round-trips through classifyBeatRole for a childless beat", () => {
+    const beat = makeBeat("i", {
+      labels: withAltitudeLabel([], "initiative"),
+    });
+    expect(
+      classifyBeatRole(beat, { hasParentInSet: false, hasChildren: false }),
     ).toBe("initiative");
   });
 });

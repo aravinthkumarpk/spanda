@@ -18,6 +18,7 @@ import { fetchSettings } from "@/lib/settings-api";
 import type { CreateBeatInput } from "@/lib/schemas";
 import { buildBeatFocusHref, stripBeatPrefix } from "@/lib/beat-navigation";
 import { resolveDefaultProfile } from "@/lib/profile-defaults";
+import { withAltitudeLabel } from "@/lib/project-tree";
 import type { MemoryWorkflowDescriptor } from "@/lib/types";
 import { clearDraft } from "@/lib/create-draft-persistence";
 import {
@@ -117,9 +118,15 @@ function useSubmitBeat(
     try {
       const selected =
         data.profileId ?? data.workflowId ?? defaultProfileId;
+      // ADR-0004: a top-level beat created here is an initiative — stamp it so
+      // an empty (childless) initiative still classifies correctly. A beat
+      // created WITH a parent is a child; leave it to structural classify.
+      const labels = data.parent
+        ? data.labels
+        : withAltitudeLabel(data.labels, "initiative");
       const payload: CreateBeatInput = selected
-        ? { ...data, profileId: selected, workflowId: undefined }
-        : data;
+        ? { ...data, labels, profileId: selected, workflowId: undefined }
+        : { ...data, labels };
       const result = await createBeat(
         payload,
         repo ?? undefined,

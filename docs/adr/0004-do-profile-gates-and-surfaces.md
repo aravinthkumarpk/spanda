@@ -86,22 +86,34 @@ Reject controls. A **task** renders the existing detail. `metadata.question` is
 the *async* "I parked a question" channel shown here; live blocks stay in
 Escalations.
 
-### 5. Altitude is stamped at create
+### 5. Altitude is stamped at create — and the label only disambiguates the childless case
 
-The empty-X gap (a spec'd thing with no children classifies structurally as a
-task) affects empty **initiatives and empty projects**. So stamp at create:
+The empty-initiative gap (a spec'd thing with no children classifies
+structurally as a task) is closed by stamping at create:
 
-- `altitude:initiative` — add-task form, `/today` promote, quick-capture.
-- `altitude:project` — `move-to-project`.
-- tasks are **not** stamped (a parented leaf classifies correctly; not pinning
-  keeps the structure honest). `classifyBeatRole` remains the fallback for every
-  unlabeled / legacy beat.
+- `altitude:initiative` — stamped on a **top-level** beat created via the
+  add-task form or `/today` promote (both go through `CreateBeatDialog`). A beat
+  created *with a parent* is a child and is left to structural classification.
+
+Crucially, the altitude label **only disambiguates a childless beat**. Once a
+beat has children, **structure decides** (`no-parent + children = project`,
+`parent + children = initiative`), so a beat stamped `altitude:initiative` that
+later grows children is correctly seen as a container — the label can't freeze
+it, and the existing projects-view grouping is preserved.
+
+- Tasks (parented; created by `spanda-plan`) are **not** stamped — a parented
+  leaf classifies correctly.
+- `altitude:project` is **reserved** for an explicit grouping action / manual
+  use; there is no project-creation UI today (`move-to-project` is a cross-repo
+  *move*, not a grouping), and structure already classifies non-empty projects.
+- `classifyBeatRole` is the fallback for every unlabeled / legacy beat.
 
 ### 6. `CONTEXT.md` is the canonical glossary; `ui-vocab` implements it
 
 The plain `ui-vocab` map is reconciled to `CONTEXT.md`: the dispatch verb
 becomes **"Start"** (consumed via `useVocab()`, not a board-only literal), and
-`ReTakes` → "Retakes" so "Review" unambiguously means the human gate. Remaining
+`ReTakes` → "Regressions" (the plain word for what that view tracks) so
+"Review" unambiguously means the human gate. Remaining
 cosmetic divergences (`Setlist`, `Escalations`/"Blockers", `Capsule`) are
 tracked, non-blocking.
 

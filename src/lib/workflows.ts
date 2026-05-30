@@ -79,6 +79,10 @@ interface BuiltinProfileConfig {
   // gives the 5-state IC lifecycle that was autopilot_no_planning).
   planningMode: "required" | "skipped";
   implementationReviewMode: "required" | "skipped";
+  // ADR-0004: insert an agent-owned `sign_off` state between `implementation`
+  // and the human `implementation_review` gate. Scoped per-profile so the
+  // shared SDLC graph stays unchanged for profiles that don't opt in.
+  signOffMode?: "required" | "skipped";
   output: "remote_main" | "pr";
   owners: MemoryWorkflowOwners;
   // Spanda extensions — when `customStates` is set, the SDLC lifecycle
@@ -94,6 +98,7 @@ const AGENT_OWNERS: MemoryWorkflowOwners = {
   planning: "agent",
   plan_review: "agent",
   implementation: "agent",
+  sign_off: "agent",
   implementation_review: "agent",
   shipment: "agent",
   shipment_review: "agent",
@@ -107,6 +112,7 @@ const HUMAN_OWNERS: MemoryWorkflowOwners = {
   planning: "human",
   plan_review: "human",
   implementation: "human",
+  sign_off: "human",
   implementation_review: "human",
   shipment: "human",
   shipment_review: "human",
@@ -116,6 +122,7 @@ const SEMIAUTO_OWNERS: MemoryWorkflowOwners = {
   planning: "agent",
   plan_review: "human",
   implementation: "agent",
+  sign_off: "agent",
   implementation_review: "human",
   shipment: "agent",
   shipment_review: "agent",
@@ -140,16 +147,20 @@ const SEMIAUTO_OWNERS: MemoryWorkflowOwners = {
 // not a rebind to "do") — this keeps the upstream tests stable.
 const BUILTIN_PROFILE_CATALOG: ReadonlyArray<BuiltinProfileConfig> = [
   // ===== Spanda profiles FIRST (surface order in the settings UI) =====
-  // do — renamed autopilot_no_planning. Agent-eligible IC work.
-  // Lifecycle: ready_for_impl → impl → ready_for_review → review → shipped.
+  // do — the canonical human-gated Do lifecycle (ADR-0004). Planning + an
+  // agent sign_off step + two human gates (plan_review, implementation_review)
+  // via SEMIAUTO_OWNERS. NOT the old autonomous autopilot_no_planning shape —
+  // that lifecycle still lives at the `autopilot_no_planning` profile.
+  // Open → Plan → Plan review → Execution → Sign-off → Execution review → Done.
   {
     id: "do",
     displayName: "Do",
-    description: "Agent-eligible IC work (write code, edit docs, run scripts)",
-    planningMode: "skipped",
+    description: "Agent-executed work with two human gates (plan + execution review)",
+    planningMode: "required",
     implementationReviewMode: "required",
+    signOffMode: "required",
     output: "remote_main",
-    owners: AGENT_OWNERS,
+    owners: SEMIAUTO_OWNERS,
   },
   // coordinate — meetings, calls, alignment with named people.
   // Required label at create time: with:<person> (enforced in bd-lint).
@@ -315,6 +326,10 @@ function canonicalTransitions(): Array<{ from: string; to: string }> {
     { from: "plan_review", to: "ready_for_planning" },
     { from: "ready_for_implementation", to: "implementation" },
     { from: "implementation", to: "ready_for_implementation_review" },
+    // ADR-0004 sign_off edges — only survive filtering when `sign_off` is in
+    // the profile's state set (signOffMode required); inert otherwise.
+    { from: "implementation", to: "sign_off" },
+    { from: "sign_off", to: "ready_for_implementation_review" },
     { from: "ready_for_implementation_review", to: "implementation_review" },
     { from: "implementation_review", to: "ready_for_shipment" },
     { from: "implementation_review", to: "ready_for_implementation" },
@@ -336,7 +351,7 @@ function buildStates(config: BuiltinProfileConfig): string[] {
     return [...config.customStates];
   }
 
-  const states = [
+  let states = [
     "ready_for_planning",
     "planning",
     "ready_for_plan_review",
@@ -355,15 +370,23 @@ function buildStates(config: BuiltinProfileConfig): string[] {
   ];
 
   if (config.planningMode === "skipped") {
-    return states.filter(
+    states = states.filter(
       (state) => !["ready_for_planning", "planning", "ready_for_plan_review", "plan_review"].includes(state),
     );
   }
 
   if (config.implementationReviewMode === "skipped") {
-    return states.filter(
+    states = states.filter(
       (state) => !["ready_for_implementation_review", "implementation_review"].includes(state),
     );
+  }
+
+  // ADR-0004: splice the agent `sign_off` state in right after `implementation`.
+  if (config.signOffMode === "required") {
+    const idx = states.indexOf("implementation");
+    if (idx !== -1) {
+      states = [...states.slice(0, idx + 1), "sign_off", ...states.slice(idx + 1)];
+    }
   }
 
   return states;
@@ -381,9 +404,18 @@ function filterTransitionsForStates(
   }
 
   const stateSet = new Set(states);
-  const transitions = canonicalTransitions().filter((transition) =>
+  let transitions = canonicalTransitions().filter((transition) =>
     (transition.from === "*" || stateSet.has(transition.from)) && stateSet.has(transition.to),
   );
+
+  // ADR-0004: when sign_off is present, route implementation THROUGH it —
+  // drop the direct implementation -> ready_for_implementation_review edge so
+  // the agent's sign-off can't be skipped.
+  if (stateSet.has("sign_off")) {
+    transitions = transitions.filter(
+      (t) => !(t.from === "implementation" && t.to === "ready_for_implementation_review"),
+    );
+  }
 
   if (config.planningMode !== "required") {
     transitions.push({ from: "ready_for_planning", to: "ready_for_implementation" });

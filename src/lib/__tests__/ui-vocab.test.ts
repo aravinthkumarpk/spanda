@@ -35,8 +35,8 @@ describe("VOCAB: two vocabularies registered", () => {
 describe("plain mode: the spec's exact mapping", () => {
   const plain = VOCAB.plain;
 
-  it("maps Take! → Run", () => {
-    expect(plain["Take!"]).toBe("Run");
+  it("maps Take! → Start (ADR-0004 canonical verb)", () => {
+    expect(plain["Take!"]).toBe("Start");
   });
 
   it("maps Scene! → Plan it", () => {
@@ -54,8 +54,8 @@ describe("plain mode: the spec's exact mapping", () => {
     expect(plain["Setlist"]).toBe("Plan board");
   });
 
-  it("maps ReTakes → Reviews", () => {
-    expect(plain["ReTakes"]).toBe("Reviews");
+  it("maps ReTakes → Regressions (ADR-0004; 'Review' is the gate)", () => {
+    expect(plain["ReTakes"]).toBe("Regressions");
   });
 
   it("maps Escalations → Blockers", () => {
@@ -89,7 +89,7 @@ describe("verbose mode: preserves all originals (identity map)", () => {
 
 describe("vocab() helper: fail-soft on missing keys", () => {
   it("returns the plain mapping for a known key", () => {
-    expect(vocab("plain", "Take!")).toBe("Run");
+    expect(vocab("plain", "Take!")).toBe("Start");
   });
 
   it("returns the verbose mapping for the same key when verbose requested", () => {

@@ -48,22 +48,25 @@ type VocabMap = Record<VocabKey, string>;
 
 const PLAIN: VocabMap = {
   // Domain action verbs (the imperatives ending in !)
-  "Take!": "Run",
+  // ADR-0004: the dispatch verb is "Start" (CONTEXT.md, the canonical glossary).
+  "Take!": "Start",
   "Scene!": "Plan it",
   // Singular/plural nouns, case-preserving
   "Beat": "Task",
   "Beats": "Tasks",
   "beat": "task",
   "beats": "tasks",
-  // Surface names
+  // Surface names. ADR-0004: ReTakes -> "Regressions" — the plain word for what
+  // the view actually tracks (regression-flagged, reopened work). This both
+  // translates the jargon AND frees "Review" to mean only the human gate.
   "Setlist": "Plan board",
-  "ReTakes": "Reviews",
-  "Retakes": "Reviews",
+  "ReTakes": "Regressions",
+  "Retakes": "Regressions",
   // Other domain words
   "Escalations": "Blockers",
   "Capsule": "Context",
   "Scene": "Plan",
-  "Take": "Run",
+  "Take": "Start",
 };
 
 const VERBOSE: VocabMap = {

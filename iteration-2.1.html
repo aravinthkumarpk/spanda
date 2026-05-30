@@ -84,21 +84,21 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:22px;margin:40
 <p class="epic-note">The contradiction: the form mapped task type <b>Do &rarr; <code>profileId: "do"</code></b>, but the <code>do</code> profile was a leftover rename of <code>autopilot_no_planning</code> &mdash; planning skipped, all-agent owners, <b>zero human gates</b>. We fixed the profile, not the mapping.</p>
 
 <div class="dec">
-  <div class="head"><span class="id">D1</span><h3>Redefine <code>do</code> to be human-gated</h3><span class="badge b-later">todo</span></div>
+  <div class="head"><span class="id">D1</span><h3>Redefine <code>do</code> to be human-gated</h3><span class="badge b-done">done</span></div>
   <p class="what">The <code>do</code> profile becomes the canonical, gated &ldquo;Do&rdquo; lifecycle &mdash; not the autonomous leftover. (The autonomous no-planning flow stays available as <code>autopilot_no_planning</code>.)</p>
   <span class="old">replaces &oplus; A4 / B2: &ldquo;Do = profileId do (autonomous)&rdquo; vs ADR-0003 &ldquo;Do = semiauto&rdquo;</span>
   <span class="cons">workflows.ts: do &rarr; planningMode required, owners SEMIAUTO_OWNERS</span>
 </div>
 
 <div class="dec">
-  <div class="head"><span class="id">D2</span><h3>Exactly two human gates via <code>SEMIAUTO_OWNERS</code></h3><span class="badge b-later">todo</span></div>
+  <div class="head"><span class="id">D2</span><h3>Exactly two human gates via <code>SEMIAUTO_OWNERS</code></h3><span class="badge b-done">done</span></div>
   <p class="what"><code>plan_review</code> and <code>implementation_review</code> are human-owned; the agent owns planning, implementation, sign-off, shipment. The human reviews; the agent works.</p>
   <span class="old">refines &oplus; Q2 interview</span>
   <span class="cons">do.owners = SEMIAUTO_OWNERS; implementation_review stays human (before ship)</span>
 </div>
 
 <div class="dec">
-  <div class="head"><span class="id">D3</span><h3>An explicit agent <code>sign_off</code> state</h3><span class="badge b-later">todo</span></div>
+  <div class="head"><span class="id">D3</span><h3>An explicit agent <code>sign_off</code> state</h3><span class="badge b-done">done</span></div>
   <p class="what">The agent&rsquo;s &ldquo;check first&rdquo; (qa / review / canary) becomes a real lifecycle state before the human gate &mdash; not a note in free text. Added via a <code>signOffMode</code> flag scoped to <code>do</code> (the shared SDLC graph is untouched). Renders in <b>Doing</b> as &ldquo;Signing off&rdquo;.</p>
   <div class="flow">implementation <span class="dim">(agent)</span> &rarr; <span class="hi">sign_off</span> <span class="dim">(agent &mdash; spanda-signoff)</span> &rarr; <span class="warn">implementation_review</span> <span class="dim">(human, final pass)</span> &rarr; shipment &rarr; shipped</div>
   <span class="old">refines &oplus; B4 &ldquo;sign-off as metadata.status&rdquo; &rarr; explicit state</span>
@@ -106,7 +106,7 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:22px;margin:40
 </div>
 
 <div class="dec">
-  <div class="head"><span class="id">D4</span><h3>Keep <code>semiauto</code> as the compat id</h3><span class="badge b-later">todo</span></div>
+  <div class="head"><span class="id">D4</span><h3>Keep <code>semiauto</code> as the compat id</h3><span class="badge b-done">done</span></div>
   <p class="what"><code>do</code> is the one spanda task-type profile; <code>semiauto</code> stays untouched as the knots/upstream coarse id. They&rsquo;re no longer twins (do has sign_off).</p>
   <span class="old">resolves the do-vs-semiauto duplication flagged in Q1</span>
   <span class="cons">no change to semiauto; SPANDA_TASK_TYPES Do&rarr;do now correct as-is</span>
@@ -129,10 +129,10 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:22px;margin:40
 </div>
 
 <div class="dec">
-  <div class="head"><span class="id">D7</span><h3>Stamp altitude at create</h3><span class="badge b-later">todo</span></div>
-  <p class="what"><code>altitude:initiative</code> (add-task form, /today promote, quick-capture); <code>altitude:project</code> (move-to-project). Tasks stay structural. Closes the empty-initiative <em>and</em> empty-project gaps; <code>classifyBeatRole</code> is the fallback.</p>
-  <span class="old">refines &oplus; B1: the fix only fires if creation stamps the label</span>
-  <span class="cons">add altitude:* to labels at the initiative/project create sites</span>
+  <div class="head"><span class="id">D7</span><h3>Stamp altitude at create</h3><span class="badge b-done">done</span></div>
+  <p class="what">Stamp <code>altitude:initiative</code> on a <b>top-level</b> beat created via the add-task form / promote. The label <b>only disambiguates the childless case</b> &mdash; once a beat has children, <em>structure</em> decides (so a stamped initiative that grows children is still seen as a container, and the projects view is preserved). Tasks aren&rsquo;t stamped; <code>altitude:project</code> is reserved for a future explicit grouping action (move-to-project is a cross-repo move, not a grouping). <code>classifyBeatRole</code> is the fallback.</p>
+  <span class="old">refines &oplus; B1: the fix only fires if creation stamps the label &mdash; and label must not freeze a grown beat</span>
+  <span class="cons">create-beat-dialog stamps altitude:initiative when no parent; classify: label disambiguates childless only</span>
 </div>
 
 <div class="dec">
@@ -145,21 +145,21 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:22px;margin:40
 <h2 class="epic">Vocabulary, data &amp; entry <span class="epic-tag">one source of truth</span></h2>
 
 <div class="dec">
-  <div class="head"><span class="id">D9</span><h3><code>CONTEXT.md</code> is the canonical glossary</h3><span class="badge b-later">todo</span></div>
-  <p class="what"><code>ui-vocab</code> plain is reconciled to <code>CONTEXT.md</code>: the dispatch verb becomes <b>&ldquo;Start&rdquo;</b> (via <code>useVocab()</code>, not a board-only literal); <code>ReTakes</code> &rarr; &ldquo;Retakes&rdquo; so &ldquo;Review&rdquo; means the gate. Cosmetic leftovers tracked.</p>
+  <div class="head"><span class="id">D9</span><h3><code>CONTEXT.md</code> is the canonical glossary</h3><span class="badge b-done">done</span></div>
+  <p class="what"><code>ui-vocab</code> plain is reconciled to <code>CONTEXT.md</code>: the dispatch verb becomes <b>&ldquo;Start&rdquo;</b> (via <code>useVocab()</code>, not a board-only literal); <code>ReTakes</code> &rarr; &ldquo;Regressions&rdquo; (the plain word for what that view tracks) so &ldquo;Review&rdquo; means only the gate. Cosmetic leftovers tracked.</p>
   <span class="old">replaces &oplus; A6: &ldquo;ui-vocab stays authoritative&rdquo; (it conflicted with CONTEXT.md)</span>
-  <span class="cons">ui-vocab.ts: Take!/Take&rarr;Start, ReTakes&rarr;Retakes; board-card via useVocab</span>
+  <span class="cons">ui-vocab.ts: Take!/Take&rarr;Start, ReTakes&rarr;Regressions; board-card via useVocab</span>
 </div>
 
 <div class="dec">
-  <div class="head"><span class="id">D10</span><h3><code>metadata</code> stays an open dict</h3><span class="badge b-later">todo</span></div>
+  <div class="head"><span class="id">D10</span><h3><code>metadata</code> stays an open dict</h3><span class="badge b-done">done</span></div>
   <p class="what">No sub-schema. <code>plan</code> / <code>status</code> / <code>question</code> / <code>learned</code> are a documented reserved-key registry; readers type-guard.</p>
   <span class="old">confirms &oplus; B3 (already built this way)</span>
   <span class="cons">doc-only: reserved keys documented in spanda-board/references</span>
 </div>
 
 <div class="dec">
-  <div class="head"><span class="id">D11</span><h3>Today is the default landing</h3><span class="badge b-later">todo</span></div>
+  <div class="head"><span class="id">D11</span><h3>Today is the default landing</h3><span class="badge b-done">done</span></div>
   <p class="what">Root <code>/</code> redirects to <code>/today</code> (the change feed you check first) when a repo is registered; the no-repo onboarding still lands on <code>/beats?settings=repos</code>.</p>
   <span class="old">replaces &oplus; A8: &ldquo;reachable from nav&rdquo; &rarr; default landing</span>
   <span class="cons">src/app/page.tsx: redirect /&rarr;/today when repos exist</span>

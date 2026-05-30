@@ -10,6 +10,7 @@ import { canTakeBeat } from "@/lib/beat-take-eligibility";
 import { isTerminalState } from "@/lib/task-action-resolver";
 import { builtinProfileDescriptor } from "@/lib/workflows";
 import { displayBeatLabel } from "@/lib/beat-display";
+import { useVocab } from "@/hooks/use-vocab";
 import { Clapperboard, Pencil } from "lucide-react";
 
 /**
@@ -32,6 +33,8 @@ export function BoardCard({
   onShipBeat?: (beat: Beat) => void;
   isShipping?: boolean;
 }) {
+  const v = useVocab();
+  const startVerb = v("Take!");
   const descriptor = builtinProfileDescriptor(beat.profileId);
   const bucket = bucketCardLabel(beat.labels);
   const canRun = Boolean(onShipBeat) && canTakeBeat(beat, descriptor);
@@ -95,7 +98,7 @@ export function BoardCard({
             type="button"
             onClick={() => onShipBeat?.(beat)}
             disabled={isShipping}
-            title="Start — hand this task to an agent"
+            title={`${startVerb} — hand this task to an agent`}
             className={
               "inline-flex items-center gap-1 rounded px-1.5 py-0.5"
               + " text-xs font-medium text-lake-700 hover:bg-lake-100"
@@ -104,7 +107,7 @@ export function BoardCard({
             }
           >
             <Clapperboard className="size-3" />
-            {isShipping ? "Starting…" : "Start"}
+            {isShipping ? `${startVerb}…` : startVerb}
           </button>
         )}
       </div>

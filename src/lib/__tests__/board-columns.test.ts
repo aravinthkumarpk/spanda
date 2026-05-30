@@ -341,3 +341,34 @@ describe("boardColumnForState — semiauto lifecycle (ADR-0003)", () => {
     }
   });
 });
+
+/**
+ * ADR-0004 — the redefined `do` profile (the spanda "Do" task type) runs the
+ * gated lifecycle plus an agent `sign_off` step. The board must place sign_off
+ * in Doing (it's agent work, not a 5th column) and surface the two gates in
+ * Review, with nothing unclassified.
+ */
+describe("boardColumnForState — do profile (ADR-0004)", () => {
+  const doDesc = builtinProfileDescriptor("do");
+
+  it("maps the gated lifecycle, with sign_off in Doing", () => {
+    expect(boardColumnForState("ready_for_planning", doDesc)).toBe("todo");
+    expect(boardColumnForState("planning", doDesc)).toBe("doing");
+    expect(boardColumnForState("implementation", doDesc)).toBe("doing");
+    expect(boardColumnForState("sign_off", doDesc)).toBe("doing");
+    expect(boardColumnForState("shipped", doDesc)).toBe("done");
+  });
+
+  it("surfaces the two gates as their review-queue states", () => {
+    expect(boardColumnForState("ready_for_plan_review", doDesc)).toBe("review");
+    expect(
+      boardColumnForState("ready_for_implementation_review", doDesc),
+    ).toBe("review");
+  });
+
+  it("classifies every do state (none land in unclassified)", () => {
+    for (const state of doDesc.states) {
+      expect(boardColumnForState(state, doDesc)).not.toBeNull();
+    }
+  });
+});

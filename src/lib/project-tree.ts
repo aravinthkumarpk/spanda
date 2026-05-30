@@ -84,23 +84,45 @@ export function altitudeFromLabel(beat: Beat): BeatRole | undefined {
 }
 
 /**
- * Decide a beat's role: an explicit `altitude:*` label wins (ADR-0003); absent
- * that, fall back to its graph position alone.
+ * Stamp an explicit `altitude:*` label at create time (ADR-0004). Replaces any
+ * existing altitude label so the result is idempotent, and leaves all other
+ * labels untouched. The create paths use this so the empty-initiative and
+ * empty-project gaps are closed the moment the beat is born, rather than
+ * relying on structure that doesn't exist yet.
+ */
+export function withAltitudeLabel(
+  labels: string[] | undefined,
+  altitude: BeatRole,
+): string[] {
+  const base = (labels ?? []).filter(
+    (l) => !l.startsWith(ALTITUDE_LABEL_PREFIX),
+  );
+  return [...base, `${ALTITUDE_LABEL_PREFIX}${altitude}`];
+}
+
+/**
+ * Decide a beat's role.
  *
- * - no-parent + children  -> project
- * - parent    + children  -> initiative
- * - parent    + no-children -> task
- * - no-parent + no-children -> task (a lone leaf)
+ * Structure is authoritative once children exist — a beat with children is a
+ * container, and its shape is unambiguous:
+ * - no-parent + children -> project
+ * - parent    + children -> initiative
+ *
+ * Only when a beat is CHILDLESS is its role structurally ambiguous (an empty
+ * initiative, an empty project, and a lone task all look identical), and there
+ * the explicit `altitude:*` label decides (ADR-0003/0004); absent a label a
+ * childless beat is a task. This is why stamping `altitude:initiative` at
+ * create (ADR-0004) fixes the empty-initiative gap without freezing a beat that
+ * later grows children — structure takes back over the moment it does.
  */
 export function classifyBeatRole(
   beat: Beat,
   ctx: { hasParentInSet: boolean; hasChildren: boolean },
 ): BeatRole {
-  const explicit = altitudeFromLabel(beat);
-  if (explicit) return explicit;
-  if (!ctx.hasParentInSet && ctx.hasChildren) return "project";
-  if (ctx.hasParentInSet && ctx.hasChildren) return "initiative";
-  return "task";
+  if (ctx.hasChildren) {
+    return ctx.hasParentInSet ? "initiative" : "project";
+  }
+  return altitudeFromLabel(beat) ?? "task";
 }
 
 function toTaskNode(beat: Beat): TaskNode {
