@@ -12,6 +12,8 @@
 // All fs interaction goes through the injected DailyLoaderFs interface
 // so this module stays hermetic-testable (no real fs reads).
 
+import { sanitizeDaily } from "@/lib/daily-sanitize";
+
 const FALLBACK_WINDOW_DAYS = 7;
 
 export interface DailyLoaderFs {
@@ -20,8 +22,10 @@ export interface DailyLoaderFs {
 }
 
 export interface DailyLoadResult {
-  /** The extracted body content, ready to inline. */
+  /** Chrome-free body content, ready to inline in `.daily-content` (F5). */
   body: string;
+  /** The daily's CSS, scoped under `.daily-content` so it can't clash (F5). */
+  css: string;
   /** The date whose file was loaded, as YYYY-MM-DD. */
   usedDate: string;
   /** True if the loader fell back to a prior day (today's file missing). */
@@ -95,8 +99,12 @@ export function loadDailyHtml(opts: LoadDailyHtmlOptions): DailyLoadResult {
     const path = buildDailyPath(root, date);
     if (!fs.exists(path)) continue;
     const html = fs.read(path);
+    // F5: strip the daily's own chrome + scope its CSS (clean embed) rather
+    // than hoisting unscoped styles via extractBodyContent.
+    const { content, css } = sanitizeDaily(html);
     return {
-      body: extractBodyContent(html),
+      body: content,
+      css,
       usedDate: formatYMD(date),
       fellBack: offset > 0,
       title: extractTitle(html),

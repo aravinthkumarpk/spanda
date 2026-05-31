@@ -10,6 +10,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { BeatStateBadge } from "@/components/beat-state-badge";
 import { builtinProfileDescriptor } from "@/lib/workflows";
 import {
@@ -163,6 +170,45 @@ function GateControls({
   );
 }
 
+/**
+ * Q1 override — the escape hatch. The guided Approve/Reject above is the
+ * default path; this sets the state to ANY value directly (loud, deliberate),
+ * for when the workflow's next-states don't fit. Lists every state in the
+ * profile descriptor.
+ */
+function OverrideStatus({
+  beat,
+  onSet,
+}: {
+  beat: Beat;
+  onSet: GateDecision;
+}) {
+  const states = builtinProfileDescriptor(beat.profileId).states ?? [];
+  if (states.length === 0) return null;
+  return (
+    <section className="mt-4">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-500 dark:text-paper-500">
+        Override status
+      </h3>
+      <p className="mt-1 text-xs italic text-ink-400 dark:text-paper-600">
+        Guided moves are above; set any state directly when you need to.
+      </p>
+      <Select value={beat.state} onValueChange={(v) => onSet(v)}>
+        <SelectTrigger className="mt-1 w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {states.map((s) => (
+            <SelectItem key={s} value={s}>
+              {s.replace(/_/g, " ")}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </section>
+  );
+}
+
 export interface StatusPageProps {
   /** The initiative this page is the status surface for. */
   initiative: Beat;
@@ -218,7 +264,10 @@ export function StatusPage({
           : null}
 
         {onGateDecision && (
-          <GateControls targets={gateTargets} onDecide={onGateDecision} />
+          <>
+            <GateControls targets={gateTargets} onDecide={onGateDecision} />
+            <OverrideStatus beat={initiative} onSet={onGateDecision} />
+          </>
         )}
 
         <StatusSection

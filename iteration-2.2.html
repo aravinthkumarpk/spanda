@@ -139,7 +139,7 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:20px;margin:38
 <div class="wave">Wave C &mdash; Today + status-page UI (through the design-review skills)</div>
 
 <div class="fix">
-  <div class="head"><span class="id">F5</span><h3>Today: two/three bars, broken cards, not integrated</h3><span class="badge b-later">todo</span></div>
+  <div class="head"><span class="id">F5</span><h3>Today: two/three bars, broken cards, not integrated</h3><span class="badge b-done">done</span></div>
   <dl>
     <dt>report</dt><dd>[1] 2 top bars · IA/cards broken · not part of the dashboard · metrics not actionable</dd>
     <dt>rca</dt><dd class="rca">three chrome layers: global <code>AppHeader</code> + the <code>/today</code> page's own header + the inlined daily's own lockup/nav/footer (4 <code>&lt;header&gt;</code>s). Only the daily <code>&lt;body&gt;</code> is inlined, so its <code>&lt;style&gt;</code> drops &rarr; unstyled cards.</dd>
@@ -149,7 +149,7 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:20px;margin:38
 </div>
 
 <div class="fix">
-  <div class="head"><span class="id">F6</span><h3>Status page unviewable; status over-restricted</h3><span class="badge b-later">todo</span></div>
+  <div class="head"><span class="id">F6</span><h3>Status page unviewable; status over-restricted</h3><span class="badge b-done">done</span></div>
   <dl>
     <dt>report</dt><dd>[3] can't view any status page · status too restrictive / not freely updatable</dd>
     <dt>rca</dt><dd class="rca">the status page was gated on the <code>altitude:initiative</code> <b>label</b>, which real beads lack &rarr; never renders. Edit/drag only offer loom-valid next states &rarr; "can't set the status I want".</dd>
@@ -165,7 +165,8 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:20px;margin:38
 <div id="assumptions">
   <div class="asm"><b>F3 (Add):</b> the Add button moved from the beats-only view switcher (also gated by <code>showAction</code>) to the <b>global header toolbar</b> &mdash; visible on Today / Board / Projects / Review. Create now stamps a <code>project:&lt;name&gt;</code> label (default <b>Unsorted</b>) via <code>withProjectLabel</code> so <code>bd create</code>'s lint gate passes and every item belongs to a project. <em>Assumption:</em> a dedicated Project <em>picker</em> field is deferred &mdash; the default + the existing Labels field (<code>project:&lt;name&gt;</code>) cover it for now.</div>
   <div class="asm"><b>F4 (Board&rarr;):</b> the project card's <b>title is now the primary link to the scoped Board</b> (<code>?view=board&amp;project=&lt;id&gt;</code>); editing is a secondary pencil; the truncated list became <b>&ldquo;view all (N) &rarr;&rdquo;</b>. Child list extracted to <code>ProjectChildList</code> to stay under the function-line cap.</div>
-  <div id="moreasm"></div>
+  <div class="asm"><b>F5 (Today):</b> new pure <code>sanitizeDaily</code> strips the daily's own chrome (<code>header/nav/footer</code>) and <b>scopes its CSS under <code>.daily-content</code></b> (brace-depth-aware scoper; <code>body/:root</code> map onto the container) — so one app bar, no style clash. <code>loadDailyHtml</code> now returns <code>{content, css}</code>; the page drops its redundant header for a slim caption and injects the scoped <code>&lt;style&gt;</code>. <em>Assumption:</em> <b>metrics-clickable is deferred</b> — making a metric actionable needs the daily pipeline to emit <code>data-metric-*</code> targets (a contract like the promote markers); the "make it work" promote buttons remain the actionable path.</div>
+  <div class="asm"><b>F6 (status page):</b> the per-item status page is now keyed off <b>data, not the <code>altitude</code> label</b> (which real beads lacked) — every beat's detail pane renders <code>StatusPage</code> (it scales: plan/tasks show when present). Added the Q1 <b>Override &rarr; any state</b> select (all profile states) beside the guided Approve/Reject. <em>Assumption:</em> "scaled by role" is driven by data presence rather than a tree-computed altitude (BeatDetail has one beat, not the children), which is enough to show the right surface.</div>
   <div class="asm"><b>F1 (state-filter):</b> <code>state=all</code> &amp; empty now skip the filter via a one-line guard in <code>applyWorkflowFilters</code> (<code>filters.state !== "all"</code>); <code>queued</code>/<code>in_action</code> keep their loom-phase mapping; a raw workflow state stays exact. The dogfood Codex prompt is fixed to drop <code>state=all</code>.</div>
   <div class="asm"><b>F2 (bd sync):</b> one tested mapper <code>bdSyncCommands</code> is the single source for the command names. Runtime sites target the installed <b>bd&ge;1.0</b> (<code>hasSync=false</code>): reconcile = <code>import</code>+<code>export</code>, the write auto-heal = <code>import</code>, the post-write flush = <code>export</code> &mdash; <b>best-effort</b> (a flush/sync failure logs a warning and never fails the user's write). A cached <code>bdHasSync</code> probe is built &amp; tested for legacy-<code>bd</code> fallback but not wired into the tight paths (installed bd has no <code>sync</code>).</div>
 </div>

@@ -17,7 +17,6 @@ import type { UpdateBeatInput } from "@/lib/schemas";
 import { BeatPriorityBadge } from "@/components/beat-priority-badge";
 import { StateDropdown } from "./beat-detail-state-dropdown";
 import { StatusPage } from "@/components/status-page";
-import { altitudeFromLabel } from "@/lib/project-tree";
 
 const PRIORITIES: BeatPriority[] = [0, 1, 2, 3, 4];
 
@@ -162,12 +161,14 @@ function EditableSection({
 }
 
 /**
- * D8: an initiative's detail pane IS its status page — surface live state,
- * sign-off, the pending question, the task breakdown, and the gate
- * Approve/Reject (D6) above the editable spec. A non-initiative renders
- * nothing here (its detail is the regular fields below).
+ * F6 (ADR-0005 / iteration 2.2): EVERY item's detail pane is its status page —
+ * live state, "what's done", the pending question, the gate Approve/Reject
+ * (D6), and the Override-to-any-state escape hatch (Q1) above the editable
+ * spec. The status page scales by data (an initiative shows its plan; a leaf
+ * just shows status + override). Previously this was gated on the
+ * `altitude:initiative` label, which real beads lack — so it never rendered.
  */
-function InitiativeStatusHeader({
+function BeatStatusPanel({
   beat,
   onUpdate,
 }: {
@@ -185,7 +186,6 @@ function InitiativeStatusHeader({
     },
     [onUpdate],
   );
-  if (altitudeFromLabel(beat) !== "initiative") return null;
   return (
     <StatusPage
       initiative={beat}
@@ -253,7 +253,7 @@ export function BeatDetail({
 
   return (
     <div className="space-y-2">
-      <InitiativeStatusHeader beat={beat} onUpdate={onUpdate} />
+      <BeatStatusPanel beat={beat} onUpdate={onUpdate} />
       <BeatDetailHeader
         beat={beat}
         onUpdate={onUpdate}

@@ -107,4 +107,14 @@ describe("StatusPage", () => {
     });
     expect(html).not.toContain("Your decision");
   });
+
+  it("offers an Override-to-any-state control when a handler is wired (F6/Q1)", () => {
+    // A plain, non-gated beat (no altitude label, not at a gate) still gets a
+    // status page with the override escape hatch.
+    const html = render({
+      initiative: makeBeat({ profileId: "do", state: "implementation" }),
+      onGateDecision: () => {},
+    });
+    expect(html).toContain("Override status");
+  });
 });
