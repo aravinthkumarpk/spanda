@@ -79,8 +79,17 @@ export default async function TodayPage() {
           Showing the most recent daily — {usedDate}
         </div>
       )}
-      {css && <style dangerouslySetInnerHTML={{ __html: css }} />}
-      <div className="daily-content" dangerouslySetInnerHTML={{ __html: body }} />
+      {/* The scoped <style> is embedded in the SAME innerHTML blob as the
+          content — NOT as a sibling React <style> element. React 19 treats a
+          standalone <style> as a hoistable special element and can drop it on
+          hydration (SSR shows styles, client shows none). As raw innerHTML the
+          browser just parses + applies it, and React never manages it. */}
+      <div
+        className="daily-content"
+        dangerouslySetInnerHTML={{
+          __html: css ? `<style>${css}</style>${body}` : body,
+        }}
+      />
       {usedDate && (
         <div className="mx-auto max-w-[1240px] px-8 pb-12">
           <PromoteIsland sourceDate={usedDate} />
