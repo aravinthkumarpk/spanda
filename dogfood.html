@@ -45,6 +45,12 @@
   .gate{display:inline-block;background:var(--clay-100);border-radius:999px;padding:1px 9px;
     font-size:13px;font-weight:600;color:var(--clay-700);}
   .url{font-family:ui-monospace,Menlo,monospace;font-size:15px;font-weight:600;}
+  .prompt{background:var(--ink-900);color:#e9e4d8;border-radius:12px;padding:16px 18px;margin:12px 0;
+    font-family:ui-monospace,Menlo,monospace;font-size:13.5px;line-height:1.6;white-space:pre-wrap;
+    overflow-x:auto;-webkit-user-select:all;user-select:all;}
+  .prompt b{color:#9fe870;font-weight:600;}
+  .codeline{font-family:ui-monospace,Menlo,monospace;font-size:14px;background:var(--paper-200);
+    padding:1px 6px;border-radius:5px;}
   .foot{margin-top:34px;color:var(--ink-500);font-size:14px;border-top:1px solid var(--paper-200);
     padding-top:16px;}
   .back{font-size:14px;}
@@ -145,6 +151,43 @@ a clean window onto it, never a second copy.</p>
   cards with a <b>health</b> badge and a count. On any project, click <b>“Board →”</b>.</span></p>
   <p class="see"><b>Expect:</b> the Board opens <b>scoped to that project</b> — only its initiatives &amp; tasks — with
   a “Scoped to project … · clear” chip. Click <b>clear</b> to return to the full board.</p>
+</div>
+
+<h2>Parallel track — drive the board from Codex (the skill pack)</h2>
+<p style="margin-top:6px">The other half of the model: agents work the board from their own chat using the
+<b>spanda-* skill pack</b> — thin, cross-agent procedures that read/write the board over its REST API. You can run
+today's work from <b>Codex</b> while you watch it land on the Board/Review tabs above.</p>
+
+<div class="banner">
+  <b>Two facts that make it work.</b> The skills live as plain markdown at
+  <span class="codeline">.claude/skills/spanda-*</span> (mirrored at <span class="codeline">.agents/skills/</span>) —
+  Codex just reads and follows them. And the live API needs an explicit repo: every <span class="codeline">/api/beats</span>
+  call must carry <span class="codeline">_repo=/home/deploy/personal-os</span> against
+  <span class="codeline">http://127.0.0.1:3210</span> (a bare call returns 500). The prompt below sets both.
+</div>
+
+<div class="step">
+  <p class="do" style="margin-top:0"><span class="n">9</span><span><b>Open Codex in the repo</b>
+  (<span class="codeline">cd /home/deploy/code/spanda &amp;&amp; codex</span>) and paste this prompt. It's
+  click-to-select.</span></p>
+  <div class="prompt">You're in the Spanda repo. A portable skill pack lives at <b>.claude/skills/spanda-*</b> (mirrored at .agents/skills/) — thin procedures that drive the task board over its REST API. Use it to work today's tasks, and stop at the human gates.
+
+Environment (the live app + its real data):
+  export FOOLERY_URL=http://127.0.0.1:3210
+  export REPO=/home/deploy/personal-os
+Every /api/beats call MUST include &amp;_repo=$REPO (a bare call returns 500 repo_path_missing). List with, e.g.:
+  curl -s "$FOOLERY_URL/api/beats?state=all&amp;_repo=$REPO" | jq '.data[] | {id,title,state,profileId}'
+
+Do this, narrating each step:
+1. Read .claude/skills/spanda-board/SKILL.md and .claude/skills/spanda-pick/SKILL.md. Show me the board: what's Open, what's executing, and anything resting at a human gate (requiresHumanAction=true).
+2. Pick the next <b>Do</b> initiative to work. Respect the gates: never advance a card past plan_review or implementation_review — those two decisions are mine.
+3. Read .claude/skills/spanda-plan/SKILL.md and run it on that initiative: grill the spec (one question at a time), write the plan to metadata.plan, create the minimum child tasks, then PATCH the initiative to plan_review. Stop and hand it back to me for Plan review.
+4. Wait for my approval, then read spanda-execute + spanda-signoff and continue (worktree + TDD; PATCH state + metadata.status as you go; move to sign_off then ready_for_implementation_review).
+
+Rules: the board (via the API) is the only source of truth — keep no state of your own. If you hit a question only I can answer, write it to metadata.question and keep going on independent work. Never set state=shipped — that's my Execution-review approval.</div>
+  <p class="see"><b>Expect:</b> Codex lists today's initiatives, picks one, asks its planning questions, writes a plan,
+  and parks it at <b>Plan review</b> — which then shows up in the <b>Review</b> tab of the web app (step 6). Approve/Reject
+  there or tell Codex; the two of you share one board.</p>
 </div>
 
 <h2>What to jot down as you go</h2>

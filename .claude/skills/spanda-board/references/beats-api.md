@@ -4,9 +4,18 @@ The single source of truth for the whole skill pack. Every `spanda-*` skill
 reads and writes the board **only** through these endpoints. No sidecar store,
 no second copy of state.
 
-Base URL: `${FOOLERY_URL:-http://localhost:3000}` (the installed runtime is
-usually `http://localhost:3210`). Pass `?_repo=<path>` on any call in
-multi-repo mode.
+Base URL: `${FOOLERY_URL:-http://localhost:3000}` — the dev server is `:3000`,
+the **installed runtime is `:3210`** (set `FOOLERY_URL=http://127.0.0.1:3210`
+to drive the live app).
+
+**Every call needs a repo.** A bare call returns `500 repo_path_missing`. Pass
+`_repo=<path>` (a registered work repo) on every request — or `scope=all` for a
+read across all registered repos. Discover the path once:
+
+```bash
+REPO=$(curl -s "$FOOLERY_URL/api/registry" | jq -r '.data[0].path')
+curl -s "$FOOLERY_URL/api/beats?state=all&_repo=$REPO" | jq '.data[]'
+```
 
 ## Endpoints
 
