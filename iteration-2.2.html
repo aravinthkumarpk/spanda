@@ -117,7 +117,7 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:20px;margin:38
 <div class="wave">Wave B &mdash; navigation &amp; affordances</div>
 
 <div class="fix">
-  <div class="head"><span class="id">F3</span><h3>Add button invisible</h3><span class="badge b-later">todo</span></div>
+  <div class="head"><span class="id">F3</span><h3>Add button invisible</h3><span class="badge b-done">done</span></div>
   <dl>
     <dt>report</dt><dd>[4] Add button not visible anywhere</dd>
     <dt>rca</dt><dd class="rca">the Add button is nested in the <b>beats-only</b> view switcher (<code>{isBeatsRoute ? viewSwitcher : null}</code>); when Today became the default landing it vanished everywhere but <code>/beats</code></dd>
@@ -127,7 +127,7 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:20px;margin:38
 </div>
 
 <div class="fix">
-  <div class="head"><span class="id">F4</span><h3>"Board &rarr;" opens the editor; no "view all"</h3><span class="badge b-later">todo</span></div>
+  <div class="head"><span class="id">F4</span><h3>"Board &rarr;" opens the editor; no "view all"</h3><span class="badge b-done">done</span></div>
   <dl>
     <dt>report</dt><dd>[5] Board&rarr; opens the bead editor · [2] no "view all" under Projects</dd>
     <dt>rca</dt><dd class="rca">source is correct (the Link navigates) but it's a tiny link beside the <b>title button</b> whose onClick opens the editor &mdash; mis-click; and the <em>primary</em> gesture opens edit, inverting the intent. Projects render fine; the child list is truncated with no "view all".</dd>
@@ -163,6 +163,9 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:20px;margin:38
 
 <h2 class="epic">Assumptions taken <span class="epic-tag">filled in as built</span></h2>
 <div id="assumptions">
+  <div class="asm"><b>F3 (Add):</b> the Add button moved from the beats-only view switcher (also gated by <code>showAction</code>) to the <b>global header toolbar</b> &mdash; visible on Today / Board / Projects / Review. Create now stamps a <code>project:&lt;name&gt;</code> label (default <b>Unsorted</b>) via <code>withProjectLabel</code> so <code>bd create</code>'s lint gate passes and every item belongs to a project. <em>Assumption:</em> a dedicated Project <em>picker</em> field is deferred &mdash; the default + the existing Labels field (<code>project:&lt;name&gt;</code>) cover it for now.</div>
+  <div class="asm"><b>F4 (Board&rarr;):</b> the project card's <b>title is now the primary link to the scoped Board</b> (<code>?view=board&amp;project=&lt;id&gt;</code>); editing is a secondary pencil; the truncated list became <b>&ldquo;view all (N) &rarr;&rdquo;</b>. Child list extracted to <code>ProjectChildList</code> to stay under the function-line cap.</div>
+  <div id="moreasm"></div>
   <div class="asm"><b>F1 (state-filter):</b> <code>state=all</code> &amp; empty now skip the filter via a one-line guard in <code>applyWorkflowFilters</code> (<code>filters.state !== "all"</code>); <code>queued</code>/<code>in_action</code> keep their loom-phase mapping; a raw workflow state stays exact. The dogfood Codex prompt is fixed to drop <code>state=all</code>.</div>
   <div class="asm"><b>F2 (bd sync):</b> one tested mapper <code>bdSyncCommands</code> is the single source for the command names. Runtime sites target the installed <b>bd&ge;1.0</b> (<code>hasSync=false</code>): reconcile = <code>import</code>+<code>export</code>, the write auto-heal = <code>import</code>, the post-write flush = <code>export</code> &mdash; <b>best-effort</b> (a flush/sync failure logs a warning and never fails the user's write). A cached <code>bdHasSync</code> probe is built &amp; tested for legacy-<code>bd</code> fallback but not wired into the tight paths (installed bd has no <code>sync</code>).</div>
 </div>

@@ -48,8 +48,9 @@ For each child task (or the initiative itself if it has no breakdown):
    Execution review approval — no PR by default, per repo policy).
 4. **Report progress to the card** (this is what the status page renders):
    ```bash
-   BASE="${FOOLERY_URL:-http://localhost:3000}"
-   curl -s -X PATCH "$BASE/api/beats/$TASK_ID" -H 'content-type: application/json' \
+   BASE="${FOOLERY_URL:-http://127.0.0.1:3210}"
+   REPO="${REPO:-$(curl -s "$BASE/api/registry" | jq -r '.data[0].path')}"
+   curl -s -X PATCH "$BASE/api/beats/$TASK_ID?_repo=$REPO" -H 'content-type: application/json' \
      -d '{"state":"implementation","metadata":{"status":"<what is done so far>"}}'
    ```
    If you hit something only the human can decide, write it to
@@ -62,7 +63,7 @@ between execution and the human Execution-review gate, where `spanda-signoff`
 runs qa / review / canary and writes the evidence:
 
 ```bash
-curl -s -X PATCH "$BASE/api/beats/$ID" -H 'content-type: application/json' \
+curl -s -X PATCH "$BASE/api/beats/$ID?_repo=$REPO" -H 'content-type: application/json' \
   -d '{"state":"sign_off","metadata":{"status":"all tasks complete — signing off"}}'
 ```
 
@@ -82,4 +83,5 @@ minimal tasks, the agent works in small verified increments underneath.
 
 Against a test store with an approved initiative: each task ends `shipped`-ready
 on its branch with a `metadata.status`, and the initiative ends at
-`implementation_review` — not `shipped`. The four gates pass before any commit.
+`ready_for_implementation_review` after sign-off — not `shipped`. The four
+gates pass before any commit.

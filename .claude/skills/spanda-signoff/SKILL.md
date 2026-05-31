@@ -52,8 +52,9 @@ you can observe. The shape of the evidence is the same.
 3. **Write the evidence and advance to the gate** so the status page shows it
    and the initiative lands in the human Execution-review queue:
    ```bash
-   BASE="${FOOLERY_URL:-http://localhost:3000}"
-   curl -s -X PATCH "$BASE/api/beats/$ID" -H 'content-type: application/json' \
+   BASE="${FOOLERY_URL:-http://127.0.0.1:3210}"
+   REPO="${REPO:-$(curl -s "$BASE/api/registry" | jq -r '.data[0].path')}"
+   curl -s -X PATCH "$BASE/api/beats/$ID?_repo=$REPO" -H 'content-type: application/json' \
      -d '{"state":"ready_for_implementation_review","metadata":{"status":"SIGN-OFF\n- AC1: <pass + evidence>\n- AC2: …\n- canary: <green/red>"}}'
    ```
    This rests at the gate (`requiresHumanAction`). Do **not** set `shipped` — the
@@ -73,5 +74,5 @@ honesty about a *failing* criterion is the most valuable part — surface it.
 ## Verify (dry run)
 
 Against a test store: after running, `metadata.status` carries a per-criterion
-evidence block and `state` is still `implementation_review`. The skill issues
-no state advance to `shipped`.
+evidence block and `state` is `ready_for_implementation_review`. The skill
+issues no state advance to `shipped`.

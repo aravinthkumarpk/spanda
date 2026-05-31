@@ -18,7 +18,11 @@ import { fetchSettings } from "@/lib/settings-api";
 import type { CreateBeatInput } from "@/lib/schemas";
 import { buildBeatFocusHref, stripBeatPrefix } from "@/lib/beat-navigation";
 import { resolveDefaultProfile } from "@/lib/profile-defaults";
-import { withAltitudeLabel } from "@/lib/project-tree";
+import {
+  withAltitudeLabel,
+  withProjectLabel,
+  hasProjectLabel,
+} from "@/lib/project-tree";
 import type { MemoryWorkflowDescriptor } from "@/lib/types";
 import { clearDraft } from "@/lib/create-draft-persistence";
 import {
@@ -121,9 +125,15 @@ function useSubmitBeat(
       // ADR-0004: a top-level beat created here is an initiative — stamp it so
       // an empty (childless) initiative still classifies correctly. A beat
       // created WITH a parent is a child; leave it to structural classify.
-      const labels = data.parent
+      const altitudeLabels = data.parent
         ? data.labels
         : withAltitudeLabel(data.labels, "initiative");
+      // F3/ADR-0005: bd create is lint-gated on a project:<name> label —
+      // guarantee one (the form's, else "Unsorted") so creates never get
+      // refused, and every item belongs to a project (Q5).
+      const labels = hasProjectLabel(altitudeLabels)
+        ? altitudeLabels
+        : withProjectLabel(altitudeLabels, "Unsorted");
       const payload: CreateBeatInput = selected
         ? { ...data, labels, profileId: selected, workflowId: undefined }
         : { ...data, labels };

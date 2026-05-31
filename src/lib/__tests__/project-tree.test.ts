@@ -4,6 +4,8 @@ import {
   classifyBeatRole,
   groupIntoProjectTree,
   withAltitudeLabel,
+  withProjectLabel,
+  hasProjectLabel,
 } from "@/lib/project-tree";
 import type { Beat } from "@/lib/types";
 
@@ -136,6 +138,33 @@ describe("withAltitudeLabel (ADR-0004 create-time stamping)", () => {
     expect(
       classifyBeatRole(beat, { hasParentInSet: false, hasChildren: false }),
     ).toBe("initiative");
+  });
+});
+
+describe("withProjectLabel / hasProjectLabel (F3 — bd-lint create gate)", () => {
+  it("adds project:<name>, preserving other labels", () => {
+    expect(withProjectLabel(["work:do"], "Agent Studio")).toEqual([
+      "work:do",
+      "project:Agent Studio",
+    ]);
+  });
+
+  it("is idempotent — replaces an existing project label", () => {
+    expect(withProjectLabel(["project:old", "work:do"], "new")).toEqual([
+      "work:do",
+      "project:new",
+    ]);
+  });
+
+  it("a blank project name is a no-op (no empty label)", () => {
+    expect(withProjectLabel(["work:do"], "  ")).toEqual(["work:do"]);
+  });
+
+  it("hasProjectLabel detects a real project label only", () => {
+    expect(hasProjectLabel(["project:x"])).toBe(true);
+    expect(hasProjectLabel(["project:"])).toBe(false);
+    expect(hasProjectLabel(["work:do"])).toBe(false);
+    expect(hasProjectLabel(undefined)).toBe(false);
   });
 });
 
@@ -311,15 +340,27 @@ describe("project-tree hermetic imports", () => {
     expect(src).not.toMatch(/fetch\(|require\(["']node:net["']\)/);
   });
 
-  it("classifies only on the altitude:* label, never on type or other labels", () => {
-    const src = readFileSync(
-      new URL("../project-tree.ts", import.meta.url),
-      "utf8",
-    );
-    // Never reads beat.type for classification.
-    expect(src).not.toMatch(/\.type\b/);
-    // The only label literal the classifier keys off is the altitude prefix.
-    expect(src).toContain('"altitude:"');
-    expect(src).not.toMatch(/"project:"|"work:"/);
+  it("classifyBeatRole never keys on type or non-altitude labels (behavioural)", () => {
+    // The module legitimately mentions "project:" (withProjectLabel) and never
+    // reads beat.type, so assert the CLASSIFIER's behaviour rather than scan the
+    // whole file: a project:* / work:* label must not change classification —
+    // only altitude:* and structure do.
+    const labelled = makeBeat("x", {
+      labels: ["project:foo", "work:do"],
+      type: "epic",
+    });
+    // childless + non-altitude labels -> task (structure)
+    expect(
+      classifyBeatRole(labelled, { hasParentInSet: true, hasChildren: false }),
+    ).toBe("task");
+    // children present -> structure decides regardless of labels/type
+    expect(
+      classifyBeatRole(labelled, { hasParentInSet: false, hasChildren: true }),
+    ).toBe("project");
+    // and the altitude label is the only label that flips a childless beat
+    const a = makeBeat("y", { labels: ["project:foo", "altitude:initiative"] });
+    expect(
+      classifyBeatRole(a, { hasParentInSet: false, hasChildren: false }),
+    ).toBe("initiative");
   });
 });

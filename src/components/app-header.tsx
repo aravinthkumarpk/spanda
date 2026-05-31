@@ -133,11 +133,21 @@ export function AppHeader() {
   const s = useAppHeaderState();
   const updateAction =
     useVersionUpdateAction();
-  const showAction =
-    s.beatsView === "queues" ||
-    s.beatsView === "overview" ||
-    s.beatsView === "active" ||
-    s.beatsView === "finalcut";
+
+  // F3: the create (Add) button is now global — rendered in the header
+  // toolbar on every route, not nested in the beats-only view switcher
+  // (which also gated it behind `showAction`, hiding it on Board/Today/etc.).
+  const createButton = s.create.canCreate ? (
+    <ActionButton
+      beatsView={s.beatsView}
+      shouldChooseRepo={s.create.shouldChooseRepo}
+      menuOpen={s.create.menuOpen}
+      setMenuOpen={s.create.setMenuOpen}
+      registeredRepos={s.create.registeredRepos}
+      openDialog={s.create.openDialog}
+      openFlow={s.create.openFlow}
+    />
+  ) : null;
 
   const switcher = (
     <ViewSwitcher
@@ -145,22 +155,8 @@ export function AppHeader() {
       setView={s.setView}
       escalationsCount={s.humanCount + s.approvalCount}
       canCreate={s.create.canCreate}
-      showAction={showAction}
-      actionButton={
-        <ActionButton
-          beatsView={s.beatsView}
-          shouldChooseRepo={
-            s.create.shouldChooseRepo
-          }
-          menuOpen={s.create.menuOpen}
-          setMenuOpen={s.create.setMenuOpen}
-          registeredRepos={
-            s.create.registeredRepos
-          }
-          openDialog={s.create.openDialog}
-          openFlow={s.create.openFlow}
-        />
-      }
+      showAction={false}
+      actionButton={null}
       openSettingsToRepos={
         s.settings.openToRepos
       }
@@ -187,6 +183,7 @@ export function AppHeader() {
             }
             isBeatsRoute={s.isBeats}
             viewSwitcher={switcher}
+            createButton={createButton}
           />
         </div>
       </header>

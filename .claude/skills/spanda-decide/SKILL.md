@@ -37,24 +37,29 @@ systems, decision — as extra lenses.)
 ## Procedure
 
 ```bash
-BASE="${FOOLERY_URL:-http://localhost:3000}"
+BASE="${FOOLERY_URL:-http://127.0.0.1:3210}"
+REPO="${REPO:-$(curl -s "$BASE/api/registry" | jq -r '.data[0].path')}"
 ```
 
 1. **Read the context** (`spanda-board`): the initiative's `description` is the
    decision brief; `acceptance` is what a good decision must satisfy. Move it to
    `deciding` when you start:
-   `curl -s -X PATCH "$BASE/api/beats/$ID" -d '{"state":"deciding"}' -H 'content-type: application/json'`
+   `curl -s -X PATCH "$BASE/api/beats/$ID?_repo=$REPO" -d '{"state":"deciding"}' -H 'content-type: application/json'`
 2. **Brainstorm options** (Superpowers, or inline) — each with its trade-offs.
 3. **Decide** — make the call with the human, applying the forcing questions.
    Record the decision and its rationale, and move to `decided`:
    ```bash
-   curl -s -X PATCH "$BASE/api/beats/$ID" -H 'content-type: application/json' \
+   curl -s -X PATCH "$BASE/api/beats/$ID?_repo=$REPO" -H 'content-type: application/json' \
      -d '{"state":"decided","metadata":{"status":"DECISION: <call>\nWHY: <rationale>\nOPTIONS WEIGHED: <list>"}}'
    ```
 4. **Communicate** — share the decision with whoever it affects (the channel is
    the human's; spell out who needs to hear it). Note where it was communicated.
 5. **Close** — once acted on, move to its terminal state (`executed`, or
-   `dropped` if the decision was to do nothing).
+   `dropped` if the decision was to do nothing):
+   ```bash
+   curl -s -X PATCH "$BASE/api/beats/$ID?_repo=$REPO" -H 'content-type: application/json' \
+     -d '{"state":"executed"}'
+   ```
 
 ## Why record the rationale, not just the verdict
 

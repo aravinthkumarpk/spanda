@@ -293,11 +293,12 @@ export function HeaderToolbar(props: {
   onOpenSettings: () => void;
   isBeatsRoute: boolean;
   viewSwitcher: React.ReactNode;
+  createButton?: React.ReactNode;
 }) {
   const {
     activeBeatId, activeRepo, versionStatus,
     onVersionStatus, router, searchParams, onOpenSettings,
-    isBeatsRoute, viewSwitcher,
+    isBeatsRoute, viewSwitcher, createButton,
   } = props;
   return (
     <div className="flex flex-wrap items-center gap-2 md:gap-3">
@@ -312,10 +313,13 @@ export function HeaderToolbar(props: {
       <SearchBar
         className="order-3 mx-0 basis-full md:order-none md:basis-auto md:flex-1 md:max-w-none"
         inputClassName="h-8"
-        placeholder="Search beats..."
+        placeholder="Search tasks..."
       />
       <ThemeToggle />
       <NotificationBell />
+      {/* F3: the Add button is global — visible on every route (Today, Board,
+          Projects, Review), not just the beats-only view switcher. */}
+      {createButton}
       <Button
         size="icon"
         variant="ghost"

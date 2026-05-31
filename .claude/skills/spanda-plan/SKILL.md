@@ -39,8 +39,9 @@ way the *output* is identical and the board is the only place it's stored.
 
 1. **Read the spec** (`spanda-board` or directly):
    ```bash
-   BASE="${FOOLERY_URL:-http://localhost:3000}"
-   curl -s "$BASE/api/beats/$ID" | jq '.data | {title, description, acceptance, state}'
+   BASE="${FOOLERY_URL:-http://127.0.0.1:3210}"
+   REPO="${REPO:-$(curl -s "$BASE/api/registry" | jq -r '.data[0].path')}"
+   curl -s "$BASE/api/beats/$ID?_repo=$REPO" | jq '.data | {title, description, acceptance, state}'
    ```
    Confirm it's a Do initiative at `ready_for_planning`. If a question can't be
    answered, park it in `metadata.question` rather than guessing.
@@ -52,13 +53,13 @@ way the *output* is identical and the board is the only place it's stored.
 3. **Create the breakdown** as child task beats (only if more than one task is
    warranted):
    ```bash
-   curl -s -X POST "$BASE/api/beats" -H 'content-type: application/json' \
+   curl -s -X POST "$BASE/api/beats?_repo=$REPO" -H 'content-type: application/json' \
      -d '{"title":"<task>","parent":"'"$ID"'","acceptance":"<done-when>","profileId":"do"}'
    ```
 
 4. **Write the plan to the card and move to the gate** (one PATCH):
    ```bash
-   curl -s -X PATCH "$BASE/api/beats/$ID" -H 'content-type: application/json' \
+   curl -s -X PATCH "$BASE/api/beats/$ID?_repo=$REPO" -H 'content-type: application/json' \
      -d '{"state":"plan_review","metadata":{"plan":"<the six-part plan, markdown>"}}'
    ```
 
@@ -75,7 +76,7 @@ here so Execute can run unattended under its goal.
 
 ## Verify (dry run)
 
-After running against a test store: `GET /api/beats/$ID` shows
+After running against a test store: `GET /api/beats/$ID?_repo=$REPO` shows
 `state == "plan_review"` and a non-empty `metadata.plan`; any child tasks you
-created appear under `?parent=$ID`. The initiative is **not** advanced past the
-gate.
+created appear under `?parent=$ID&_repo=$REPO`. The initiative is **not**
+advanced past the gate.

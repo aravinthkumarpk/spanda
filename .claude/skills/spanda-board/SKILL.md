@@ -33,17 +33,19 @@ You only need the read endpoints. Full request/response shapes, the
 state↔column mapping, and the field mapping live in
 `references/beats-api.md` — read it once if anything below is unclear.
 
-Base URL: `${FOOLERY_URL:-http://localhost:3000}`. All work goes through
-`/api/beats`; there is no second store.
+Base URL: `${FOOLERY_URL:-http://127.0.0.1:3210}`. All work goes through
+`/api/beats`; there is no second store. Every `/api/beats` call must include
+`_repo=$REPO` (or `scope=all` for read-only cross-repo lists).
 
 ## List the board
 
 ```bash
-BASE="${FOOLERY_URL:-http://localhost:3000}"
+BASE="${FOOLERY_URL:-http://127.0.0.1:3210}"
+REPO="${REPO:-$(curl -s "$BASE/api/registry" | jq -r '.data[0].path')}"
 # Everything (the board groups it by lifecycle column itself):
-curl -s "$BASE/api/beats?state=all" | jq '.data[] | {id, title, state, profileId, labels}'
+curl -s "$BASE/api/beats?state=all&_repo=$REPO" | jq '.data[] | {id, title, state, profileId, labels}'
 # Just what's waiting at a human gate (Plan review / Execution review):
-curl -s "$BASE/api/beats?state=all&requiresHumanAction=true" | jq '.data[] | {id, title, state}'
+curl -s "$BASE/api/beats?state=all&requiresHumanAction=true&_repo=$REPO" | jq '.data[] | {id, title, state}'
 ```
 
 Altitude (project / initiative / task) is read from an `altitude:*` label and
@@ -54,7 +56,7 @@ that carry a spec.
 ## Read one initiative's context
 
 ```bash
-curl -s "$BASE/api/beats/$ID" | jq '.data | {
+curl -s "$BASE/api/beats/$ID?_repo=$REPO" | jq '.data | {
   title, state, profileId,
   spec: .description, acceptance,           # the spec
   plan: .metadata.plan,                      # written by spanda-plan
@@ -62,7 +64,7 @@ curl -s "$BASE/api/beats/$ID" | jq '.data | {
   question: .metadata.question               # a pending question, if any
 }'
 # Its task breakdown (child beats):
-curl -s "$BASE/api/beats?parent=$ID" | jq '.data[] | {id, title, state}'
+curl -s "$BASE/api/beats?parent=$ID&_repo=$REPO" | jq '.data[] | {id, title, state}'
 ```
 
 ## Why read-first
@@ -75,6 +77,7 @@ this skill, then hand off to `spanda-pick`, `spanda-plan`, `spanda-execute`,
 
 ## Verify (dry run)
 
-Against a test beads store, `GET /api/beats?state=all` returns `{ "data": [...] }`
-and a single-id `GET` returns the spec/plan/status fields above. No write is
-ever issued by this skill — that's the whole guarantee.
+Against a test beads store, `GET /api/beats?state=all&_repo=$REPO` returns
+`{ "data": [...] }` and a single-id `GET` with `_repo` returns the
+spec/plan/status fields above. No write is ever issued by this skill — that's
+the whole guarantee.

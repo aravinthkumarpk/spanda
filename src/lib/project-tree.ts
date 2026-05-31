@@ -100,6 +100,34 @@ export function withAltitudeLabel(
   return [...base, `${ALTITUDE_LABEL_PREFIX}${altitude}`];
 }
 
+const PROJECT_LABEL_PREFIX = "project:";
+
+/** True if the labels already carry a non-empty `project:<name>`. */
+export function hasProjectLabel(labels: string[] | undefined): boolean {
+  return (labels ?? []).some(
+    (l) => l.startsWith(PROJECT_LABEL_PREFIX)
+      && l.slice(PROJECT_LABEL_PREFIX.length).trim().length > 0,
+  );
+}
+
+/**
+ * Ensure a single `project:<name>` label (F3 / ADR-0005). `bd create` is
+ * lint-gated — it refuses a beat with no `project:*` label — so every create
+ * path stamps one (default: the scoped project, else "Unsorted"). Idempotent:
+ * replaces any existing project label; a blank name is a no-op.
+ */
+export function withProjectLabel(
+  labels: string[] | undefined,
+  project: string,
+): string[] {
+  const name = project.trim();
+  if (!name) return [...(labels ?? [])];
+  const base = (labels ?? []).filter(
+    (l) => !l.startsWith(PROJECT_LABEL_PREFIX),
+  );
+  return [...base, `${PROJECT_LABEL_PREFIX}${name}`];
+}
+
 /**
  * Decide a beat's role.
  *

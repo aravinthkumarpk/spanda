@@ -4,17 +4,17 @@ The single source of truth for the whole skill pack. Every `spanda-*` skill
 reads and writes the board **only** through these endpoints. No sidecar store,
 no second copy of state.
 
-Base URL: `${FOOLERY_URL:-http://localhost:3000}` — the dev server is `:3000`,
-the **installed runtime is `:3210`** (set `FOOLERY_URL=http://127.0.0.1:3210`
-to drive the live app).
+Base URL: `${FOOLERY_URL:-http://127.0.0.1:3210}` — the dev server may run on
+`:3000`, but the installed runtime is `:3210`.
 
 **Every call needs a repo.** A bare call returns `500 repo_path_missing`. Pass
 `_repo=<path>` (a registered work repo) on every request — or `scope=all` for a
 read across all registered repos. Discover the path once:
 
 ```bash
-REPO=$(curl -s "$FOOLERY_URL/api/registry" | jq -r '.data[0].path')
-curl -s "$FOOLERY_URL/api/beats?state=all&_repo=$REPO" | jq '.data[]'
+BASE="${FOOLERY_URL:-http://127.0.0.1:3210}"
+REPO="${REPO:-$(curl -s "$BASE/api/registry" | jq -r '.data[0].path')}"
+curl -s "$BASE/api/beats?state=all&_repo=$REPO" | jq '.data[]'
 ```
 
 ## Endpoints
@@ -87,4 +87,5 @@ state by string prefix — ask the API for the beat and act on the returned
 `plan_review` and `implementation_review` are **gates**: a human approves or
 rejects. A skill prepares the decision (a plan, or sign-off evidence) and moves
 the initiative *to* the gate — it never moves it *through* the gate. Filter
-`GET /api/beats?state=all&requiresHumanAction=true` to see what's waiting.
+`GET /api/beats?state=all&requiresHumanAction=true&_repo=$REPO` to see what's
+waiting.

@@ -54,8 +54,9 @@ history — that's noise the next planner will skim past.
 4. **Leave a pointer on the card** (optional but handy) so the initiative links
    to what it taught:
    ```bash
-   BASE="${FOOLERY_URL:-http://localhost:3000}"
-   curl -s -X PATCH "$BASE/api/beats/$ID" -H 'content-type: application/json' \
+   BASE="${FOOLERY_URL:-http://127.0.0.1:3210}"
+   REPO="${REPO:-$(curl -s "$BASE/api/registry" | jq -r '.data[0].path')}"
+   curl -s -X PATCH "$BASE/api/beats/$ID?_repo=$REPO" -H 'content-type: application/json' \
      -d '{"metadata":{"learned":"<one-line summary + where the note lives>"}}'
    ```
 

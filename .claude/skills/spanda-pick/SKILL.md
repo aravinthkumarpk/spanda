@@ -38,12 +38,13 @@ gate and stop. So:
 ## Procedure
 
 ```bash
-BASE="${FOOLERY_URL:-http://localhost:3000}"
+BASE="${FOOLERY_URL:-http://127.0.0.1:3210}"
+REPO="${REPO:-$(curl -s "$BASE/api/registry" | jq -r '.data[0].path')}"
 # 1. What's waiting on the human (report, don't touch):
-curl -s "$BASE/api/beats?state=all&requiresHumanAction=true" \
+curl -s "$BASE/api/beats?state=all&requiresHumanAction=true&_repo=$REPO" \
   | jq '.data[] | {id, title, state}'
 # 2. Agent-claimable work, highest priority first (lower number = higher):
-curl -s "$BASE/api/beats?state=all&requiresHumanAction=false" \
+curl -s "$BASE/api/beats?state=all&requiresHumanAction=false&_repo=$REPO" \
   | jq 'reduce .data[] as $b ([]; . + [$b])
         | sort_by(.priority) | .[] | {id, title, state, priority, profileId}'
 ```
