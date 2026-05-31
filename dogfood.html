@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Spanda — try it out (dogfood guide)</title>
-<meta name="description" content="A step-by-step manual for dogfooding the latest Spanda — the human-gated board, the two review gates, and the daily Today feed." />
+<meta name="description" content="A step-by-step manual for dogfooding the latest Spanda (iteration 2.2) — the six fixes from the last run, the human-gated board, the two review gates, and the clean Today feed." />
 <style>
   :root{
     --paper-50:#faf8f4; --paper-100:#f4f1ea; --paper-200:#e8e2d6;
@@ -25,6 +25,7 @@
     border-radius:10px;padding:14px 16px;margin:22px 0;font-size:15px;color:var(--ink-700);}
   .banner b{color:var(--ink-900);}
   .banner.lake{background:var(--lake-100);border-color:#bcd6de;border-left-color:var(--lake-700);}
+  .banner.moss{background:var(--moss-100);border-color:#bcd6b6;border-left-color:var(--moss-700);}
   h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-500);
     font-weight:700;margin:34px 0 4px;}
   .step{background:var(--paper-50);border:1px solid var(--paper-200);border-radius:14px;
@@ -37,6 +38,9 @@
   .step .see{margin:10px 0 0;background:var(--moss-100);border-radius:8px;padding:8px 12px;
     font-size:15px;color:var(--moss-700);}
   .step .see b{color:var(--ink-900);}
+  .step .was{margin:10px 0 0;background:var(--rust-100);border-radius:8px;padding:8px 12px;
+    font-size:14px;color:var(--rust-600);}
+  .step .was b{color:var(--ink-900);}
   .step ul{margin:8px 0 0;padding-left:22px;} .step li{margin:4px 0;}
   kbd{font-family:ui-monospace,Menlo,monospace;font-size:13px;background:var(--paper-200);
     padding:1px 6px;border-radius:5px;}
@@ -44,6 +48,8 @@
     font-size:13px;font-weight:600;color:var(--ink-700);}
   .gate{display:inline-block;background:var(--clay-100);border-radius:999px;padding:1px 9px;
     font-size:13px;font-weight:600;color:var(--clay-700);}
+  .fixtag{display:inline-block;background:var(--moss-100);border:1px solid #bcd6b6;border-radius:6px;
+    padding:0 7px;font-size:12px;font-weight:700;color:var(--moss-700);margin-right:6px;}
   .url{font-family:ui-monospace,Menlo,monospace;font-size:15px;font-weight:600;}
   .prompt{background:var(--ink-900);color:#e9e4d8;border-radius:12px;padding:16px 18px;margin:12px 0;
     font-family:ui-monospace,Menlo,monospace;font-size:13.5px;line-height:1.6;white-space:pre-wrap;
@@ -60,8 +66,8 @@
 <div class="wrap">
 <header>
   <h1>Try Spanda</h1>
-  <p class="sub">A first run of the latest build. No prior knowledge needed — follow the steps and tick them off.
-  <a class="back" href="/iteration-2.1.html">← what changed (iteration 2.1)</a></p>
+  <p class="sub">A verification run of the latest build (<b>iteration 2.2</b>). No prior knowledge needed — follow the steps and tick them off.
+  <a class="back" href="/iteration-2.2.html">← what changed (iteration 2.2)</a></p>
 </header>
 
 <p style="margin-top:18px">Spanda is a board for your real work. You spend your time on <b>specs</b>; agents do the work
@@ -75,10 +81,26 @@ a clean window onto it, never a second copy.</p>
   is working. Your job is to <b>Approve</b> or <b>Reject</b> at those two gates.
 </div>
 
+<div class="banner moss">
+  <b>This run fixes the six things that broke last time.</b> Each was a real finding from the previous dogfood; the
+  steps below call out <span class="was" style="display:inline;padding:1px 7px"><b>was broken</b></span> vs
+  <b>now</b>, so you can confirm the fix:
+  <ul style="margin:8px 0 0;padding-left:20px">
+    <li><span class="fixtag">F1</span> The <b>Board was empty</b> → now shows your real tasks.</li>
+    <li><span class="fixtag">F2</span> <b>Edits / status changes didn’t stick</b> → now they persist through to the store.</li>
+    <li><span class="fixtag">F3</span> <b>No Add button</b> → <b>Add</b> now lives in the top bar on every screen.</li>
+    <li><span class="fixtag">F4</span> Project cards had <b>no way into a scoped board</b> → the title is now a link into the project’s board.</li>
+    <li><span class="fixtag">F5</span> <b>Today was a broken, double-barred page</b> → now a clean single-bar embed.</li>
+    <li><span class="fixtag">F6</span> <b>Status page only showed for some items</b> → every item now has one, with an Override control.</li>
+  </ul>
+</div>
+
 <div class="banner">
-  <b>First, confirm you’re on the latest build.</b> Open <span class="url">spanda.onyourdevice.ai</span> — it should
-  land you on <b>Today</b> (not the Board), and the top bar should read <b>Today · Board · Projects · Review</b>
-  with a <b>More</b> menu. If the home page jumps to the Board instead, you’re on an old build — ask for a redeploy.
+  <b>First, confirm you’re on the 2.2 build.</b> Open <span class="url">spanda.onyourdevice.ai</span> — it should
+  land you on <b>Today</b> (not the Board), with <b>one</b> top bar (<b>Today · Board · Projects · Review</b> + a
+  <b>More</b> menu) and an <b>Add</b> button. The Today feed below it should look like your styled daily, <i>not</i> a
+  second “spanda / Open setlist / Take a beat” bar. If the home page jumps to the Board, or Today shows a duplicated
+  header, you’re on an old build — ask for a redeploy.
 </div>
 
 <h2>Open it</h2>
@@ -86,26 +108,33 @@ a clean window onto it, never a second copy.</p>
   <p class="do" style="margin-top:0"><span class="n">0</span><span><b>Go to</b>
   <span class="url">https://spanda.onyourdevice.ai</span>.</span></p>
   <p class="do">Sign in if asked (Cloudflare Access — your normal login).</p>
-  <p class="see"><b>You should land on Today</b> — the change feed — <i>not</i> the Board. (That’s the new default
-  landing.) The top tabs are <b>Today · Board · Projects · Review</b>, left-aligned, with a <b>More</b> menu for
-  everything else.</p>
+  <p class="see"><b>You should land on Today</b> — the change feed — <i>not</i> the Board. The top tabs are
+  <b>Today · Board · Projects · Review</b>, left-aligned, with a <b>More</b> menu and an <b>Add</b> button on the right.</p>
 </div>
 
-<h2>Today — your daily feed</h2>
+<h2><span class="fixtag">F5</span> Today — your daily feed (clean embed)</h2>
 <div class="step">
-  <p class="do" style="margin-top:0"><span class="n">1</span><span><b>Read Today.</b> It’s your written daily
-  review. On lines the pipeline marks actionable, a small green <b>“make it work”</b> button appears — click it to
-  promote that line into a real task (a form opens pre-filled; review &amp; confirm).</span></p>
-  <p class="see"><b>Expect:</b> the promoted item becomes a real <b>initiative</b> on the board. <i>No buttons yet?
-  Your daily just hasn’t tagged any lines — that’s fine.</i></p>
+  <p class="do" style="margin-top:0"><span class="n">1</span><span><b>Read Today.</b> It’s your written daily review,
+  embedded inside the app. On lines the pipeline marks actionable, a small green <b>“make it work”</b> button appears —
+  click it to promote that line into a real task (a form opens pre-filled; review &amp; confirm).</span></p>
+  <p class="was"><b>Was broken:</b> Today rendered the daily’s <i>own</i> top bar on top of the app’s — two/three stacked
+  bars — and its cards lost their styling.</p>
+  <p class="see"><b>Now expect:</b> <b>one</b> app bar, then your daily content with its <b>own styling intact</b>
+  (the section cards — REFLECT / PLAN / CLOSE etc. — look like your daily). <b>No</b> stray “spanda / Open setlist /
+  Take a beat” bar inside the feed. A promoted line becomes a real <b>initiative</b> on the board. <i>No “make it work”
+  buttons? Your daily just hasn’t tagged any lines — that’s fine.</i> (Clicking the daily’s metrics is not wired yet —
+  known, deferred.)</p>
 </div>
 
-<h2>The Board — your current stack</h2>
+<h2><span class="fixtag">F1</span> The Board — your current stack (now populated)</h2>
 <div class="step">
   <p class="do" style="margin-top:0"><span class="n">2</span><span><b>Open the Board tab.</b> Four columns,
   left-to-right: <b>To do · Doing · Review · Done</b>. Each card shows the title and its real <b>state</b> tag.</span></p>
-  <p class="see"><b>Look for:</b> an initiative the agent is checking shows <b>“Signing off”</b> in <b>Doing</b>;
-  anything waiting on you sits in <b>Review</b>. The action button reads <b>Start</b> (not “Run”).</p>
+  <p class="was"><b>Was broken:</b> the Board came up <i>empty</i> even though you had ~80+ active tasks — a bad state
+  filter was hiding everything.</p>
+  <p class="see"><b>Now expect:</b> the Board shows your real <b>active</b> tasks (closed/done ones aren’t cluttering it).
+  An initiative the agent is checking shows <b>“Signing off”</b> in <b>Doing</b>; anything waiting on you sits in
+  <b>Review</b>. The action button reads <b>Start</b> (not “Run”).</p>
 </div>
 <div class="step">
   <p class="do" style="margin-top:0"><span class="n">3</span><span><b>Move a card by hand (drag &amp; drop).</b>
@@ -114,18 +143,25 @@ a clean window onto it, never a second copy.</p>
   A move the workflow doesn’t allow (e.g. jumping straight to Done) snaps back — by design.</p>
 </div>
 
-<h2>Add &amp; edit — the four task types</h2>
+<h2><span class="fixtag">F3</span><span class="fixtag">F2</span> Add &amp; edit — and it sticks</h2>
 <div class="step">
-  <p class="do" style="margin-top:0"><span class="n">4</span><span><b>Add a task.</b> Hit <kbd>+</kbd> / <b>Add</b>.
-  Under <b>Task type</b> you get exactly four: <b>Do · Decide · Coordinate · Follow-up</b> (no free-text type box).
-  Pick <b>Do</b>, give it a title and <b>Acceptance criteria</b> (a Do task won’t save without them), then create.</span></p>
-  <p class="see"><b>Expect:</b> a new <b>Do</b> initiative lands at <b>Open</b> (To&nbsp;do). Only <b>Do</b> runs the
-  full gated lifecycle; Decide / Coordinate / Follow-up you just move by hand.</p>
+  <p class="do" style="margin-top:0"><span class="n">4</span><span><b>Add a task.</b> Hit the <b>Add</b> button in the
+  top bar (it’s there on <i>every</i> screen now, not just the Board). Under <b>Task type</b> you get exactly four:
+  <b>Do · Decide · Coordinate · Follow-up</b>. Pick <b>Do</b>, give it a title and <b>Acceptance criteria</b> (a Do task
+  won’t save without them), then create.</span></p>
+  <p class="was"><b>Was broken:</b> there was no visible Add button on most screens.</p>
+  <p class="see"><b>Now expect:</b> a new <b>Do</b> initiative lands at <b>Open</b> (To&nbsp;do). It’s tagged to a project
+  (defaults to <b>Unsorted</b> if you don’t pick one). Only <b>Do</b> runs the full gated lifecycle; Decide / Coordinate /
+  Follow-up you just move by hand.</p>
 </div>
 <div class="step">
-  <p class="do" style="margin-top:0"><span class="n">5</span><span><b>Edit its status.</b> Open the task → edit →
-  the <b>Status</b> field offers the current state plus the valid next states. Change it and save.</span></p>
-  <p class="see"><b>Expect:</b> a “Task updated” toast and the card moves to the new state’s column.</p>
+  <p class="do" style="margin-top:0"><span class="n">5</span><span><b>Edit its status — then refresh.</b> Open the task →
+  edit → the <b>Status</b> field offers the current state plus the valid next states. Change it, save, then <b>reload the
+  page</b>.</span></p>
+  <p class="was"><b>Was broken:</b> edits looked saved but didn’t make it through to the store (a stale sync command),
+  so they’d vanish on refresh.</p>
+  <p class="see"><b>Now expect:</b> a “Task updated” toast, the card moves columns, and <b>the change survives the
+  reload</b> — it’s written through to the real store.</p>
 </div>
 
 <h2>The two gates — where you decide</h2>
@@ -135,22 +171,29 @@ a clean window onto it, never a second copy.</p>
   <span class="gate">Execution review</span> gates. (Live agent interruptions are separate — under
   <b>More → Escalations</b>.)</span></p>
   <p class="see"><b>Expect:</b> each row shows a <b>✋ Needs you</b> pill and its state. Nothing waiting? The empty
-  state says so.</p>
+  state says so — and right now nothing of yours is parked at a gate, so an empty Review tab is correct, not a bug.</p>
 </div>
 <div class="step">
-  <p class="do" style="margin-top:0"><span class="n">7</span><span><b>Open a gated initiative.</b> Click it — its
-  detail pane <b>is</b> its status page: live state, “what’s done”, any pending question, the task breakdown, and at
-  the top your <b>Approve</b> / <b>Reject</b> controls.</span></p>
-  <p class="see"><b>Expect:</b> <b>Approve</b> advances it past the gate; <b>Reject</b> opens a note box — your note
-  is the instruction the agent redoes the work against. (No reject note = can’t confirm.)</p>
+  <p class="do" style="margin-top:0"><span class="n">7</span><span><b>Open any initiative.</b> Click it — its
+  detail pane <b>is</b> its status page: live state, “what’s done”, any pending question, the breakdown, and your
+  <b>Approve</b> / <b>Reject</b> controls when it’s at a gate.</span></p>
+  <p class="was"><b>Was broken:</b> the status page only appeared for items carrying a special “initiative” label —
+  which real tasks didn’t have — so most items showed nothing.</p>
+  <p class="see"><b>Now expect</b> <span class="fixtag">F6</span>: <b>every</b> item shows its status page.
+  <b>Approve</b> advances it past the gate; <b>Reject</b> opens a note box (your note is the instruction the agent
+  redoes against — no note, can’t confirm). Below the guided buttons there’s an <b>Override status</b> dropdown — the
+  escape hatch to set <i>any</i> state directly when the guided moves don’t fit.</p>
 </div>
 
-<h2>Projects — the bird’s-eye view</h2>
+<h2><span class="fixtag">F4</span> Projects — the bird’s-eye view</h2>
 <div class="step">
   <p class="do" style="margin-top:0"><span class="n">8</span><span><b>Open the Projects tab.</b> Projects show as
-  cards with a <b>health</b> badge and a count. On any project, click <b>“Board →”</b>.</span></p>
-  <p class="see"><b>Expect:</b> the Board opens <b>scoped to that project</b> — only its initiatives &amp; tasks — with
-  a “Scoped to project … · clear” chip. Click <b>clear</b> to return to the full board.</p>
+  cards with a <b>health</b> badge and a count. <b>Click the project title.</b></span></p>
+  <p class="was"><b>Was broken:</b> a project card had no obvious way into its own board — the only click opened an
+  edit dialog.</p>
+  <p class="see"><b>Now expect:</b> the title is a <b>link into the Board scoped to that project</b> — only its
+  initiatives &amp; tasks — with a “Scoped to project … · clear” chip. The little pencil is the (secondary) edit
+  affordance; “view all N →” jumps into the same scoped board.</p>
 </div>
 
 <h2>Parallel track — drive the board from Codex (the skill pack)</h2>
@@ -162,8 +205,8 @@ today's work from <b>Codex</b> while you watch it land on the Board/Review tabs 
   <b>Two facts that make it work.</b> The skills live as plain markdown at
   <span class="codeline">.claude/skills/spanda-*</span> (mirrored at <span class="codeline">.agents/skills/</span>) —
   Codex just reads and follows them. And the live API needs an explicit repo: every <span class="codeline">/api/beats</span>
-  call must carry <span class="codeline">_repo=/home/deploy/personal-os</span> against
-  <span class="codeline">http://127.0.0.1:3210</span> (a bare call returns 500). The prompt below sets both.
+  call must carry <span class="codeline">_repo=$REPO</span> against <span class="codeline">http://127.0.0.1:3210</span>
+  (a bare call returns 500). The prompt below sets both, and reads the repo path from the registry so it’s never hardcoded.
 </div>
 
 <div class="step">
@@ -174,7 +217,7 @@ today's work from <b>Codex</b> while you watch it land on the Board/Review tabs 
 
 Environment (the live app + its real data):
   export FOOLERY_URL=http://127.0.0.1:3210
-  export REPO=/home/deploy/personal-os
+  export REPO=$(curl -s "$FOOLERY_URL/api/registry" | jq -r '.data[0].path')
 Every /api/beats call MUST include &amp;_repo=$REPO (a bare call returns 500 repo_path_missing). List with, e.g.:
   curl -s "$FOOLERY_URL/api/beats?state=all&amp;_repo=$REPO" | jq '.data[] | {id,title,state,profileId}'
 
@@ -193,29 +236,30 @@ Rules: the board (via the API) is the only source of truth — keep no state of 
 <h2>What to jot down as you go</h2>
 <div class="step" style="margin-top:14px">
   <ul style="margin-top:0">
-    <li>Did the home page land on <b>Today</b> (not the Board)?</li>
-    <li>Does a fresh <b>Do</b> initiative actually stop at <b>Plan review</b> and <b>Execution review</b> — i.e. it’s
-      <i>not</i> running straight through on its own?</li>
-    <li>Do <b>Approve / Reject</b> work, and does a reject note stick?</li>
-    <li>Does the <b>Review</b> tab show the right things (gates), and only those?</li>
-    <li>Did drag-to-move, add, edit-status, and promote all <b>save</b> (and survive a refresh)?</li>
+    <li><span class="fixtag">F5</span> Did <b>Today</b> show <b>one</b> bar and your styled daily — no leaked “Open setlist / Take a beat” bar?</li>
+    <li><span class="fixtag">F1</span> Did the <b>Board</b> actually show your tasks (not empty)?</li>
+    <li><span class="fixtag">F2</span> Did an edit / status change <b>survive a refresh</b>?</li>
+    <li><span class="fixtag">F3</span> Was the <b>Add</b> button there on every screen?</li>
+    <li><span class="fixtag">F4</span> Did a project <b>title</b> take you into a scoped board?</li>
+    <li><span class="fixtag">F6</span> Did <b>every</b> item show a status page, with the <b>Override</b> dropdown?</li>
+    <li>Does a fresh <b>Do</b> initiative actually stop at <b>Plan review</b> and <b>Execution review</b> — not run straight through?</li>
     <li>Right vocabulary everywhere — <b>Start</b> (not Run), <b>Task</b> (not beat)?</li>
     <li>Anything slow, broken, mislabeled, or ugly.</li>
   </ul>
 </div>
 
 <div class="banner">
-  <b>Heads-up:</b> this is the <b>first real browser run</b> of the iteration 2 / 2.1 build — it passed tests &amp;
-  build, but the live UI hasn’t been eyeballed before you. If the Review queue, Approve/Reject, or the status-page
-  pane misbehave, note exactly what you saw and on which screen.
+  <b>Heads-up:</b> the Today + status-page surfaces went through a live design-review pass this round (it caught and
+  fixed a content-loss bug in the Today embed). If anything on those two screens still looks off — spacing, a stray
+  control, a card that won’t style — note exactly what you saw and on which screen.
 </div>
 
-<p class="foot">That’s the tour. The things to trust: the home is <b>Today</b>; the <b>Board</b> reflects your real
-tasks and you move them by hand; a <b>Do</b> initiative is <b>human-gated</b> (two reviews, with an agent sign-off in
-between); the <b>Review</b> tab is your decision queue; and edit / add / promote / drag all write straight to the one
-task store. Found a problem? Note the screen + what you expected.
-<a href="/iteration-2.1.html">← iteration 2.1</a> · <a href="/iteration.html">iteration 02</a> ·
-<a href="/implementation-notes.html">build notes</a></p>
+<p class="foot">That’s the tour. The things to trust: the home is <b>Today</b> (one clean bar); the <b>Board</b> reflects
+your real tasks and you move them by hand; edits <b>persist</b>; a <b>Do</b> initiative is <b>human-gated</b> (two
+reviews, with an agent sign-off in between); the <b>Review</b> tab is your decision queue; and every item is a status
+page. Found a problem? Note the screen + what you expected.
+<a href="/iteration-2.2.html">← iteration 2.2</a> · <a href="/iteration-2.1.html">2.1</a> ·
+<a href="/iteration.html">02</a> · <a href="/implementation-notes.html">build notes</a></p>
 </div>
 </body>
 </html>
