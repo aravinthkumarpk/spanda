@@ -77,6 +77,31 @@ describe("scopeCss", () => {
     expect(out).toContain("@keyframes spin");
     expect(out).not.toContain(".dc from");
   });
+
+  it("hoists @import to the top and does NOT glue it to the next rule", () => {
+    // The real-world killer: @import (statement, no block) immediately before
+    // the :root token block. Must stay a standalone statement, and :root must
+    // become its own scoped rule — otherwise every design token dies.
+    const css = `@import url("https://f.co/x");\n:root{--c:#9fe870}\n.card{color:var(--c)}`;
+    const out = scopeCss(css, ".dc");
+    // @import preserved as a statement, first, ending in ';'
+    expect(out).toMatch(/^@import url\("https:\/\/f\.co\/x"\);/);
+    // it must NOT have been turned into a block rule
+    expect(out).not.toMatch(/@import[^;]*\{/);
+    // the token block survives, scoped onto the container
+    expect(out).toMatch(/\.dc \{\s*--c:#9fe870/);
+    expect(out).toContain(".dc .card");
+  });
+
+  it("preserves @font-face inner declarations and keeps it global", () => {
+    const out = scopeCss(
+      `@font-face{font-family:"M";src:url(a.woff2)}`,
+      ".dc",
+    );
+    expect(out).toContain("@font-face");
+    expect(out).toContain('font-family:"M"');
+    expect(out).not.toContain(".dc @font-face");
+  });
 });
 
 describe("sanitizeDaily", () => {

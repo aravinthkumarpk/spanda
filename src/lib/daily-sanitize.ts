@@ -95,10 +95,35 @@ function prefixSelectorList(selectorList: string, scope: string): string {
     .join(", ");
 }
 
-/** Prefix every rule's selectors with `scope`; recurse into @media/@supports. */
+/**
+ * Statement at-rules (`@import`, `@charset`, `@namespace`) end in `;` and have
+ * NO block. They must be lifted out and emitted FIRST: CSS requires `@import`
+ * to precede every rule, and leaving them inline corrupts the next ruleset
+ * (the brace-scanner would otherwise glue `@import …; :root` into one broken
+ * `@import { … }` block — killing fonts AND every design token). Returns the
+ * hoisted statements and the CSS with them removed.
+ */
+function liftStatementAtRules(css: string): { hoisted: string[]; rest: string } {
+  const hoisted: string[] = [];
+  const rest = css.replace(
+    /@(?:import|charset|namespace)\b[^;{}]*;/gi,
+    (m) => {
+      hoisted.push(m.trim());
+      return "";
+    },
+  );
+  return { hoisted, rest };
+}
+
+/**
+ * Prefix every rule's selectors with `scope`; recurse into @media/@supports.
+ * Statement at-rules (@import/@charset) are hoisted verbatim to the top so the
+ * daily's font @import keeps working and the token `:root` block parses clean.
+ */
 export function scopeCss(css: string, scope: string): string {
-  const stripped = css.replace(/\/\*[\s\S]*?\*\//g, "");
-  const out: string[] = [];
+  const noComments = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const { hoisted, rest: stripped } = liftStatementAtRules(noComments);
+  const out: string[] = [...hoisted];
   let i = 0;
   while (i < stripped.length) {
     const open = stripped.indexOf("{", i);
