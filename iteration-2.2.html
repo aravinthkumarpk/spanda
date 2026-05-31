@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>spanda — iteration 2.2: fixing the dogfood findings</title>
+<meta name="description" content="Spanda iteration 2.2: RCA + sequenced fix plan from the live dogfood test report — state-filter, bd-sync, the Add button, Board scoping, Today integration, and a status page for every item. TDD-driven, design-reviewed."/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='34' fill='%230e0f0c'/%3E%3Crect x='29' y='32' width='6' height='14' rx='3' fill='%239fe870'/%3E%3Crect x='45' y='32' width='6' height='14' rx='3' fill='%239fe870'/%3E%3C/svg%3E"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --color-primary:#9fe870; --color-primary-pale:#e2f6d5; --color-on-primary:#0e0f0c;
+  --color-canvas:#ffffff; --color-canvas-soft:#e8ebe6; --color-hover-sage:#f5f7f3;
+  --color-ink:#0e0f0c; --color-on-ink:#f4f6f1; --color-ink-deep:#163300; --color-body:#454745; --color-mute:#868685;
+  --color-positive:#2ead4b; --color-positive-deep:#054d28; --color-positive-pale:#e2f6d5;
+  --color-warning-deep:#b86700; --color-warning-content:#4a3b1c; --color-warning-pale:#fff4cc;
+  --color-lake:#1f6f78; --color-lake-pale:#dceef0; --color-rust:#a8452f; --color-rust-pale:#f3e2dc;
+  --color-border-soft:rgba(14,15,12,0.10); --color-border-faint:rgba(14,15,12,0.06);
+  --font-display:"Manrope",ui-sans-serif,system-ui,sans-serif;
+  --font-sans:"Inter","Manrope",ui-sans-serif,system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --r-md:12px; --r-lg:16px; --r-xl:24px; --r-pill:9999px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--color-canvas-soft);color:var(--color-ink)}
+body{font:400 16px/1.6 var(--font-sans);-webkit-font-smoothing:antialiased}
+::selection{background:var(--color-primary);color:var(--color-on-primary)}
+.wrap{max-width:1040px;margin:0 auto;padding:48px 24px 96px}
+a{color:var(--color-lake)}
+code{font-family:var(--font-mono);font-size:0.92em;background:rgba(14,15,12,0.06);padding:1px 5px;border-radius:6px}
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid var(--color-border-soft)}
+.lockup{display:flex;align-items:center;gap:10px}
+.lockup svg{height:42px;width:auto}
+.lockup .name{font-family:var(--font-display);font-weight:900;font-size:32px;letter-spacing:-0.02em}
+.sub{color:var(--color-body);font-size:14px;margin-top:6px}
+.eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-mute)}
+h1{font-family:var(--font-display);font-weight:800;font-size:32px;letter-spacing:-0.02em;margin:0 0 8px}
+.lede{color:var(--color-body);font-size:16px;max-width:76ch;margin:0 0 8px}
+.toplinks a{margin-left:14px;font-size:13px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;padding:3px 10px;border-radius:var(--r-pill)}
+.b-done{background:var(--color-positive-pale);color:var(--color-positive-deep)}
+.b-later{background:#ececea;color:var(--color-mute)}
+.b-wip{background:var(--color-warning-pale);color:var(--color-warning-content)}
+h2.epic{font-family:var(--font-display);font-weight:800;font-size:20px;margin:38px 0 2px;letter-spacing:-0.01em}
+.epic-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-lake)}
+.epic-note{color:var(--color-body);font-size:14.5px;margin:0 0 8px;max-width:78ch}
+.wave{font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-mute);margin:26px 0 0}
+.fix{background:var(--color-canvas);border-radius:var(--r-xl);padding:16px 20px;margin:12px 0;box-shadow:0 1px 0 0 rgba(14,15,12,0.04)}
+.fix .head{display:flex;align-items:baseline;gap:12px;margin-bottom:4px}
+.fix .id{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--color-lake);min-width:30px}
+.fix h3{font-family:var(--font-display);font-weight:700;font-size:16px;margin:0;flex:1;letter-spacing:-0.01em}
+.fix dl{margin:6px 0 0;display:grid;grid-template-columns:64px 1fr;gap:3px 12px}
+.fix dt{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-mute);padding-top:2px}
+.fix dd{margin:0;font-size:14px;color:var(--color-body)}
+.fix dd.rca{color:var(--color-rust)}
+.fix dd code{font-size:12.5px}
+.foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--color-border-soft);font-size:12px;color:var(--color-mute)}
+.asm{margin-top:8px;font-size:12.5px;line-height:1.5;color:var(--color-warning-content);font-family:var(--font-mono);background:var(--color-warning-pale);border-radius:8px;padding:8px 11px}
+.asm b{font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div>
+    <div class="lockup">
+      <svg viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="34" fill="#0e0f0c"/><rect x="29" y="32" width="6" height="14" rx="3" fill="#9fe870"/><rect x="45" y="32" width="6" height="14" rx="3" fill="#9fe870"/></svg>
+      <span class="name">spanda</span>
+    </div>
+    <div class="sub">iteration 2.2 &middot; fixing the dogfood findings</div>
+  </div>
+  <div style="text-align:right">
+    <div class="eyebrow">drafted 31 may 2026</div>
+    <div class="sub toplinks"><a href="/iteration-2.1.html">&larr; iteration 2.1</a> <a href="/dogfood.html">dogfood &rarr;</a></div>
+  </div>
+</header>
+
+<h1>Fixing the dogfood findings</h1>
+<p class="lede">A live dogfood of the 2.1 build surfaced a cluster of breakages. Each was <b>RCA'd against the running runtime</b> (not guessed) and resolved one decision at a time. The good news from RCA: the data is intact and the architecture is right — the failures were a <b>broken state-filter</b>, a <b>removed <code>bd</code> subcommand</b>, and UI affordances that regressed when <b>Today became the default landing</b>. Design record: <code>docs/adr/0005</code> (the <code>bd</code>-wrapper contract).</p>
+
+<h2 class="epic">Decisions <span class="epic-tag">from the grill</span></h2>
+<p class="epic-note">
+<b>Q1</b> status = guided next-states by default <b>+ a "set to any state" override</b>. ·
+<b>Q2</b> <b>every item</b> gets a status page (initiative = full, others = light), keyed off real classification. ·
+<b>Q3</b> Today = <b>clean embed</b> (strip the daily's own chrome, scope its CSS, one app bar) + design-review + metrics-clickable. ·
+<b>Q4</b> <code>bd sync</code> &rarr; capability-detected <code>import</code>/<code>export</code>, best-effort. ·
+<b>Q5</b> Add button &rarr; <b>global header</b> + a Project picker. ·
+<b>Q6</b> clicking a project &rarr; <b>scoped Board</b> (edit = secondary). ·
+<b>Q7</b> <code>state=all</code>/absent = <b>no filter</b>.
+</p>
+
+<div class="wave">Wave A &mdash; backend / data unblockers (TDD-first)</div>
+
+<div class="fix">
+  <div class="head"><span class="id">F1</span><h3>state-filter returns nothing</h3><span class="badge b-later">todo</span></div>
+  <dl>
+    <dt>report</dt><dd>[2]/[6] empty board · Codex found no beats</dd>
+    <dt>rca</dt><dd class="rca"><code>bd-queries.ts:140</code> — <code>applyWorkflowFilters</code> falls through to <code>beat.state !== filters.state</code>, so <code>state=all</code> means "keep only state===\"all\"" &rarr; 0; <code>open</code>/<code>in_progress</code> never match the workflow state. Omitting state returns 228.</dd>
+    <dt>fix</dt><dd>treat <code>state</code> of <code>all</code>/empty as <b>no filter</b>; keep <code>queued</code>/<code>in_action</code> &rarr; loom phase mapping; raw state = exact. Also fix the dogfood prompt to drop <code>state=all</code>.</dd>
+    <dt>verify</dt><dd>unit: <code>applyWorkflowFilters</code> over all / queued / in_action / raw / requiresHumanAction · live: <code>?state=all&amp;_repo=…</code> = 228</dd>
+  </dl>
+</div>
+
+<div class="fix">
+  <div class="head"><span class="id">F2</span><h3><code>bd sync</code> write errors</h3><span class="badge b-later">todo</span></div>
+  <dl>
+    <dt>report</dt><dd>[3] "unknown command sync for bd" · [1] can't update tasks</dd>
+    <dt>rca</dt><dd class="rca"><code>bd</code> v1.0.4 removed <code>sync</code> (now <code>import</code>/<code>export</code>); we call <code>bd sync</code> in <code>beats-sync-runner:26</code>, <code>bd-internal:487</code>, <code>bd-update:258</code>. The reconcile also wasn't happening, so DB↔jsonl drifted (55 vs 228).</dd>
+    <dt>fix</dt><dd>capability-detect <code>sync</code>; on bd&ge;1.0 use <code>import</code> (auto-heal / import-only) and <code>import</code>+<code>export</code> (full reconcile); <b>best-effort</b> — never fail a write on a sync hiccup (ADR-0005)</dd>
+    <dt>verify</dt><dd>unit: command selection falls back to import when sync absent; a sync failure doesn't propagate to the write · live: a status update succeeds, then DB and jsonl agree</dd>
+  </dl>
+</div>
+
+<div class="wave">Wave B &mdash; navigation &amp; affordances</div>
+
+<div class="fix">
+  <div class="head"><span class="id">F3</span><h3>Add button invisible</h3><span class="badge b-later">todo</span></div>
+  <dl>
+    <dt>report</dt><dd>[4] Add button not visible anywhere</dd>
+    <dt>rca</dt><dd class="rca">the Add button is nested in the <b>beats-only</b> view switcher (<code>{isBeatsRoute ? viewSwitcher : null}</code>); when Today became the default landing it vanished everywhere but <code>/beats</code></dd>
+    <dt>fix</dt><dd>promote Add to the <b>global header toolbar</b> (every route) + a <b>Project picker</b> in the create form so <code>bd create</code> gets the required <code>project:&lt;name&gt;</code> label (lint-gated)</dd>
+    <dt>verify</dt><dd>render: Add present on /today and /beats · create attaches a <code>project:*</code> label · a created beat round-trips</dd>
+  </dl>
+</div>
+
+<div class="fix">
+  <div class="head"><span class="id">F4</span><h3>"Board &rarr;" opens the editor; no "view all"</h3><span class="badge b-later">todo</span></div>
+  <dl>
+    <dt>report</dt><dd>[5] Board&rarr; opens the bead editor · [2] no "view all" under Projects</dd>
+    <dt>rca</dt><dd class="rca">source is correct (the Link navigates) but it's a tiny link beside the <b>title button</b> whose onClick opens the editor &mdash; mis-click; and the <em>primary</em> gesture opens edit, inverting the intent. Projects render fine; the child list is truncated with no "view all".</dd>
+    <dt>fix</dt><dd>primary project click &rarr; <b>scoped Board</b> (Q6); editing the project = a small secondary control; un-truncate the card's count into <b>"view all (N) &rarr;"</b></dd>
+    <dt>verify</dt><dd>render: project card primary target href = <code>/beats?view=board&amp;project=…</code> · scoped board filters to the subtree (existing <code>filterToProjectDescendants</code> test)</dd>
+  </dl>
+</div>
+
+<div class="wave">Wave C &mdash; Today + status-page UI (through the design-review skills)</div>
+
+<div class="fix">
+  <div class="head"><span class="id">F5</span><h3>Today: two/three bars, broken cards, not integrated</h3><span class="badge b-later">todo</span></div>
+  <dl>
+    <dt>report</dt><dd>[1] 2 top bars · IA/cards broken · not part of the dashboard · metrics not actionable</dd>
+    <dt>rca</dt><dd class="rca">three chrome layers: global <code>AppHeader</code> + the <code>/today</code> page's own header + the inlined daily's own lockup/nav/footer (4 <code>&lt;header&gt;</code>s). Only the daily <code>&lt;body&gt;</code> is inlined, so its <code>&lt;style&gt;</code> drops &rarr; unstyled cards.</dd>
+    <dt>fix</dt><dd>clean embed: strip the daily's standalone chrome, pull its CSS <b>scoped to <code>.daily-content</code></b>, remove the redundant page header &rarr; one app bar; metrics link to their drill-down. Run the <b>design-review / aesthetic</b> skills on the result.</dd>
+    <dt>verify</dt><dd>unit: the daily-sanitizer strips header/nav/footer + scopes styles · design-review pass · visual: one top bar, cards styled</dd>
+  </dl>
+</div>
+
+<div class="fix">
+  <div class="head"><span class="id">F6</span><h3>Status page unviewable; status over-restricted</h3><span class="badge b-later">todo</span></div>
+  <dl>
+    <dt>report</dt><dd>[3] can't view any status page · status too restrictive / not freely updatable</dd>
+    <dt>rca</dt><dd class="rca">the status page was gated on the <code>altitude:initiative</code> <b>label</b>, which real beads lack &rarr; never renders. Edit/drag only offer loom-valid next states &rarr; "can't set the status I want".</dd>
+    <dt>fix</dt><dd>(a) key the status page off <b><code>classifyBeatRole</code></b> (structural+label) so every item shows one, scaled by role (Q2); (b) add a <b>"Override &rarr; any state"</b> control beside the guided next-states (Q1). Design-review the status page.</dd>
+    <dt>verify</dt><dd>render: a plain beat (no altitude label) shows a status page · the override lists all states &amp; PATCHes · guided default unchanged</dd>
+  </dl>
+</div>
+
+<h2 class="epic">Sequencing &amp; method <span class="epic-tag">TDD, then re-ship</span></h2>
+<p class="epic-note">Each fix is <b>test-first</b> where it has pure logic (F1, F2, F3 create-label, F4 scope, F5 sanitizer, F6 classification/override). Wave A unblocks data + writes (so the board/Codex work at all); Wave B restores the create + navigation affordances; Wave C is the visible UI, taken through the design-review skills. After all waves: full gates (<code>lint · tsc · test · build</code>) and a runtime re-ship to <code>:3210</code>, then the badges above flip to done and assumptions are recorded below.</p>
+
+<h2 class="epic">Assumptions taken <span class="epic-tag">filled in as built</span></h2>
+<div id="assumptions">
+  <p class="epic-note" style="color:var(--color-mute)">(recorded here as each fix lands)</p>
+</div>
+
+<div class="foot">spanda &middot; iteration 2.2 &middot; RCA &rarr; fix &rarr; verify &mdash; badges flip to done as each lands gate-green.</div>
+
+</div>
+</body>
+</html>
