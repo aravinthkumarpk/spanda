@@ -20,6 +20,15 @@ import { DailyStyleInjector } from "./daily-style-injector";
 const DAILY_ROOT = process.env.SPANDA_DAILY_ROOT
   || "/home/deploy/code/html-artifacts/docs/daily";
 
+// /today reads a daily HTML file from disk that changes every day. It must
+// NEVER be statically prerendered or shared-cached — otherwise a stale copy
+// (old content AND old CSS) is served with `Cache-Control: s-maxage=31536000`
+// (one year) from Next's full-route cache / the CDN edge, which is exactly
+// what made every CSS fix invisible to the browser while the origin was
+// already correct. force-dynamic => rendered per request, no-store.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const realFs: DailyLoaderFs = {
   exists: (path) => existsSync(path),
   read: (path) => readFileSync(path, "utf8"),
