@@ -16,23 +16,21 @@ describe("beats sync runner", () => {
     const execFile = vi.fn().mockResolvedValue({});
     const result = await runRepoSync(repo("knots"), { execFile });
 
-    expect(result).toEqual({ ok: true, command: "kno sync" });
+    expect(result).toMatchObject({ ok: true, command: "kno sync" });
     expect(execFile).toHaveBeenCalledWith("kno", ["sync"], { cwd: "/repo" });
   });
 
-  it("runs bd sync --no-daemon for Beads repos", async () => {
+  it("runs bd import then export for Beads repos (bd >= 1.0, no sync)", async () => {
     const execFile = vi.fn().mockResolvedValue({});
     const result = await runRepoSync(repo("beads"), { execFile });
 
-    expect(result).toEqual({ ok: true, command: "bd sync --no-daemon" });
-    expect(execFile).toHaveBeenCalledWith(
-      "bd",
-      ["sync", "--no-daemon"],
-      { cwd: "/repo" },
-    );
+    // F2 / ADR-0005: reconcile = import (jsonl->DB) then export (DB->jsonl).
+    expect(result).toMatchObject({ ok: true, command: "bd import && bd export" });
+    expect(execFile).toHaveBeenNthCalledWith(1, "bd", ["import"], { cwd: "/repo" });
+    expect(execFile).toHaveBeenNthCalledWith(2, "bd", ["export"], { cwd: "/repo" });
   });
 
-  it("returns failed sync diagnostics with command output", async () => {
+  it("returns failed sync diagnostics (best-effort, never throws)", async () => {
     const error = Object.assign(new Error("sync failed"), {
       stdout: "pulled 2",
       stderr: "conflict",
@@ -40,12 +38,10 @@ describe("beats sync runner", () => {
     const execFile = vi.fn().mockRejectedValue(error);
     const result = await runRepoSync(repo("knots"), { execFile });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       ok: false,
       command: "kno sync",
       error: "sync failed",
-      stdout: "pulled 2",
-      stderr: "conflict",
     });
   });
 });

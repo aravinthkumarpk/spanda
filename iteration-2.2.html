@@ -95,7 +95,7 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:20px;margin:38
 <div class="wave">Wave A &mdash; backend / data unblockers (TDD-first)</div>
 
 <div class="fix">
-  <div class="head"><span class="id">F1</span><h3>state-filter returns nothing</h3><span class="badge b-later">todo</span></div>
+  <div class="head"><span class="id">F1</span><h3>state-filter returns nothing</h3><span class="badge b-done">done</span></div>
   <dl>
     <dt>report</dt><dd>[2]/[6] empty board · Codex found no beats</dd>
     <dt>rca</dt><dd class="rca"><code>bd-queries.ts:140</code> — <code>applyWorkflowFilters</code> falls through to <code>beat.state !== filters.state</code>, so <code>state=all</code> means "keep only state===\"all\"" &rarr; 0; <code>open</code>/<code>in_progress</code> never match the workflow state. Omitting state returns 228.</dd>
@@ -105,7 +105,7 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:20px;margin:38
 </div>
 
 <div class="fix">
-  <div class="head"><span class="id">F2</span><h3><code>bd sync</code> write errors</h3><span class="badge b-later">todo</span></div>
+  <div class="head"><span class="id">F2</span><h3><code>bd sync</code> write errors</h3><span class="badge b-done">done</span></div>
   <dl>
     <dt>report</dt><dd>[3] "unknown command sync for bd" · [1] can't update tasks</dd>
     <dt>rca</dt><dd class="rca"><code>bd</code> v1.0.4 removed <code>sync</code> (now <code>import</code>/<code>export</code>); we call <code>bd sync</code> in <code>beats-sync-runner:26</code>, <code>bd-internal:487</code>, <code>bd-update:258</code>. The reconcile also wasn't happening, so DB↔jsonl drifted (55 vs 228).</dd>
@@ -163,7 +163,8 @@ h2.epic{font-family:var(--font-display);font-weight:800;font-size:20px;margin:38
 
 <h2 class="epic">Assumptions taken <span class="epic-tag">filled in as built</span></h2>
 <div id="assumptions">
-  <p class="epic-note" style="color:var(--color-mute)">(recorded here as each fix lands)</p>
+  <div class="asm"><b>F1 (state-filter):</b> <code>state=all</code> &amp; empty now skip the filter via a one-line guard in <code>applyWorkflowFilters</code> (<code>filters.state !== "all"</code>); <code>queued</code>/<code>in_action</code> keep their loom-phase mapping; a raw workflow state stays exact. The dogfood Codex prompt is fixed to drop <code>state=all</code>.</div>
+  <div class="asm"><b>F2 (bd sync):</b> one tested mapper <code>bdSyncCommands</code> is the single source for the command names. Runtime sites target the installed <b>bd&ge;1.0</b> (<code>hasSync=false</code>): reconcile = <code>import</code>+<code>export</code>, the write auto-heal = <code>import</code>, the post-write flush = <code>export</code> &mdash; <b>best-effort</b> (a flush/sync failure logs a warning and never fails the user's write). A cached <code>bdHasSync</code> probe is built &amp; tested for legacy-<code>bd</code> fallback but not wired into the tight paths (installed bd has no <code>sync</code>).</div>
 </div>
 
 <div class="foot">spanda &middot; iteration 2.2 &middot; RCA &rarr; fix &rarr; verify &mdash; badges flip to done as each lands gate-green.</div>

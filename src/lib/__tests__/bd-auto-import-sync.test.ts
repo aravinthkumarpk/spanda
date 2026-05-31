@@ -43,7 +43,7 @@ describe("bd auto-import retry for out-of-sync repos", () => {
     vi.resetModules();
   });
 
-  it("runs `bd sync --import-only` and retries list once on out-of-sync error", async () => {
+  it("runs `bd import` and retries list once on out-of-sync error (F2/ADR-0005)", async () => {
     queueExec(
       {
         stdout: JSON.stringify({
@@ -59,9 +59,10 @@ describe("bd auto-import retry for out-of-sync repos", () => {
     const result = await listBeats(undefined, "/Users/cartine/foolery");
 
     expect(result).toEqual({ ok: true, data: [] });
+    // bd >= 1.0 re-imports via `bd import` (was `sync --import-only`).
     expect(execCalls).toEqual([
       ["list", "--json", "--limit", "0", "--all"],
-      ["sync", "--import-only"],
+      ["import"],
       ["list", "--json", "--limit", "0", "--all"],
     ]);
   });

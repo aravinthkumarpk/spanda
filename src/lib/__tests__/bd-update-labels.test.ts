@@ -76,10 +76,11 @@ describe("updateBeat label transitions", () => {
     expect(execCalls).toContainEqual(["label", "remove", "foolery-123", "attempts:2", "--no-daemon"]);
     expect(execCalls).toContainEqual(["label", "add", "foolery-123", "stage:retry", "--no-daemon"]);
     expect(execCalls).toContainEqual(["label", "add", "foolery-123", "attempts:3", "--no-daemon"]);
-    expect(execCalls).toContainEqual(["sync", "--no-daemon"]);
+    // F2/ADR-0005: the DB->jsonl flush is `bd export` (bd >= 1.0), not `sync`.
+    expect(execCalls).toContainEqual(["export"]);
   });
 
-    it("fails when sync fails after label mutation", async () => {
+    it("still succeeds when the export flush fails (best-effort, ADR-0005)", async () => {
     const beatJson = JSON.stringify({
       id: "foolery-456",
       issue_type: "task",
@@ -94,7 +95,7 @@ describe("updateBeat label transitions", () => {
       { stdout: beatJson }, // show
       { stdout: "" }, // remove stage:implementation
       { stdout: "" }, // add stage:retry
-      { stderr: "sync exploded", exitCode: 1 } // sync
+      { stderr: "export exploded", exitCode: 1 } // export flush (non-fatal)
     );
 
     const { updateBeat } = await import("@/lib/bd");
@@ -103,8 +104,9 @@ describe("updateBeat label transitions", () => {
       labels: ["stage:retry"],
     });
 
-    expect(result.ok).toBe(false);
-    expect(result.error).toContain("sync");
+    // The label mutations committed to the DB; a flush hiccup must NOT fail
+    // the user's update (best-effort).
+    expect(result.ok).toBe(true);
     expect(execCalls).toContainEqual(["label", "remove", "foolery-456", "stage:implementation", "--no-daemon"]);
     expect(execCalls).toContainEqual(["label", "add", "foolery-456", "stage:retry", "--no-daemon"]);
     });
@@ -149,11 +151,10 @@ describe("updateBeat --no-daemon flag fallback", () => {
     ]);
   });
 
-  it("retries sync without --no-daemon when flag is unsupported", async () => {
+  it("flushes via export after a label removal (F2/ADR-0005)", async () => {
     queueExec(
       { stdout: "" }, // remove label with --no-daemon
-      { stderr: "unknown flag: --no-daemon", exitCode: 1 }, // sync with --no-daemon
-      { stdout: "" } // sync fallback without --no-daemon
+      { stdout: "" } // export flush (DB->jsonl)
     );
 
     const { updateBeat } = await import("@/lib/bd");
@@ -170,8 +171,7 @@ describe("updateBeat --no-daemon flag fallback", () => {
       "legacy:label",
       "--no-daemon",
     ]);
-    expect(execCalls).toContainEqual(["sync", "--no-daemon"]);
-    expect(execCalls).toContainEqual(["sync"]);
+    expect(execCalls).toContainEqual(["export"]);
     });
   });
 });

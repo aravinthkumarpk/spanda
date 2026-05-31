@@ -107,7 +107,7 @@ function normalizeBeats(raw: string): Beat[] {
 
 // ── Workflow filters ────────────────────────────────────────
 
-function applyWorkflowFilters(
+export function applyWorkflowFilters(
   beats: Beat[],
   filters?: Record<string, string>,
 ): Beat[] {
@@ -121,7 +121,10 @@ function applyWorkflowFilters(
     ) {
       return false;
     }
-    if (filters.state) {
+    // `all` (and empty) means NO state filter — not "state === 'all'" (F1,
+    // ADR-0004/2.2). Without this, board/review/Codex calls that pass
+    // state=all match nothing.
+    if (filters.state && filters.state !== "all") {
       const beatWorkflow = builtinProfileDescriptor(
         beat.profileId ?? beat.workflowId,
       );

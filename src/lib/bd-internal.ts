@@ -17,6 +17,7 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { bdSyncCommands } from "@/lib/bd-sync-commands";
 
 // ── Constants ───────────────────────────────────────────────
 
@@ -475,6 +476,8 @@ async function execSerializedAttempt(
 
       if (
         args[0] === "sync" ||
+        args[0] === "import" ||
+        args[0] === "export" ||
         !isOutOfSyncError(firstResult)
       ) {
         return firstResult;
@@ -483,8 +486,9 @@ async function execSerializedAttempt(
       // Auto-heal stale bd SQLite metadata after repo
       // switches/pulls by importing JSONL and retrying
       // the original command once in the same repo.
+      // F2/ADR-0005: bd >= 1.0 replaced `sync --import-only` with `import`.
       const syncResult = await execOnce(
-        ["sync", "--import-only"],
+        bdSyncCommands("import-only", false)[0]!,
         options,
       );
       if (syncResult.exitCode !== 0) return firstResult;

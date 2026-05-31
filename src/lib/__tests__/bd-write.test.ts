@@ -401,8 +401,8 @@ describe("exec auto-sync on out-of-sync error", () => {
     const { listBeats } = await import("@/lib/bd");
     const result = await listBeats();
     expect(result.ok).toBe(true);
-    expect(execCalls[1]).toContain("sync");
-    expect(execCalls[1]).toContain("--import-only");
+    // F2/ADR-0005: auto-heal re-imports via `bd import` (bd >= 1.0, no `sync`).
+    expect(execCalls[1]).toEqual(["import"]);
   });
 
   it("returns original error when non-out-of-sync failure occurs", async () => {
@@ -415,16 +415,16 @@ describe("exec auto-sync on out-of-sync error", () => {
     expect(execCalls[0][0]).toBe("list");
   });
 
-  it("returns original error when sync --import-only fails", async () => {
+  it("returns original error when the import re-heal fails", async () => {
     queueExec(
       { stderr: "Database out of sync with JSONL", exitCode: 1 },
-      { stderr: "sync import failed", exitCode: 1 },
+      { stderr: "import failed", exitCode: 1 },
     );
     const { listBeats } = await import("@/lib/bd");
     const result = await listBeats();
     expect(result.ok).toBe(false);
     expect(result.error).toBe("Database out of sync with JSONL");
     expect(execCalls).toHaveLength(2);
-    expect(execCalls[1]).toContain("sync");
+    expect(execCalls[1]).toEqual(["import"]);
   });
 });

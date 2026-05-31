@@ -8,6 +8,7 @@ import {
   NO_DAEMON_FLAG,
 } from "./bd-internal";
 import type { ExecResult } from "./bd-internal";
+import { bdSyncCommands } from "@/lib/bd-sync-commands";
 import type { Beat, BdResult } from "./types";
 import {
   builtinProfileDescriptor,
@@ -250,20 +251,22 @@ async function executeLabelOps(
     }
   }
 
-  // Flush to JSONL so the daemon's auto-import picks up
-  // the direct DB writes. Only sync after removals.
+  // Flush direct DB writes back to JSONL (DB->jsonl export). F2/ADR-0005:
+  // bd >= 1.0 replaced `sync` with `export`; and the flush is BEST-EFFORT —
+  // the label removal already committed to the DB, so a flush hiccup must not
+  // fail the user's update (it just leaves the git export momentarily behind).
   if (labelsToRemove.length > 0) {
     const { stderr, exitCode } =
       await execWithNoDaemonFallback(
-        ["sync", NO_DAEMON_FLAG],
+        bdSyncCommands("export-only", false)[0]!,
         { cwd: repoPath },
       );
     if (exitCode !== 0) {
-      return {
-        ok: false,
-        error:
-          stderr || "bd sync failed after label update",
-      };
+      console.warn(
+        `[bd-update] export flush after label removal failed (non-fatal): ${
+          stderr || "unknown"
+        }`,
+      );
     }
   }
 
