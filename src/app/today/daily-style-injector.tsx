@@ -39,11 +39,26 @@ export function DailyStyleInjector({ css }: { css: string }) {
       styleEl.textContent = css;
 
       const inHead = document.head.contains(styleEl);
-      const hasContent = !!document.querySelector(".daily-content");
-      const laneMatch = !!document.querySelector(".daily-content .lane");
+      // Did the browser PARSE the sheet? (selector matching != rule applied)
+      let ruleCount = -1;
+      try {
+        ruleCount = styleEl.sheet ? styleEl.sheet.cssRules.length : -2;
+      } catch {
+        ruleCount = -3; // cross-origin / access error
+      }
+      // Does the rule COMPUTE on a real .lane?
+      const lane = document.querySelector(
+        ".daily-content .lane",
+      ) as HTMLElement | null;
+      const dc = document.querySelector(".daily-content") as HTMLElement | null;
+      const cs = lane ? getComputedStyle(lane) : null;
+      const canvas = dc
+        ? getComputedStyle(dc).getPropertyValue("--color-canvas").trim()
+        : "n/a";
       report(
-        `client OK: css=${css.length}b · style-in-head=${inHead} · ` +
-          `.daily-content=${hasContent} · .lane present=${laneMatch}`,
+        `client OK: css=${css.length}b · in-head=${inHead} · ` +
+          `cssRules=${ruleCount} · lane{display=${cs?.display} ` +
+          `pad=${cs?.padding} bg=${cs?.backgroundColor}} · --color-canvas="${canvas}"`,
       );
     } catch (err) {
       report(
