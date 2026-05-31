@@ -71,6 +71,26 @@ export default async function TodayPage() {
   // daily exactly as designed.
   return (
     <main className="min-h-screen">
+      {/* TEMPORARY diagnostic strip — inline styles so it shows regardless of
+          whether the daily CSS applies. SSR values are server-computed; the
+          client span is filled by DailyStyleInjector once JS runs. */}
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 9999,
+          background: "#111",
+          color: "#9fe870",
+          fontFamily: "monospace",
+          fontSize: "11px",
+          lineHeight: 1.5,
+          padding: "4px 10px",
+          whiteSpace: "pre-wrap",
+        }}
+      >
+        {`SSR: css=${css.length}b · body=${body.length}b · date=${usedDate || "none"} — `}
+        <span id="daily-debug-client">client: waiting for JS…</span>
+      </div>
       {fellBack && usedDate && (
         <div className="flex items-center gap-2 border-b border-paper-200 bg-paper-50 px-6 py-2 text-sm text-ink-500">
           <span
