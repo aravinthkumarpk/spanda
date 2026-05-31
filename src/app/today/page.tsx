@@ -12,6 +12,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { loadDailyHtml, type DailyLoaderFs } from "@/lib/daily-loader";
 import { PromoteIsland } from "@/components/promote-island";
+import { DailyStyleInjector } from "./daily-style-injector";
 
 // Configurable root. Default mirrors the live VPS path used by the
 // daily-review pipeline; override with SPANDA_DAILY_ROOT for tests
@@ -79,17 +80,13 @@ export default async function TodayPage() {
           Showing the most recent daily — {usedDate}
         </div>
       )}
-      {/* The scoped <style> is embedded in the SAME innerHTML blob as the
-          content — NOT as a sibling React <style> element. React 19 treats a
-          standalone <style> as a hoistable special element and can drop it on
-          hydration (SSR shows styles, client shows none). As raw innerHTML the
-          browser just parses + applies it, and React never manages it. */}
-      <div
-        className="daily-content"
-        dangerouslySetInnerHTML={{
-          __html: css ? `<style>${css}</style>${body}` : body,
-        }}
-      />
+      {/* CSS delivery is OUTSIDE React: the injector creates a <style> in
+          <head> imperatively (document.createElement + textContent), so React
+          has no <style> element to hoist/dedupe/drop on hydration — the failure
+          mode that left the page bare twice. The content div carries ONLY the
+          body HTML; no <style> anywhere in the React tree. */}
+      <DailyStyleInjector css={css} />
+      <div className="daily-content" dangerouslySetInnerHTML={{ __html: body }} />
       {usedDate && (
         <div className="mx-auto max-w-[1240px] px-8 pb-12">
           <PromoteIsland sourceDate={usedDate} />
