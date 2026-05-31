@@ -105,13 +105,20 @@ function prefixSelectorList(selectorList: string, scope: string): string {
  */
 function liftStatementAtRules(css: string): { hoisted: string[]; rest: string } {
   const hoisted: string[] = [];
-  const rest = css.replace(
-    /@(?:import|charset|namespace)\b[^;{}]*;/gi,
-    (m) => {
-      hoisted.push(m.trim());
-      return "";
-    },
+  const take = (m: string) => {
+    hoisted.push(m.trim());
+    return "";
+  };
+  // @import is special: its url()/quoted string can itself contain `;`
+  // (Google Fonts: `wght@400;500;600`). Matching up to the first `;` would
+  // split the rule mid-URL and corrupt the whole sheet — so match the quoted
+  // string / url(...) as ONE unit, then the optional media query, then the `;`.
+  let rest = css.replace(
+    /@import\s+(?:url\(\s*(?:"[^"]*"|'[^']*'|[^)]*)\)|"[^"]*"|'[^']*')[^;]*;/gi,
+    take,
   );
+  // @charset / @namespace: plain statements, no embedded `;`.
+  rest = rest.replace(/@(?:charset|namespace)\b[^;{}]*;/gi, take);
   return { hoisted, rest };
 }
 

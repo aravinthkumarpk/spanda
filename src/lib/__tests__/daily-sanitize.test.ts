@@ -93,6 +93,27 @@ describe("scopeCss", () => {
     expect(out).toContain(".dc .card");
   });
 
+  it("keeps an @import whose URL contains semicolons intact (Google Fonts)", () => {
+    // Real killer: the Google Fonts URL has `wght@400;500;600`. Splitting at
+    // the first ';' truncated the @import mid-URL, dumped the tail into the
+    // selector stream, and invalidated the ENTIRE stylesheet (0 parsed rules).
+    const css =
+      `@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap");\n` +
+      `:root{--c:#9fe870}\n.card{color:var(--c)}`;
+    const out = scopeCss(css, ".dc");
+    // the @import is one intact statement on the first line, ending in ');'
+    const firstLine = out.split("\n")[0];
+    expect(firstLine).toBe(
+      `@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap");`,
+    );
+    // no fragment of the URL leaked into a scoped selector
+    expect(out).not.toContain(".dc 500;600");
+    expect(out).not.toMatch(/\.dc[^{]*display=swap/);
+    // the real rules survive
+    expect(out).toMatch(/\.dc \{\s*--c:#9fe870/);
+    expect(out).toContain(".dc .card");
+  });
+
   it("preserves @font-face inner declarations and keeps it global", () => {
     const out = scopeCss(
       `@font-face{font-family:"M";src:url(a.woff2)}`,
