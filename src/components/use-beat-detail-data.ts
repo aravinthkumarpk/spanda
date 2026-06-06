@@ -13,10 +13,12 @@ import type {
 import type { UpdateBeatInput } from "@/lib/schemas";
 import {
   fetchBeat,
+  fetchBeats,
   fetchDeps,
   fetchWorkflows,
   addDep,
 } from "@/lib/api";
+import { selectChildTasks } from "@/lib/beat-hierarchy";
 import {
   markTerminalOrThrow,
   rewindOrThrow,
@@ -31,6 +33,8 @@ export interface BeatDetailData {
   isLoadingBeat: boolean;
   beatWorkflow: MemoryWorkflowDescriptor | null;
   deps: BeatDependency[];
+  /** Direct child beats of this beat — the initiative's "Tasks (N)" breakdown. */
+  childTasks: Beat[];
   handleUpdate: (
     fields: UpdateBeatInput,
   ) => Promise<void>;
@@ -64,6 +68,12 @@ export function useBeatDetailData(
     useBeatQuery(open, detailId, repo, initialBeat);
 
   const { data: depsData } = useDepsQuery(
+    open,
+    detailId,
+    repo,
+  );
+
+  const { data: childrenData } = useChildTasksQuery(
     open,
     detailId,
     repo,
@@ -104,11 +114,16 @@ export function useBeatDetailData(
     ? (depsData.data ?? [])
     : [];
 
+  const childTasks: Beat[] = childrenData?.ok
+    ? selectChildTasks(childrenData.data ?? [], detailId)
+    : [];
+
   return {
     beat,
     isLoadingBeat: isLoading,
     beatWorkflow,
     deps,
+    childTasks,
     handleUpdate,
     handleRewind,
     handleAddDep,
@@ -141,6 +156,20 @@ function useDepsQuery(
   return useQuery({
     queryKey: ["beat-deps", detailId, repo],
     queryFn: () => fetchDeps(detailId, repo),
+    enabled: open && detailId.length > 0,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+}
+
+function useChildTasksQuery(
+  open: boolean,
+  detailId: string,
+  repo: string | undefined,
+) {
+  return useQuery({
+    queryKey: ["beat-children", detailId, repo],
+    queryFn: () => fetchBeats({ parent: detailId }, repo),
     enabled: open && detailId.length > 0,
     retry: 1,
     refetchOnWindowFocus: false,

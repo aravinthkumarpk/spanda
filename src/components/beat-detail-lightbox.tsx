@@ -143,6 +143,7 @@ export function BeatDetailLightbox({
           handleUpdate={data.handleUpdate}
           handleRewind={data.handleRewind}
           deps={data.deps}
+          childTasks={data.childTasks}
           detailId={detailId}
           repo={repo}
           blocksIds={blocksIds}

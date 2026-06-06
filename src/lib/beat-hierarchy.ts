@@ -53,3 +53,11 @@ export function buildHierarchy(
   walk(undefined, 0);
   return result;
 }
+
+/**
+ * Returns the direct child beats of `parentId` from a flat beats list — the
+ * tasks an initiative's status page renders under "Tasks (N)".
+ */
+export function selectChildTasks(beats: Beat[], parentId: string): Beat[] {
+  return beats.filter((b) => b.parent === parentId);
+}

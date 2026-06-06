@@ -92,6 +92,8 @@ interface BeatDetailProps {
   beat: Beat;
   onUpdate?: (fields: UpdateBeatInput) => Promise<void>;
   workflow?: MemoryWorkflowDescriptor | null;
+  /** Direct child tasks of this beat — rendered as the status page's "Tasks". */
+  childTasks?: Beat[];
   /**
    * Hackish fat-finger correction. When provided, the state dropdown
    * surfaces a "Rewind" submenu listing earlier `ready_for_*` queue
@@ -171,9 +173,11 @@ function EditableSection({
 function BeatStatusPanel({
   beat,
   onUpdate,
+  childTasks,
 }: {
   beat: Beat;
   onUpdate?: (fields: UpdateBeatInput) => Promise<void>;
+  childTasks?: Beat[];
 }) {
   const onGateDecision = useCallback(
     (target: string, note?: string) => {
@@ -189,13 +193,14 @@ function BeatStatusPanel({
   return (
     <StatusPage
       initiative={beat}
+      tasks={childTasks}
       onGateDecision={onUpdate ? onGateDecision : undefined}
     />
   );
 }
 
 export function BeatDetail({
-  beat, onUpdate, workflow, onRewind,
+  beat, onUpdate, workflow, onRewind, childTasks,
 }: BeatDetailProps) {
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -253,7 +258,7 @@ export function BeatDetail({
 
   return (
     <div className="space-y-2">
-      <BeatStatusPanel beat={beat} onUpdate={onUpdate} />
+      <BeatStatusPanel beat={beat} onUpdate={onUpdate} childTasks={childTasks} />
       <BeatDetailHeader
         beat={beat}
         onUpdate={onUpdate}

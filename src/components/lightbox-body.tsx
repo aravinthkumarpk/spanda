@@ -177,6 +177,7 @@ export interface LightboxBodyProps {
   /** Hackish fat-finger correction; see `BeatDetailProps.onRewind`. */
   handleRewind: (targetState: string) => Promise<void>;
   deps: BeatDependency[];
+  childTasks: Beat[];
   detailId: string;
   repo?: string;
   blocksIds: string[];
@@ -200,6 +201,7 @@ export function LightboxBody({
   handleUpdate,
   handleRewind,
   deps,
+  childTasks,
   detailId,
   repo,
   blocksIds,
@@ -219,6 +221,7 @@ export function LightboxBody({
           <BeatDetail
             beat={beat}
             workflow={beatWorkflow}
+            childTasks={childTasks}
             onUpdate={async (fields) => {
               await handleUpdate(fields);
             }}
