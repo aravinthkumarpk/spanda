@@ -82,3 +82,8 @@ qa-screenshots/
 /.agents/*
 !/.agents/skills/
 !/.agents/skills/**
+.gstack/
+
+# build output + editor backups (added during cleanup)
+dist-rebrand/
+*.bak-*
