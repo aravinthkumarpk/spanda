@@ -129,6 +129,42 @@ describe("ProjectsView — variant A (expanded, priority-sorted, focus + due)", 
   });
 });
 
+describe("ProjectsView — do-focus (the 'build today' strip)", () => {
+  it("marks a focus:do initiative and shows the Do top-5 strip", () => {
+    const html = renderBeats([
+      beat("p", { title: "Proj" }),
+      beat("di", { parent: "p", title: "BuildThis", labels: ["focus:do"] }),
+      beat("dix", { parent: "di" }),
+    ]);
+    expect(html).toContain('data-do-focus="true"');
+    expect(html.toLowerCase()).toContain("do top-5");
+  });
+
+  it("lets a row carry both the milestone focus and the do-focus flag", () => {
+    const html = renderBeats([
+      beat("p", { title: "Proj" }),
+      beat("bi", {
+        parent: "p",
+        title: "BothFlags",
+        labels: ["focus", "focus:do"],
+      }),
+      beat("bix", { parent: "bi" }),
+    ]);
+    expect(html).toContain('data-focus="true"');
+    expect(html).toContain('data-do-focus="true"');
+  });
+
+  it("shows an empty do-focus prompt when nothing is do-focused", () => {
+    const html = renderBeats([
+      beat("p", { title: "Proj" }),
+      beat("i", { parent: "p", title: "PlainInit" }),
+      beat("ix", { parent: "i" }),
+    ]);
+    expect(html).not.toContain('data-do-focus="true"');
+    expect(html.toLowerCase()).toContain("execute");
+  });
+});
+
 describe("ProjectsView — active-only rollup", () => {
   it("excludes terminal (shipped/closed) beats so cards show active work", () => {
     const withDone: Beat[] = [
