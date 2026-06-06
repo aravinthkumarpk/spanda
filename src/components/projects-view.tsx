@@ -18,7 +18,7 @@ import { dueState, type DueTone } from "@/lib/due-date";
 import { ProjectHealthBadge } from "@/components/project-health-badge";
 import { BeatStateBadge } from "@/components/beat-state-badge";
 import { BeatPriorityBadge } from "@/components/beat-priority-badge";
-import { Pencil, Star } from "lucide-react";
+import { Pencil, Star, ChevronRight } from "lucide-react";
 
 /**
  * Altitude-3 Projects view — "variant A": an expanded, priority-sorted rollup.
@@ -37,6 +37,11 @@ function isFocusBeat(beat: Beat): boolean {
 
 const byPriority = (a: { beat: Beat }, b: { beat: Beat }) =>
   compareBeatsByPriorityThenState(a.beat, b.beat);
+
+// One shared column grid so the per-project header labels and every row line
+// up as real columns: priority · title · status · tasks · due · trailing.
+const ROW_COLS =
+  "grid grid-cols-[44px_minmax(0,1fr)_116px_56px_92px_18px] items-center gap-2.5";
 
 export function ProjectsView({
   isLoading,
@@ -115,8 +120,8 @@ function FocusStrip({
         }
       >
         <span className="font-semibold">🎯 Focus</span>{" — "}
-        set the up-to-5 initiatives that close your next milestone. Nothing set
-        yet; star an initiative to focus it.
+        the up-to-5 initiatives that close your next milestone. Nothing focused
+        yet today; your daily review picks these each morning.
       </section>
     );
   }
@@ -138,7 +143,7 @@ function FocusStrip({
         </span>
         <span className="text-sm font-semibold">Close the next milestone</span>
         <span className="ml-auto font-mono text-[11px] text-moss-100">
-          {items.length} of ≤5 — the items that finish it
+          {items.length} of ≤5 · set by your daily review
         </span>
       </div>
       <div className="mt-2.5 flex flex-wrap gap-1.5">
@@ -148,8 +153,8 @@ function FocusStrip({
             type="button"
             onClick={() => onOpenBeat(beat)}
             className={
-              "rounded-full border border-paper-50/25 bg-paper-50/10"
-              + " px-2.5 py-1 text-left text-xs text-paper-50"
+              "cursor-pointer rounded-full border border-paper-50/25"
+              + " bg-paper-50/10 px-2.5 py-1 text-left text-xs text-paper-50"
               + " hover:bg-paper-50/20"
             }
           >
@@ -170,6 +175,25 @@ function collectChildBeats(project: ProjectNode): Beat[] {
     ...initiative.tasks.map((task) => task.beat),
   ]);
   return [...fromTasks, ...fromInitiatives];
+}
+
+/** Column labels shared by every row in a project section. */
+function ColumnHeader() {
+  return (
+    <div
+      className={
+        ROW_COLS + " px-2 pb-1 pt-1.5 font-mono text-[10px]"
+        + " uppercase tracking-wide text-ink-500"
+      }
+    >
+      <span />
+      <span />
+      <span>Status</span>
+      <span className="text-right">Tasks</span>
+      <span className="text-right">Due</span>
+      <span />
+    </div>
+  );
 }
 
 function ProjectSection({
@@ -242,6 +266,7 @@ function ProjectSection({
           {taskCount} task{taskCount === 1 ? "" : "s"}
         </span>
       </header>
+      <ColumnHeader />
       <ul className="flex flex-col">
         {initiatives.map((initiative) => (
           <InitiativeRow
@@ -293,9 +318,8 @@ function InitiativeRow({
         onClick={() => onOpenBeat(beat)}
         data-focus={focused ? "true" : undefined}
         className={
-          "grid w-full grid-cols-[auto_1fr_auto_auto_auto_auto] items-center"
-          + " gap-2.5 border-b border-paper-200 px-2 py-2 text-left"
-          + " dark:border-walnut-100/60 "
+          ROW_COLS + " group w-full cursor-pointer border-b border-paper-200"
+          + " px-2 py-2 text-left dark:border-walnut-100/60 "
           + (focused
             ? "rounded-r bg-moss-100 shadow-[inset_3px_0_0_var(--color-moss-600)]"
               + " dark:bg-moss-700/15"
@@ -319,24 +343,22 @@ function InitiativeRow({
           )}
         </span>
         <BeatStateBadge state={beat.state} />
-        <span className="font-mono text-[11px] text-ink-500 dark:text-paper-400">
-          {taskCount > 0 ? `${taskCount} task${taskCount === 1 ? "" : "s"}` : ""}
+        <span className="text-right font-mono text-[11px] text-ink-500 dark:text-paper-400">
+          {taskCount > 0 ? `${taskCount}` : ""}
         </span>
         <span
           data-due-tone={due.tone}
-          className={`font-mono text-[11px] ${DUE_CLS[due.tone]}`}
+          className={`text-right font-mono text-[11px] ${DUE_CLS[due.tone]}`}
         >
           {due.tone === "none"
-            ? "+ due"
+            ? "—"
             : (due.tone === "overdue" ? `⚠ ${due.label}` : due.label)}
         </span>
-        <Star
-          className={
-            "size-3.5 " + (focused
-              ? "fill-moss-600 text-moss-600 dark:fill-moss-400 dark:text-moss-400"
-              : "text-ink-500 dark:text-paper-500")
-          }
-        />
+        {focused ? (
+          <Star className="size-3.5 justify-self-end fill-moss-600 text-moss-600 dark:fill-moss-400 dark:text-moss-400" />
+        ) : (
+          <ChevronRight className="size-3.5 justify-self-end text-ink-500 opacity-0 transition-opacity group-hover:opacity-100" />
+        )}
       </button>
     </li>
   );

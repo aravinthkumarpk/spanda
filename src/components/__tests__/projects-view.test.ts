@@ -107,7 +107,7 @@ describe("ProjectsView — variant A (expanded, priority-sorted, focus + due)", 
       beat("ix", { parent: "i" }),
     ]);
     expect(html).not.toContain('data-focus="true"');
-    expect(html.toLowerCase()).toContain("set");
+    expect(html.toLowerCase()).toContain("daily review");
   });
 
   it("renders a due date with an overdue tone", () => {
@@ -117,6 +117,15 @@ describe("ProjectsView — variant A (expanded, priority-sorted, focus + due)", 
       beat("ix", { parent: "i" }),
     ]);
     expect(html).toContain('data-due-tone="overdue"');
+  });
+
+  it("renders an aligned Due column header", () => {
+    const html = renderBeats([
+      beat("p", { title: "Proj" }),
+      beat("i", { parent: "p", title: "AnInit" }),
+      beat("ix", { parent: "i" }),
+    ]);
+    expect(html).toContain(">Due<");
   });
 });
 
