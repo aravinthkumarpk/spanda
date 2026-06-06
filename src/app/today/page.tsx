@@ -20,6 +20,14 @@ import { DailyStyleInjector } from "./daily-style-injector";
 const DAILY_ROOT = process.env.SPANDA_DAILY_ROOT
   || "/home/deploy/code/html-artifacts/docs/daily";
 
+// IANA timezone for the date walk. The daily-review pipeline writes
+// files keyed to an IST clock, so the production default is
+// Asia/Kolkata; override via SPANDA_DAILY_TZ for alternate deployments.
+// This is a deployment-level configuration choice — the lib itself
+// requires `timezone` per CLAUDE.md fail-loud, so swapping the default
+// here cannot silently hide drift inside the lib's behavior.
+const DAILY_TZ = process.env.SPANDA_DAILY_TZ || "Asia/Kolkata";
+
 // /today reads a daily HTML file from disk that changes every day. It must
 // NEVER be statically prerendered or shared-cached — otherwise a stale copy
 // (old content AND old CSS) is served with `Cache-Control: s-maxage=31536000`
@@ -46,6 +54,7 @@ export default async function TodayPage() {
       root: DAILY_ROOT,
       now: new Date(),
       fs: realFs,
+      timezone: DAILY_TZ,
     });
     body = result.body;
     css = result.css;

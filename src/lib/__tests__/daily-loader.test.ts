@@ -63,17 +63,17 @@ describe("extractBodyContent: strip wrapper, keep inline styles", () => {
   });
 });
 
-describe("loadDailyHtml: integration with injected fs", () => {
-  function makeFs(files: Record<string, string>): DailyLoaderFs {
-    return {
-      exists: (path) => files[path] !== undefined,
-      read: (path) => {
-        if (files[path] === undefined) throw new Error(`ENOENT: ${path}`);
-        return files[path];
-      },
-    };
-  }
+function makeFs(files: Record<string, string>): DailyLoaderFs {
+  return {
+    exists: (path) => files[path] !== undefined,
+    read: (path) => {
+      if (files[path] === undefined) throw new Error(`ENOENT: ${path}`);
+      return files[path];
+    },
+  };
+}
 
+describe("loadDailyHtml: UTC behavior", () => {
   it("returns today's file when present", () => {
     const fs = makeFs({
       "/root/2026/05/24.html": "<html><body>Today!</body></html>",
@@ -82,6 +82,7 @@ describe("loadDailyHtml: integration with injected fs", () => {
       root: "/root",
       now: new Date("2026-05-24T12:00:00Z"),
       fs,
+      timezone: "UTC",
     });
     expect(result.body).toContain("Today!");
     expect(result.usedDate).toBe("2026-05-24");
@@ -96,6 +97,7 @@ describe("loadDailyHtml: integration with injected fs", () => {
       root: "/root",
       now: new Date("2026-05-24T12:00:00Z"),
       fs,
+      timezone: "UTC",
     });
     expect(result.body).toContain("From two days ago");
     expect(result.usedDate).toBe("2026-05-22");
@@ -110,7 +112,77 @@ describe("loadDailyHtml: integration with injected fs", () => {
       root: "/root",
       now: new Date("2026-05-24T12:00:00Z"),
       fs,
+      timezone: "UTC",
     })).toThrow(/no daily found/i);
+  });
+
+});
+
+describe("loadDailyHtml: fail-loud on invalid timezone", () => {
+  // T2 — Fail loud on invalid IANA timezone. Per CLAUDE.md "Fail Loudly":
+  // an invalid timezone must throw with the greppable subsystem marker so
+  // a misconfigured SPANDA_DAILY_TZ env var surfaces as a clear config gap
+  // instead of silently coalescing to UTC (which would hide the drift).
+  it("fails loud with SPANDA DAILY LOADER marker when timezone is invalid", () => {
+    const fs = makeFs({
+      "/root/2026/05/24.html": "<html><body>x</body></html>",
+    });
+    expect(() => loadDailyHtml({
+      root: "/root",
+      now: new Date("2026-05-24T12:00:00Z"),
+      fs,
+      timezone: "Mars/Olympus",
+    })).toThrow(/SPANDA DAILY LOADER/);
+  });
+});
+
+describe("loadDailyHtml: IST timezone behavior", () => {
+  // T1 — IST shift. When 'now' is late UTC but already next day in IST,
+  // the loader must look for the IST-today file first, not the UTC-today
+  // file. This reproduces the Sun 31 May 01:11 IST bug where the loader
+  // walked UTC-30 backward and fell back to 27.html, missing 31.html
+  // entirely.
+  it("loads tomorrow-in-UTC when now is late-UTC but next-day in IST", () => {
+    const fs = makeFs({
+      "/root/2026/05/31.html": "<html><body>31 May IST today</body></html>",
+      "/root/2026/05/30.html": "<html><body>30 May UTC today</body></html>",
+    });
+    const result = loadDailyHtml({
+      root: "/root",
+      // Sat 30 May 19:41 UTC = Sun 31 May 01:11 IST
+      now: new Date("2026-05-30T19:41:00Z"),
+      timezone: "Asia/Kolkata",
+      fs,
+    });
+    expect(result.body).toContain("31 May IST today");
+    expect(result.usedDate).toBe("2026-05-31");
+    expect(result.fellBack).toBe(false);
+  });
+
+  // T3 — IST fallback walks back from the IST today, not the UTC today.
+  // If the IST-today file is missing, the loader should walk to IST-1
+  // (= 30 May), not UTC-0 (= 30 May happens to coincide here but the
+  // returned fellBack must reflect that we did fall back from IST today).
+  // Catches regressions where fallback re-uses the original UTC `now`.
+  it("falls back from IST today, not UTC today, when IST today's file is missing", () => {
+    const fs = makeFs({
+      // No 31.html — the IST today's file is missing.
+      "/root/2026/05/30.html": "<html><body>30 May (IST yesterday)</body></html>",
+    });
+    const result = loadDailyHtml({
+      root: "/root",
+      // Sat 30 May 19:41 UTC = Sun 31 May 01:11 IST
+      now: new Date("2026-05-30T19:41:00Z"),
+      timezone: "Asia/Kolkata",
+      fs,
+    });
+    expect(result.body).toContain("30 May (IST yesterday)");
+    expect(result.usedDate).toBe("2026-05-30");
+    // Critical: this MUST be true — we did fall back from IST-today (31).
+    // If a regression makes the loader walk UTC instead, fellBack would
+    // be false and usedDate would still be 2026-05-30 — looks the same
+    // but is wrong. The fellBack flag is the canary.
+    expect(result.fellBack).toBe(true);
   });
 
   it("crosses month boundary backward (2026-05-01 → 2026-04-30)", () => {
@@ -121,6 +193,7 @@ describe("loadDailyHtml: integration with injected fs", () => {
       root: "/root",
       now: new Date("2026-05-01T12:00:00Z"),
       fs,
+      timezone: "UTC",
     });
     expect(result.body).toContain("Last day of April");
     expect(result.usedDate).toBe("2026-04-30");
@@ -136,6 +209,7 @@ describe("loadDailyHtml: integration with injected fs", () => {
       root: "/root",
       now: new Date("2026-05-24T12:00:00Z"),
       fs,
+      timezone: "UTC",
     });
     expect(result.title).toBe("Daily Review · 24 May 2026");
   });
