@@ -56,3 +56,23 @@ describe("ProjectsView — project card (F4)", () => {
     expect(html).toContain("Edit project details");
   });
 });
+
+describe("ProjectsView — active-only rollup", () => {
+  it("excludes terminal (shipped/closed) beats so cards show active work", () => {
+    const withDone: Beat[] = [
+      beat("p", { title: "ProjA" }),
+      beat("live", { parent: "p", title: "LIVE TASK" }),
+      beat("done", { parent: "p", title: "DONE TASK", state: "shipped" }),
+    ];
+    const html = renderToStaticMarkup(
+      createElement(ProjectsView, {
+        isLoading: false,
+        loadError: null,
+        beats: withDone,
+        onOpenBeat: () => {},
+      }),
+    );
+    expect(html).toContain("LIVE TASK");
+    expect(html).not.toContain("DONE TASK");
+  });
+});

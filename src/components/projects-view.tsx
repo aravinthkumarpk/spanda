@@ -12,6 +12,7 @@ import {
   type ProjectHealth,
 } from "@/lib/project-health";
 import { builtinProfileDescriptor } from "@/lib/workflows";
+import { isTerminalBeatState } from "@/lib/beat-terminal";
 import { ProjectHealthBadge } from "@/components/project-health-badge";
 import { BeatStateBadge } from "@/components/beat-state-badge";
 import { displayBeatLabel } from "@/lib/beat-display";
@@ -37,7 +38,16 @@ export function ProjectsView({
   onOpenBeat: (beat: Beat) => void;
 }) {
   const [now] = useState(() => Date.now());
-  const tree = useMemo(() => groupIntoProjectTree(beats), [beats]);
+  // Altitude-3 rollup shows ACTIVE work: drop terminal (shipped/closed/
+  // abandoned) beats so cards aren't buried under done items. A wholly-done
+  // initiative/project simply falls away.
+  const tree = useMemo(
+    () =>
+      groupIntoProjectTree(
+        beats.filter((b) => !isTerminalBeatState(b.state)),
+      ),
+    [beats],
+  );
   const projects = useMemo(
     () =>
       tree.unsorted.tasks.length > 0

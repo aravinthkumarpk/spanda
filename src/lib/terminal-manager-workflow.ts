@@ -200,16 +200,9 @@ export function toWorkflowPromptTarget(
   };
 }
 
-export function isTerminalBeatState(
-  state: string | undefined,
-): boolean {
-  if (!state) return false;
-  return (
-    state === "closed" ||
-    state === "shipped" ||
-    state === "abandoned"
-  );
-}
+// Single source lives in the client-safe `beat-terminal` module; re-exported
+// here so existing server-side importers keep their import path.
+export { isTerminalBeatState } from "@/lib/beat-terminal";
 
 export function isAgentOwnedActionState(
   beat: Beat,
