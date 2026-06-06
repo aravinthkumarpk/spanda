@@ -57,6 +57,69 @@ describe("ProjectsView — project card (F4)", () => {
   });
 });
 
+function renderBeats(bs: Beat[]): string {
+  return renderToStaticMarkup(
+    createElement(ProjectsView, {
+      isLoading: false,
+      loadError: null,
+      beats: bs,
+      onOpenBeat: () => {},
+    }),
+  );
+}
+
+describe("ProjectsView — variant A (expanded, priority-sorted, focus + due)", () => {
+  it("orders projects high->low priority regardless of input order", () => {
+    const html = renderBeats([
+      beat("beta", { title: "BetaProj", priority: 1 }),
+      beat("b1", { parent: "beta" }),
+      beat("alpha", { title: "AlphaProj", priority: 0 }),
+      beat("a1", { parent: "alpha" }),
+    ]);
+    expect(html.indexOf("AlphaProj")).toBeLessThan(html.indexOf("BetaProj"));
+  });
+
+  it("orders initiatives within a project high->low priority", () => {
+    const html = renderBeats([
+      beat("p", { title: "Proj" }),
+      beat("ib", { parent: "p", priority: 1, title: "InitBeta" }),
+      beat("ibx", { parent: "ib" }),
+      beat("ia", { parent: "p", priority: 0, title: "InitAlpha" }),
+      beat("iax", { parent: "ia" }),
+    ]);
+    expect(html.indexOf("InitAlpha")).toBeLessThan(html.indexOf("InitBeta"));
+  });
+
+  it("marks a focus-labelled initiative and shows the focus strip", () => {
+    const html = renderBeats([
+      beat("p", { title: "Proj" }),
+      beat("fi", { parent: "p", title: "ShipTheThing", labels: ["focus"] }),
+      beat("fix", { parent: "fi" }),
+    ]);
+    expect(html).toContain('data-focus="true"');
+    expect(html).toContain("Focus");
+  });
+
+  it("shows the empty-focus prompt when nothing is focused", () => {
+    const html = renderBeats([
+      beat("p", { title: "Proj" }),
+      beat("i", { parent: "p", title: "SomeInit" }),
+      beat("ix", { parent: "i" }),
+    ]);
+    expect(html).not.toContain('data-focus="true"');
+    expect(html.toLowerCase()).toContain("set");
+  });
+
+  it("renders a due date with an overdue tone", () => {
+    const html = renderBeats([
+      beat("p", { title: "Proj" }),
+      beat("i", { parent: "p", title: "DueInit", due: "2020-01-01" }),
+      beat("ix", { parent: "i" }),
+    ]);
+    expect(html).toContain('data-due-tone="overdue"');
+  });
+});
+
 describe("ProjectsView — active-only rollup", () => {
   it("excludes terminal (shipped/closed) beats so cards show active work", () => {
     const withDone: Beat[] = [
