@@ -20,6 +20,12 @@ import { StatusPage } from "@/components/status-page";
 
 const PRIORITIES: BeatPriority[] = [0, 1, 2, 3, 4];
 
+// v0 task-output convention: a task tagged `artifact` has a compiled HTML
+// output at html-artifacts/docs/beads/<id>.html, served on the artifact
+// tunnel. Override the host with NEXT_PUBLIC_ARTIFACT_BASE for other setups.
+const ARTIFACT_BASE =
+  process.env.NEXT_PUBLIC_ARTIFACT_BASE ?? "https://aravinth.onyourdevice.ai/beads";
+
 /**
  * @internal Exported for testing only.
  *
@@ -383,6 +389,17 @@ function BeatDetailMetadata({ beat }: { beat: Beat }) {
   return (
     <>
       <div className="flex flex-wrap gap-1.5">
+        {beat.labels.includes("artifact") && (
+          <a
+            href={`${ARTIFACT_BASE}/${beat.id}.html`}
+            target="_blank"
+            rel="noreferrer"
+            title="Open this task's compiled HTML output"
+            className="inline-flex items-center gap-1 rounded-md bg-lake-100 px-2 py-0.5 text-xs font-medium text-lake-700 hover:bg-lake-200 dark:bg-lake-700/30 dark:text-lake-100"
+          >
+            📄 Open output ↗
+          </a>
+        )}
         {beat.profileId && (
           <Badge variant="secondary" className="bg-moss-100 text-moss-700 dark:bg-moss-700/30 dark:text-moss-100">
             Profile: {beat.profileId}
