@@ -12,9 +12,9 @@ Override with: `codex -c approval_policy=ask` or `codex -c model_reasoning_effor
 
 These repo-level rules are mandatory for all agents working in this project:
 
-1. Use Knots (`kno`) as the only work-tracking system.
-2. Do not use any alternate tracker in this repository.
-3. Never move knots to terminal states unless the user explicitly instructs you.
+1. Use Beads (`bd`) in `/home/deploy/personal-os` as the only work-tracking system.
+2. Do not use Knots (`kno`) or any alternate tracker for Spanda backlog or planning.
+3. Spanda MVP work belongs under the Beads parent `personal-os-5wo` unless Aravinth says otherwise.
 4. Never use a PR workflow unless the user explicitly instructs you to use PRs.
 
 ## Git Worktree Policy (Hard Override)
