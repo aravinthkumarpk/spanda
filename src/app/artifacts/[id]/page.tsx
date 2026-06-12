@@ -6,6 +6,7 @@ import {
   ArtifactIdError,
   type ArtifactLoaderFs,
 } from "@/lib/artifact-loader";
+import { ArtifactComments } from "@/components/artifact-comments";
 
 // A task's compiled output changes whenever an agent re-runs the task —
 // never prerender or edge-cache it (same rationale as /today).
@@ -90,6 +91,7 @@ export default async function ArtifactPage({
         className="artifact-content"
         dangerouslySetInnerHTML={{ __html: result.body }}
       />
+      <ArtifactComments beadId={id} />
     </Shell>
   );
 }
