@@ -15,6 +15,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { BeatsViewId } from "./app-header-hooks";
 
+/** Which tabs render — produced by selectViewTabs (lib/surfaces). */
+export interface ViewTabsSelection {
+  primary: string[];
+  more: string[];
+}
+
+const ALL_TABS: ViewTabsSelection = {
+  primary: ["board", "projects", "review"],
+  more: [
+    "setlist", "overview", "queues", "active",
+    "finalcut", "retakes", "history", "diagnostics",
+  ],
+};
+
 /**
  * The /beats view switcher (iteration 02, A5). Four primary surfaces — Today,
  * Board, Projects, Review — render as left-aligned tabs; the secondary views
@@ -98,8 +112,11 @@ function TodayTabLink() {
 function MoreTabsMenu(props: {
   setView: (v: BeatsViewId) => void;
   escalationsCount: number;
+  allowed: string[];
 }) {
-  const { setView, escalationsCount } = props;
+  const { setView, escalationsCount, allowed } = props;
+  const entries = MORE_TABS.filter((t) => allowed.includes(t.view));
+  if (entries.length === 0) return null;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -117,7 +134,7 @@ function MoreTabsMenu(props: {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
-        {MORE_TABS.map((t) => (
+        {entries.map((t) => (
           <DropdownMenuItem
             key={t.view}
             onClick={() => setView(t.view)}
@@ -140,39 +157,51 @@ function MoreTabsMenu(props: {
 export function ViewSwitcherTabs(props: {
   beatsView: string;
   setView: (v: BeatsViewId) => void;
+  tabs?: ViewTabsSelection;
   escalationsCount: number;
 }) {
   const {
     beatsView, setView, escalationsCount,
   } = props;
+  const tabs = props.tabs ?? ALL_TABS;
   return (
     <div className={
       "flex min-w-max shrink-0 items-center gap-1"
       + " rounded-lg border bg-muted/20 p-1"
     }>
       <TodayTabLink />
-      <ViewTab
-        view="board" current={beatsView}
-        icon={<Columns3 className="size-4" />}
-        label="Board"
-        title="Normalized board — To do / Doing / Review / Done"
+      {tabs.primary.includes("board") && (
+        <ViewTab
+          view="board" current={beatsView}
+          icon={<Columns3 className="size-4" />}
+          label="Board"
+          title="Normalized board — To do / Doing / Review / Done"
+          setView={setView}
+        />
+      )}
+      {tabs.primary.includes("projects") && (
+        <ViewTab
+          view="projects" current={beatsView}
+          icon={<FolderKanban className="size-4" />}
+          label="Projects"
+          title="Projects — hierarchy and activity-based health"
+          setView={setView}
+        />
+      )}
+      {tabs.primary.includes("review") && (
+        <ViewTab
+          view="review" current={beatsView}
+          icon={<Megaphone className="size-4" />}
+          label="Review"
+          title="Review — the Plan-review & Execution-review gates that need you"
+          setView={setView}
+        />
+      )}
+      <MoreTabsMenu
         setView={setView}
+        escalationsCount={escalationsCount}
+        allowed={tabs.more}
       />
-      <ViewTab
-        view="projects" current={beatsView}
-        icon={<FolderKanban className="size-4" />}
-        label="Projects"
-        title="Projects — hierarchy and activity-based health"
-        setView={setView}
-      />
-      <ViewTab
-        view="review" current={beatsView}
-        icon={<Megaphone className="size-4" />}
-        label="Review"
-        title="Review — the Plan-review & Execution-review gates that need you"
-        setView={setView}
-      />
-      <MoreTabsMenu setView={setView} escalationsCount={escalationsCount} />
     </div>
   );
 }

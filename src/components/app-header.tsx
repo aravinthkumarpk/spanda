@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   usePathname, useRouter, useSearchParams,
 } from "next/navigation";
@@ -20,7 +21,11 @@ import {
 import {
   useScopeRefinementNotifications,
 } from "@/hooks/use-scope-refinement-notifications";
-import { parseBeatsView } from "@/lib/beats-view";
+import {
+  resolveSurfaces,
+  parseAllowedBeatsView,
+  selectViewTabs,
+} from "@/lib/surfaces";
 import {
   invalidateBeatListQueries,
 } from "@/lib/beat-query-cache";
@@ -49,7 +54,9 @@ import {
   useVersionUpdateAction,
 } from "./version-update-action";
 
-function useAppHeaderState() {
+function useAppHeaderState(
+  surfacesConfig?: string | null,
+) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -58,8 +65,12 @@ function useAppHeaderState() {
   const isBeats =
     pathname === "/beats" ||
     pathname.startsWith("/beats/");
-  const beatsView = parseBeatsView(
-    searchParams.get("view"),
+  const surfaces = useMemo(
+    () => resolveSurfaces(surfacesConfig),
+    [surfacesConfig],
+  );
+  const beatsView = parseAllowedBeatsView(
+    searchParams.get("view"), surfaces,
   );
   const activeBeatId = searchParams.get("beat");
   const humanCount = useHumanActionCount(
@@ -90,7 +101,7 @@ function useAppHeaderState() {
 
   return {
     router, searchParams, queryClient,
-    activeRepo, isBeats, beatsView,
+    activeRepo, isBeats, beatsView, surfaces,
     activeBeatId, humanCount, approvalCount,
     vb, create, settings, setView, hotkeyOpen,
   };
@@ -129,8 +140,12 @@ function HeaderBanners({
   );
 }
 
-export function AppHeader() {
-  const s = useAppHeaderState();
+export function AppHeader({
+  surfacesConfig,
+}: {
+  surfacesConfig?: string | null;
+} = {}) {
+  const s = useAppHeaderState(surfacesConfig);
   const updateAction =
     useVersionUpdateAction();
 
@@ -153,6 +168,7 @@ export function AppHeader() {
     <ViewSwitcher
       beatsView={s.beatsView}
       setView={s.setView}
+      tabs={selectViewTabs(s.surfaces)}
       escalationsCount={s.humanCount + s.approvalCount}
       canCreate={s.create.canCreate}
       showAction={false}

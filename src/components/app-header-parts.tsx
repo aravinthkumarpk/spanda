@@ -10,6 +10,7 @@ import { VersionBadge } from "@/components/version-badge";
 import { RepoSwitcher } from "@/components/repo-switcher";
 import { SearchBar } from "@/components/search-bar";
 import { ViewSwitcherTabs } from "@/components/app-header-view-tabs";
+import type { ViewTabsSelection } from "@/components/app-header-view-tabs";
 import {
   VERSION_UPDATE_COMMAND,
 } from "@/components/version-update-action";
@@ -341,6 +342,7 @@ export function HeaderToolbar(props: {
 export function ViewSwitcher(props: {
   beatsView: string;
   setView: (v: BeatsViewId) => void;
+  tabs?: ViewTabsSelection;
   escalationsCount: number;
   canCreate: boolean;
   showAction: boolean;
@@ -348,7 +350,7 @@ export function ViewSwitcher(props: {
   openSettingsToRepos: () => void;
 }) {
   const {
-    beatsView, setView, escalationsCount,
+    beatsView, setView, tabs, escalationsCount,
     canCreate, showAction, actionButton,
     openSettingsToRepos,
   } = props;
@@ -362,6 +364,7 @@ export function ViewSwitcher(props: {
       <ViewSwitcherTabs
         beatsView={beatsView}
         setView={setView}
+        tabs={tabs}
         escalationsCount={escalationsCount}
       />
       <div className="grid w-[88px] shrink-0">

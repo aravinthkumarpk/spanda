@@ -60,7 +60,11 @@ export default function RootLayout({
       >
         <Providers>
           <Suspense fallback={null}>
-            <AppHeader />
+            {/* SPANDA_SURFACES (runtime env, e.g. "projects,board") narrows
+                which /beats views exist; unset keeps every upstream view. */}
+            <AppHeader
+              surfacesConfig={process.env.SPANDA_SURFACES ?? null}
+            />
             <ClientPerfRouteObserver />
             <UrlStateSync />
           </Suspense>
