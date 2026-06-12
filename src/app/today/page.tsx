@@ -10,8 +10,15 @@
 // HTTP fetch or iframe embed.
 
 import { existsSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { loadDailyHtml, type DailyLoaderFs } from "@/lib/daily-loader";
 import { PromoteIsland } from "@/components/promote-island";
+import { RunsStrip } from "@/components/runs-strip";
+import {
+  selectRunsStrip,
+} from "@/lib/external-session-feeder/runs-strip";
+import type { RunRecord } from "@/lib/external-session-feeder/types";
 import { DailyStyleInjector } from "./daily-style-injector";
 
 // Configurable root. Default mirrors the live VPS path used by the
@@ -27,6 +34,22 @@ const DAILY_ROOT = process.env.SPANDA_DAILY_ROOT
 // requires `timezone` per CLAUDE.md fail-loud, so swapping the default
 // here cannot silently hide drift inside the lib's behavior.
 const DAILY_TZ = process.env.SPANDA_DAILY_TZ || "Asia/Kolkata";
+
+// The session-feeder's run feed (5wo.1 inbox). Absent file = empty strip;
+// the feeder writes it on its cron.
+const RUN_FEED_PATH = process.env.SPANDA_RUN_FEED
+  ?? join(homedir(), ".local", "share", "foolery", "run-feed.json");
+
+function loadRunsStrip(): RunRecord[] {
+  try {
+    const raw = JSON.parse(
+      readFileSync(RUN_FEED_PATH, "utf8"),
+    ) as RunRecord[];
+    return selectRunsStrip(raw, Date.now());
+  } catch {
+    return [];
+  }
+}
 
 // /today reads a daily HTML file from disk that changes every day. It must
 // NEVER be statically prerendered or shared-cached — otherwise a stale copy
@@ -89,6 +112,7 @@ export default async function TodayPage() {
   // daily exactly as designed.
   return (
     <main className="min-h-screen">
+      <RunsStrip runs={loadRunsStrip()} />
       {fellBack && usedDate && (
         <div className="flex items-center gap-2 border-b border-paper-200 bg-paper-50 px-6 py-2 text-sm text-ink-500">
           <span
