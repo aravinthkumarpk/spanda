@@ -30,7 +30,7 @@ function fullRawBead(): RawBead {
     assignee: "alice",
     owner: "bob",
     parent: "proj.epic",
-    due: "2026-03-01",
+    due_at: "2026-03-01",
     estimated_minutes: 120,
     created_at: "2026-01-01T00:00:00Z",
     created_by: "system",
@@ -158,6 +158,18 @@ describe("normalizeFromJsonl: field mapping and defaults", () => {
     const raw: RawBead = { id: "x", title: "T", labels: ["a", "", "  ", "b"] };
     const beat = normalizeFromJsonl(raw);
     expect(beat.labels).toEqual(["a", "b"]);
+  });
+
+  it("maps the on-disk due_at field to beat.due (g8u.1 Projects Due column)", () => {
+    const raw: RawBead = { id: "x", title: "T", due_at: "2026-06-10T00:00:00Z" };
+    const beat = normalizeFromJsonl(raw);
+    expect(beat.due).toBe("2026-06-10T00:00:00Z");
+  });
+
+  it("falls back to legacy due field when due_at absent", () => {
+    const raw: RawBead = { id: "x", title: "T", due: "2026-06-10" };
+    const beat = normalizeFromJsonl(raw);
+    expect(beat.due).toBe("2026-06-10");
   });
 
 });
@@ -306,7 +318,7 @@ describe("denormalizeToJsonl: field mapping", () => {
     expect(raw.assignee).toBe("alice");
     expect(raw.owner).toBe("bob");
     expect(raw.parent).toBe("proj.epic");
-    expect(raw.due).toBe("2026-03-01");
+    expect(raw.due_at).toBe("2026-03-01");
     expect(raw.estimated_minutes).toBe(120);
     expect(raw.created_at).toBe("2026-01-01T00:00:00Z");
     expect(raw.updated_at).toBe("2026-02-01T00:00:00Z");

@@ -92,6 +92,7 @@ function normalizeBeat(
     ),
     created: (raw.created_at ?? raw.created) as string,
     updated: (raw.updated_at ?? raw.updated) as string,
+    due: (raw.due_at ?? raw.due) as string | undefined,
     estimate: (
       raw.estimated_minutes ?? raw.estimate
     ) as number | undefined,

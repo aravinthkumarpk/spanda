@@ -34,6 +34,7 @@ export interface RawBead {
   assignee?: string;
   owner?: string;
   parent?: string;
+  due_at?: string;
   due?: string;
   estimated_minutes?: number;
   created_at?: string;
@@ -185,7 +186,7 @@ export function normalizeFromJsonl(raw: RawBead): Beat {
     assignee: raw.assignee,
     owner: raw.owner,
     parent: inferParent(id, raw.parent),
-    due: raw.due,
+    due: raw.due_at ?? raw.due,
     estimate: raw.estimated_minutes
       ?? (raw as Record<string, unknown>).estimate as number | undefined,
     created: (
@@ -233,7 +234,7 @@ export function denormalizeToJsonl(beat: Beat): RawBead {
   if (beat.assignee !== undefined) raw.assignee = beat.assignee;
   if (beat.owner !== undefined) raw.owner = beat.owner;
   if (beat.parent !== undefined) raw.parent = beat.parent;
-  if (beat.due !== undefined) raw.due = beat.due;
+  if (beat.due !== undefined) raw.due_at = beat.due;
   if (beat.estimate !== undefined) raw.estimated_minutes = beat.estimate;
   if (beat.closed !== undefined) raw.closed_at = beat.closed;
   if (beat.metadata?.close_reason !== undefined) {

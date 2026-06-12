@@ -1,0 +1,4 @@
+# Raw `bun test` is not this repo's harness (vitest is — see package.json
+# scripts). The preload makes it fail fast with guidance instead of hanging.
+[test]
+preload = ["./scripts/no-raw-bun-test.ts"]
