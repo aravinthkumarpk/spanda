@@ -27,6 +27,7 @@ import {
 } from "@/components/beat-state-overview";
 import { ScopedBoardView } from "./scoped-board-view";
 import { ProjectsView } from "@/components/projects-view";
+import { ArtifactsView } from "@/components/artifacts-view";
 import { ReviewQueueView } from "@/components/review-queue-view";
 import { BeatsListContent } from "./beats-list-content";
 import { LabelFilterChips } from "@/components/label-filter-chips";
@@ -81,10 +82,11 @@ function useBeatsPageState() {
   const isOverviewView = beatsView === "overview";
   const isBoardView = beatsView === "board";
   const isProjectsView = beatsView === "projects";
+  const isArtifactsView = beatsView === "artifacts";
   const isReviewView = beatsView === "review";
   const shouldLoadBeats =
     isListView || isOverviewView || isBoardView || isProjectsView
-    || isReviewView;
+    || isReviewView || isArtifactsView;
   const supportsBeatDetail = shouldLoadBeats || beatsView === "setlist";
   const viewPhase: ViewPhase = beatsView === "active" ? "active" : "queues";
   const isActiveView = beatsView === "active";
@@ -158,7 +160,7 @@ function useBeatsPageState() {
   });
   return {
     beatsView, isListView, isOverviewView, isBoardView, isProjectsView,
-    isReviewView,
+    isArtifactsView, isReviewView,
     viewPhase,
     supportsBeatDetail,
     isActiveView, activeRepo,
@@ -261,7 +263,7 @@ function BeatsPageInner() {
         isHistoryView={isHistoryView}
         isOverviewView={isOverviewView}
         isBoardView={s.isBoardView}
-        isProjectsView={s.isProjectsView}
+        isProjectsView={s.isProjectsView} isArtifactsView={s.isArtifactsView}
         isReviewView={s.isReviewView}
         isDiagnosticsView={isDiagnosticsView}
         state={s}
@@ -301,17 +303,7 @@ function BeatsPageInner() {
 
 type PageState = ReturnType<typeof useBeatsPageState>;
 
-function BeatsViewBody({
-  isSetlistView,
-  isFinalCutView, isRetakesView,
-  isHistoryView,
-  isOverviewView,
-  isBoardView,
-  isProjectsView,
-  isReviewView,
-  isDiagnosticsView,
-  state: s,
-}: {
+interface BeatsViewBodyProps {
   isSetlistView: boolean;
   isFinalCutView: boolean;
   isRetakesView: boolean;
@@ -319,10 +311,24 @@ function BeatsViewBody({
   isOverviewView: boolean;
   isBoardView: boolean;
   isProjectsView: boolean;
+  isArtifactsView: boolean;
   isReviewView: boolean;
   isDiagnosticsView: boolean;
   state: PageState;
-}) {
+}
+
+function BeatsViewBody({
+  isSetlistView,
+  isFinalCutView, isRetakesView,
+  isHistoryView,
+  isOverviewView,
+  isBoardView,
+  isProjectsView,
+  isArtifactsView,
+  isReviewView,
+  isDiagnosticsView,
+  state: s,
+}: BeatsViewBodyProps) {
   return (
     <div className="mt-0.5">
       {isSetlistView ? (
@@ -349,6 +355,11 @@ function BeatsViewBody({
           onFocusLeaseSession={s.setActiveSession}
           onReleaseBeat={s.handleReleaseBeat}
           streamingProgress={s.streamingProgress}
+        />
+      ) : isArtifactsView ? (
+        <ArtifactsView
+          beats={s.beats}
+          isLoading={s.isLoading}
         />
       ) : isBoardView ? (
         <ScopedBoardView

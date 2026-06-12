@@ -8,6 +8,7 @@ import { parseBeatsView, type BeatsView } from "@/lib/beats-view";
 export const ALL_SURFACES: readonly BeatsView[] = [
   "board",
   "projects",
+  "artifacts",
   "review",
   "setlist",
   "overview",
@@ -57,7 +58,9 @@ export function parseAllowedBeatsView(
   return surfaces.includes(view) ? view : surfaces[0];
 }
 
-const PRIMARY_TABS: readonly BeatsView[] = ["board", "projects", "review"];
+const PRIMARY_TABS: readonly BeatsView[] = [
+  "board", "projects", "artifacts", "review",
+];
 const MORE_TAB_ORDER: readonly BeatsView[] = [
   "setlist", "overview", "queues", "active",
   "finalcut", "retakes", "history", "diagnostics",

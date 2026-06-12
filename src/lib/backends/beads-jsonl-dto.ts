@@ -36,6 +36,7 @@ export interface RawBead {
   parent?: string;
   due_at?: string;
   due?: string;
+  comment_count?: number;
   estimated_minutes?: number;
   created_at?: string;
   created_by?: string;
@@ -187,6 +188,7 @@ export function normalizeFromJsonl(raw: RawBead): Beat {
     owner: raw.owner,
     parent: inferParent(id, raw.parent),
     due: raw.due_at ?? raw.due,
+    comment_count: raw.comment_count,
     estimate: raw.estimated_minutes
       ?? (raw as Record<string, unknown>).estimate as number | undefined,
     created: (

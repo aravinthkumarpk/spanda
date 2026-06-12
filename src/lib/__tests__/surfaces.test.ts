@@ -72,9 +72,19 @@ describe("selectViewTabs", () => {
 
   it("keeps the full upstream tab set when nothing is narrowed", () => {
     const tabs = selectViewTabs(resolveSurfaces(undefined));
-    expect(tabs.primary).toEqual(["board", "projects", "review"]);
+    expect(tabs.primary).toEqual([
+      "board", "projects", "artifacts", "review",
+    ]);
     expect(tabs.more).toContain("setlist");
     expect(tabs.more).toContain("diagnostics");
     expect(tabs.more).toHaveLength(8);
+  });
+
+  it("supports the artifacts view as a first-class surface", () => {
+    const surfaces = resolveSurfaces("projects,board,artifacts");
+    expect(selectViewTabs(surfaces).primary).toEqual([
+      "board", "projects", "artifacts",
+    ]);
+    expect(parseAllowedBeatsView("artifacts", surfaces)).toBe("artifacts");
   });
 });

@@ -160,18 +160,18 @@ describe("normalizeFromJsonl: field mapping and defaults", () => {
     expect(beat.labels).toEqual(["a", "b"]);
   });
 
-  it("maps the on-disk due_at field to beat.due (g8u.1 Projects Due column)", () => {
-    const raw: RawBead = { id: "x", title: "T", due_at: "2026-06-10T00:00:00Z" };
-    const beat = normalizeFromJsonl(raw);
-    expect(beat.due).toBe("2026-06-10T00:00:00Z");
+  it("maps on-disk due_at to beat.due, legacy due as fallback (g8u.1)", () => {
+    const withDueAt: RawBead =
+      { id: "x", title: "T", due_at: "2026-06-10T00:00:00Z" };
+    expect(normalizeFromJsonl(withDueAt).due).toBe("2026-06-10T00:00:00Z");
+    const legacy: RawBead = { id: "x", title: "T", due: "2026-06-10" };
+    expect(normalizeFromJsonl(legacy).due).toBe("2026-06-10");
   });
 
-  it("falls back to legacy due field when due_at absent", () => {
-    const raw: RawBead = { id: "x", title: "T", due: "2026-06-10" };
-    const beat = normalizeFromJsonl(raw);
-    expect(beat.due).toBe("2026-06-10");
+  it("carries comment_count through (artifact rows show a 💬 chip)", () => {
+    const raw = { id: "x", title: "T", comment_count: 3 } as RawBead;
+    expect(normalizeFromJsonl(raw).comment_count).toBe(3);
   });
-
 });
 
 describe("normalizeFromJsonl: workflow labels and fallbacks", () => {

@@ -90,6 +90,8 @@ export interface Beat {
   parent?: string;
   due?: string;
   estimate?: number;
+  /** Number of bd comments on this bead (read-only, store-derived). */
+  comment_count?: number;
   created: string;
   updated: string;
   closed?: string;

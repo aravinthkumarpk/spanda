@@ -42,12 +42,12 @@ export function buildVersionBannerData(
 }
 
 export type BeatsViewId =
-  | "setlist" | "overview" | "board" | "projects" | "review" | "queues"
-  | "active" | "finalcut" | "retakes" | "history" | "diagnostics";
+  | "setlist" | "overview" | "board" | "projects" | "artifacts" | "review"
+  | "queues" | "active" | "finalcut" | "retakes" | "history" | "diagnostics";
 
 export const VIEWS: readonly BeatsViewId[] = [
-  "setlist", "overview", "board", "projects", "review", "queues", "active",
-  "finalcut", "retakes", "history", "diagnostics",
+  "setlist", "overview", "board", "projects", "artifacts", "review",
+  "queues", "active", "finalcut", "retakes", "history", "diagnostics",
 ];
 
 // -----------------------------------------------------------

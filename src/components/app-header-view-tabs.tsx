@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import {
   CalendarDays, MoreHorizontal, ListMusic, LayoutDashboard,
   Inbox, Zap, RotateCcw, History, BarChart3, Columns3,
-  FolderKanban, Megaphone,
+  FolderKanban, Megaphone, FileText,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ export interface ViewTabsSelection {
 }
 
 const ALL_TABS: ViewTabsSelection = {
-  primary: ["board", "projects", "review"],
+  primary: ["board", "projects", "artifacts", "review"],
   more: [
     "setlist", "overview", "queues", "active",
     "finalcut", "retakes", "history", "diagnostics",
@@ -185,6 +185,15 @@ export function ViewSwitcherTabs(props: {
           icon={<FolderKanban className="size-4" />}
           label="Projects"
           title="Projects — hierarchy and activity-based health"
+          setView={setView}
+        />
+      )}
+      {tabs.primary.includes("artifacts") && (
+        <ViewTab
+          view="artifacts" current={beatsView}
+          icon={<FileText className="size-4" />}
+          label="Artifacts"
+          title="Artifacts — compiled HTML outputs attached to tasks"
           setView={setView}
         />
       )}

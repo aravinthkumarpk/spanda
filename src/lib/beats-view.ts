@@ -3,6 +3,7 @@ export type BeatsView =
   | "overview"
   | "board"
   | "projects"
+  | "artifacts"
   | "review"
   | "queues"
   | "active"
@@ -18,6 +19,7 @@ export function parseBeatsView(viewParam: string | null): BeatsView {
     case "overview":
     case "board":
     case "projects":
+    case "artifacts":
     case "review":
     case "active":
     case "search":
