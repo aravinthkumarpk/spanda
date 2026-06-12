@@ -4,9 +4,9 @@
 import type { RunRecord } from "@/lib/external-session-feeder/types";
 
 const STATUS_STYLE: Record<RunRecord["status"], string> = {
-  blocked: "bg-amber-100 text-amber-900 border-amber-300",
-  running: "bg-sky-100 text-sky-900 border-sky-300",
-  done: "bg-emerald-100 text-emerald-900 border-emerald-300",
+  blocked: "bg-ochre-100 text-ochre-900 border-ochre-300",
+  running: "bg-lake-100 text-lake-900 border-lake-300",
+  done: "bg-moss-100 text-moss-900 border-moss-300",
 };
 
 const STATUS_DOT: Record<RunRecord["status"], string> = {
