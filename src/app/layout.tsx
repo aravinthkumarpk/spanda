@@ -64,6 +64,7 @@ export default function RootLayout({
                 which /beats views exist; unset keeps every upstream view. */}
             <AppHeader
               surfacesConfig={process.env.SPANDA_SURFACES ?? null}
+              featuresConfig={process.env.SPANDA_FEATURES ?? null}
             />
             <ClientPerfRouteObserver />
             <UrlStateSync />

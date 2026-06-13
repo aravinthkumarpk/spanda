@@ -167,10 +167,12 @@ export function HeaderBranding(props: {
   onVersionStatus: (status: VersionStatusData) => void;
   router: ReturnType<typeof useRouter>;
   searchParams: ReturnType<typeof useSearchParams>;
+  showRepoSwitcher?: boolean;
 }) {
   const {
     activeBeatId, activeRepo, versionStatus,
     onVersionStatus, router, searchParams,
+    showRepoSwitcher = true,
   } = props;
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -192,7 +194,7 @@ export function HeaderBranding(props: {
         installedVersion={versionStatus?.installedVersion ?? null}
         onVersionStatus={onVersionStatus}
       />
-      <RepoSwitcher />
+      {showRepoSwitcher && <RepoSwitcher />}
       {activeBeatId && (
         <button
           type="button"
@@ -295,11 +297,15 @@ export function HeaderToolbar(props: {
   isBeatsRoute: boolean;
   viewSwitcher: React.ReactNode;
   createButton?: React.ReactNode;
+  showSearch?: boolean;
+  showSettings?: boolean;
+  showRepoSwitcher?: boolean;
 }) {
   const {
     activeBeatId, activeRepo, versionStatus,
     onVersionStatus, router, searchParams, onOpenSettings,
     isBeatsRoute, viewSwitcher, createButton,
+    showSearch = true, showSettings = true, showRepoSwitcher = true,
   } = props;
   return (
     <div className="flex flex-wrap items-center gap-2 md:gap-3">
@@ -310,26 +316,29 @@ export function HeaderToolbar(props: {
         onVersionStatus={onVersionStatus}
         router={router}
         searchParams={searchParams}
+        showRepoSwitcher={showRepoSwitcher}
       />
-      <SearchBar
-        className="order-3 mx-0 basis-full md:order-none md:basis-auto md:flex-1 md:max-w-none"
-        inputClassName="h-8"
-        placeholder="Search tasks..."
-      />
+      {showSearch && (
+        <SearchBar
+          className="order-3 mx-0 basis-full md:order-none md:basis-auto md:flex-1 md:max-w-none"
+          inputClassName="h-8"
+          placeholder="Search tasks..."
+        />
+      )}
       <ThemeToggle />
       <NotificationBell />
-      {/* F3: the Add button is global — visible on every route (Today, Board,
-          Projects, Review), not just the beats-only view switcher. */}
       {createButton}
-      <Button
-        size="icon"
-        variant="ghost"
-        className="size-8 shrink-0"
-        title="Settings"
-        onClick={onOpenSettings}
-      >
-        <Settings className="size-4" />
-      </Button>
+      {showSettings && (
+        <Button
+          size="icon"
+          variant="ghost"
+          className="size-8 shrink-0"
+          title="Settings"
+          onClick={onOpenSettings}
+        >
+          <Settings className="size-4" />
+        </Button>
+      )}
       {isBeatsRoute ? viewSwitcher : null}
     </div>
   );

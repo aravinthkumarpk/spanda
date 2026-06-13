@@ -26,6 +26,7 @@ import {
   parseAllowedBeatsView,
   selectViewTabs,
 } from "@/lib/surfaces";
+import { resolveFeatures, featureEnabled } from "@/lib/features";
 import {
   invalidateBeatListQueries,
 } from "@/lib/beat-query-cache";
@@ -56,6 +57,7 @@ import {
 
 function useAppHeaderState(
   surfacesConfig?: string | null,
+  featuresConfig?: string | null,
 ) {
   const pathname = usePathname();
   const router = useRouter();
@@ -68,6 +70,10 @@ function useAppHeaderState(
   const surfaces = useMemo(
     () => resolveSurfaces(surfacesConfig),
     [surfacesConfig],
+  );
+  const features = useMemo(
+    () => resolveFeatures(featuresConfig),
+    [featuresConfig],
   );
   const beatsView = parseAllowedBeatsView(
     searchParams.get("view"), surfaces,
@@ -95,13 +101,15 @@ function useAppHeaderState(
     create.canCreate, create.openFlow,
   );
   useViewCycleHotkey(isBeats, beatsView, setView);
-  useTerminalToggleHotkey(isBeats);
+  // Manual terminal toggle is gated off in the lean cut (Run still hosts its
+  // own session); the hook is always called, just disabled.
+  useTerminalToggleHotkey(isBeats && featureEnabled("terminal", features));
   const hotkeyOpen = useHotkeyHelpHotkey(isBeats);
   useRepoCycleHotkey();
 
   return {
     router, searchParams, queryClient,
-    activeRepo, isBeats, beatsView, surfaces,
+    activeRepo, isBeats, beatsView, surfaces, features,
     activeBeatId, humanCount, approvalCount,
     vb, create, settings, setView, hotkeyOpen,
   };
@@ -118,7 +126,8 @@ function HeaderBanners({
 }) {
   return (
     <>
-      {state.approvalCount > 0 ? (
+      {featureEnabled("approvals", state.features)
+        && state.approvalCount > 0 ? (
         <ApprovalBannerBar
           count={state.approvalCount}
           onOpenApprovals={() => {
@@ -142,17 +151,19 @@ function HeaderBanners({
 
 export function AppHeader({
   surfacesConfig,
+  featuresConfig,
 }: {
   surfacesConfig?: string | null;
+  featuresConfig?: string | null;
 } = {}) {
-  const s = useAppHeaderState(surfacesConfig);
+  const s = useAppHeaderState(surfacesConfig, featuresConfig);
   const updateAction =
     useVersionUpdateAction();
 
-  // F3: the create (Add) button is now global — rendered in the header
-  // toolbar on every route, not nested in the beats-only view switcher
-  // (which also gated it behind `showAction`, hiding it on Board/Today/etc.).
-  const createButton = s.create.canCreate ? (
+  // F3: the create (Add) button is global on every route — but gated off in
+  // the lean cut (work is added via bd CLI / the ritual, not the UI).
+  const createButton = s.create.canCreate
+    && featureEnabled("create", s.features) ? (
     <ActionButton
       beatsView={s.beatsView}
       shouldChooseRepo={s.create.shouldChooseRepo}
@@ -200,6 +211,9 @@ export function AppHeader({
             isBeatsRoute={s.isBeats}
             viewSwitcher={switcher}
             createButton={createButton}
+            showSearch={featureEnabled("search", s.features)}
+            showSettings={featureEnabled("settings", s.features)}
+            showRepoSwitcher={featureEnabled("repoSwitcher", s.features)}
           />
         </div>
       </header>
