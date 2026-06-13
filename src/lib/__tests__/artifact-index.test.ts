@@ -11,6 +11,8 @@ import {
   buildIndex,
   selectLibraryEntries,
   artifactsForBead,
+  groupLibraryByKind,
+  artifactHref,
 } from "@/lib/artifact-index";
 
 describe("parseArtifact", () => {
@@ -104,5 +106,18 @@ describe("buildIndex / selectors", () => {
   it("artifactsForBead finds every artifact linked to a bead (output + plan)", () => {
     const linked = artifactsForBead(idx, "personal-os-5wo").map((e) => e.path);
     expect(linked.sort()).toEqual(["beads/personal-os-5wo.html", "plans/p.html"]);
+  });
+
+  it("groups the Library into fixed-order sections, empty kinds omitted", () => {
+    const sections = groupLibraryByKind(idx);
+    expect(sections.map((s) => s.kind)).toEqual(["output", "plan", "daily"]);
+    // example excluded entirely; weekly absent here so omitted
+    expect(sections.find((s) => s.kind === "output")?.entries[0].path)
+      .toBe("beads/personal-os-5wo.html");
+  });
+
+  it("artifactHref strips .html for the /artifacts URL", () => {
+    expect(artifactHref({ path: "beads/personal-os-5wo.html" }))
+      .toBe("/artifacts/beads/personal-os-5wo");
   });
 });

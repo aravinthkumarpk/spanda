@@ -357,10 +357,7 @@ function BeatsViewBody({
           streamingProgress={s.streamingProgress}
         />
       ) : isArtifactsView ? (
-        <ArtifactsView
-          beats={s.beats}
-          isLoading={s.isLoading}
-        />
+        <ArtifactsView />
       ) : isBoardView ? (
         <ScopedBoardView
           isLoading={s.isLoading}

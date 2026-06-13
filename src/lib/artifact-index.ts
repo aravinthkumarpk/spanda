@@ -119,3 +119,34 @@ export function artifactsForBead(
 ): IndexEntry[] {
   return entries.filter((e) => e.beads.includes(beadId));
 }
+
+export interface LibrarySection {
+  kind: ArtifactKind;
+  label: string;
+  entries: IndexEntry[];
+}
+
+const LIBRARY_KIND_ORDER: { kind: ArtifactKind; label: string }[] = [
+  { kind: "output", label: "Outputs" },
+  { kind: "plan", label: "Plans" },
+  { kind: "weekly", label: "Weekly reviews" },
+  { kind: "daily", label: "Dailies" },
+];
+
+/** Group the work-Library entries into display sections (fixed kind order,
+ *  empty kinds omitted, newest-first preserved within each). */
+export function groupLibraryByKind(
+  entries: readonly IndexEntry[],
+): LibrarySection[] {
+  const lib = selectLibraryEntries(entries);
+  return LIBRARY_KIND_ORDER
+    .map(({ kind, label }) => ({
+      kind, label, entries: lib.filter((e) => e.kind === kind),
+    }))
+    .filter((s) => s.entries.length > 0);
+}
+
+/** /artifacts URL for an entry (path without the .html suffix). */
+export function artifactHref(entry: { path: string }): string {
+  return `/artifacts/${entry.path.replace(/\.html$/, "")}`;
+}
