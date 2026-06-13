@@ -8,7 +8,12 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { loadArtifact, ArtifactIdError } from "@/lib/artifact-loader";
+import {
+  loadArtifact,
+  loadArtifactByPath,
+  ArtifactIdError,
+  ArtifactPathError,
+} from "@/lib/artifact-loader";
 
 const ROOT = "/artifacts/docs/beads";
 
@@ -60,6 +65,46 @@ describe("loadArtifact", () => {
     ]) {
       expect(() => loadArtifact(bad, { root: ROOT, fs: spyFs }))
         .toThrow(ArtifactIdError);
+    }
+    expect(touched).toBe(false);
+  });
+});
+
+describe("loadArtifactByPath (catch-all, any docs/ path)", () => {
+  const DOCS = "/artifacts/docs";
+
+  it("renders body+title for a valid nested path", () => {
+    const fs = fakeFs({
+      [`${DOCS}/daily/2026/05/31.html`]:
+        "<head><title>Daily</title></head><body><p>hi</p></body>",
+    });
+    const r = loadArtifactByPath("daily/2026/05/31.html", { root: DOCS, fs });
+    expect(r?.title).toBe("Daily");
+    expect(r?.body).toContain("<p>hi</p>");
+  });
+
+  it("returns null for a missing file", () => {
+    expect(loadArtifactByPath("plans/nope.html", { root: DOCS, fs: fakeFs({}) }))
+      .toBeNull();
+  });
+
+  it("rejects traversal / unsafe paths without touching the fs", () => {
+    let touched = false;
+    const spy = {
+      exists: () => { touched = true; return true; },
+      read: () => { touched = true; return "x"; },
+    };
+    for (const bad of [
+      "../../../etc/passwd",
+      "../secrets.html",
+      "beads/../../escape.html",
+      "/abs/path.html",
+      "beads\\win.html",
+      "beads/no-ext",
+      "",
+    ]) {
+      expect(() => loadArtifactByPath(bad, { root: DOCS, fs: spy }))
+        .toThrow(ArtifactPathError);
     }
     expect(touched).toBe(false);
   });

@@ -42,6 +42,43 @@ function extractTitle(html: string): string | null {
   return match ? match[1].trim() : null;
 }
 
+/** A relative artifact path that could escape the docs root — fail loud. */
+export class ArtifactPathError extends Error {
+  constructor(relPath: string) {
+    super(
+      `SPANDA ARTIFACT LOADER FAILURE: "${relPath}" is not a safe docs-relative `
+      + `.html path; refusing to read from disk.`,
+    );
+    this.name = "ArtifactPathError";
+  }
+}
+
+/** Each path segment: dot-slug, never "." / ".." / empty. */
+const SEGMENT_RE = /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
+
+function isSafeRelPath(relPath: string): boolean {
+  if (!relPath || !relPath.endsWith(".html")) return false;
+  if (relPath.startsWith("/") || relPath.includes("\\")) return false;
+  const segs = relPath.split("/");
+  return segs.every((s) => s !== ".." && s !== "." && SEGMENT_RE.test(s));
+}
+
+/**
+ * Catch-all loader: render any docs-relative artifact (`<root>/<relPath>`).
+ * Same hermetic shape as loadArtifact; the path is validated BEFORE any fs
+ * touch so a traversal attempt never reaches the disk.
+ */
+export function loadArtifactByPath(
+  relPath: string,
+  opts: LoadArtifactOptions,
+): ArtifactLoadResult | null {
+  if (!isSafeRelPath(relPath)) throw new ArtifactPathError(relPath);
+  const path = `${opts.root}/${relPath}`;
+  if (!opts.fs.exists(path)) return null;
+  const html = opts.fs.read(path);
+  return { body: extractBodyContent(html), title: extractTitle(html) };
+}
+
 export function loadArtifact(
   beadId: string,
   opts: LoadArtifactOptions,
