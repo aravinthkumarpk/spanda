@@ -133,8 +133,10 @@ Create a channel, post a message (verify it persists and appears in Cmd+K search
 | Owner keypair | `RELAY_OWNER_PUBKEY` set | [x] | `508163fa…37a3`, closed-relay mode, sole member role=owner |
 | HTTPS | valid cert, tailnet-only | [x] | `tailscale serve` → `https://hermes-ec2.tail9f6b4e.ts.net` |
 | Desktop app | connects to relay | [x] | v0.4.26, `/query` traffic flowing, 0 non-200 |
-| Agent keypairs | one per RegisteredAgent | [ ] | maps Agent Pool |
-| Channels | repo + operational (#cashflow, #settlements, #receivables, #rto, #feedback) | [ ] | 4 channels exist (incl. `buzz-tdd-check`) |
+| Agent keypairs | one per RegisteredAgent | [~] | Builder/Communicator/Researcher have keypairs + personas (`builtin:fizz/honey/bumble`); runtime `claude` |
+| Channels | repo + operational (#cashflow, #settlements, #receivables, #rto, #feedback) | [~] | `agent-marketplace` (`a8848ae6-…`) created and seeded; 4 scaffolding channels also exist |
+| Buzz nest (`~/.buzz`) | seeded, Mac-local | [x] | `RESEARCH/CURRENT_ACTIVE_WORK.md`, `GUIDES/BUZZ_RELAY_RUNBOOK.md`, 6 repos symlinked into `REPOS/` |
+| Personal beads | one canonical store | [x] | `~/my-personal-os/.beads` (git-backed via `obsidian-vault`), `BEADS_DIR` exported; empty shadow store retired |
 | Workflow YAML | 6-step + go-live profiles | [ ] | port from MemoryWorkflowDescriptor |
 | Crons | 8am / weekly / 15d / daily | [ ] | cashflow, settlement, rto, feedback, receivables |
 
@@ -160,6 +162,17 @@ Three separate issues blocked the desktop client. All three are config, not code
 3. **CORS — the hard one.** `BUZZ_CORS_ORIGINS` was left at the `.env.example` default (`https://buzz.example.com`), so the relay returned **no** `access-control-allow-origin` and WebKit silently killed the fetch with a generic "Load failed". Nothing appeared in the app log *or* the relay log, because the request never left the webview. Diagnostic tell: preflight returns `allow-headers: *` and `allow-methods: *` but no `allow-origin`.
 
 **Probe gap to fix:** P3 only asserted `grep -c CHANGE_ME == 0`. That passes while `example.com` defaults remain in `BUZZ_DOMAIN`, `BUZZ_CORS_ORIGINS`, and `BUZZ_MEDIA_SERVER_DOMAIN`. Strengthen P3 to also assert no `example.com` remains, and add a probe asserting the preflight returns `access-control-allow-origin` for the client's origin.
+
+### 7.3 Work-tracking layout (verified 28 Jul 2026)
+
+Two independent systems, easy to conflate:
+
+- **Personal backlog**: beads at `~/my-personal-os/.beads` (git-backed via the `obsidian-vault` repo). Source of truth is `issues.jsonl`. Reachable from any directory via `export BEADS_DIR="$HOME/my-personal-os/.beads"`. 32 open items, mostly Jan/Feb dated, pending triage.
+- **spanda work items**: **none yet**. The spanda repo has neither `.knots/` nor `.beads/`, and `kno` (its declared primary per repo `CLAUDE.md`) is not installed on the Mac. `my-personal-os/.knots/` holds only `cache/` and `workflows/`, zero knots. No personal beads item references spanda, foolery, or buzz.
+
+So the personal backlog does not feed spanda, and spanda tracking is unstarted. Installing `kno` is the prerequisite for spanda-side work items.
+
+**Buzz nest is Mac-local.** `~/.buzz` exists only on the Mac (the desktop app scaffolds it); there is no server-side copy. Repos are **symlinked**, not cloned, per `AGENTS.md` ("work in an existing local checkout when one exists"), so agents operate on the real working trees.
 
 ## 8. Gaps / open items
 - **Canvases**: no spanda or merchant-board primitive maps cleanly. Net-new; Setlist/Gantt is the closest surface.
