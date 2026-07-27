@@ -44,7 +44,7 @@ Session lifecycle (spanda): click Take!/Scene! → `createSession()` builds prom
 - `RELAY_OWNER_PUBKEY` = Aravinth's 64-hex Nostr pubkey (enables closed-relay mode so it is not world-open).
 
 ### 4.2 Env / secrets (for agent members to function)
-- `GITHUB_ACCESS_TOKEN` / `GH_TOKEN` — git-as-rooms backend access.
+- `GITHUB_ACCESS_TOKEN` / `GH_TOKEN`: git-as-rooms backend access.
 - `AMS_ADMIN_USER` / `AMS_ADMIN_PASS` (basic auth) and `AMS_ADMIN_TOKEN` (`X-Admin-Token` header, not Bearer; rotates ~monthly, decode JWT `exp` before debugging 401s).
 - AMS base URLs per env: local `http://localhost:8080`; devstack `https://agent-marketplace-web-{label}.dev.razorpay.in`; prod `https://agent-marketplace-api-concierge.razorpay.com` (corp-network/VPN only; prod is write-sensitive, default to shadow).
 - Langfuse creds (traces/evals/audit); Trino/datalake access; internal MCP connector creds; ElevenLabs + Shopify connectors; Stork (mCarbon/Progate WABA) creds + `agent-browser`; n8n workflow endpoint.
@@ -148,7 +148,7 @@ Community host (DB):        hermes-ec2.tail9f6b4e.ts.net
 BUZZ_HTTP_PORT:             8787  (fronted by tailscale serve on 443)
 BUZZ_CORS_ORIGINS:          tauri://localhost,https://tauri.localhost,
                             https://hermes-ec2.tail9f6b4e.ts.net,http://localhost:3000
-Owner key file:             ~/.buzz-owner.nsec (600) — hex + npub/nsec forms
+Owner key file:             ~/.buzz-owner.nsec (600), hex plus npub/nsec forms
 ```
 
 The community keeps a stable id (`28df2a91-…`) across host changes: change `communities.host`, never recreate the row, or you lose channels/data.
@@ -157,9 +157,9 @@ The community keeps a stable id (`28df2a91-…`) across host changes: change `co
 
 Three separate issues blocked the desktop client. All three are config, not code:
 
-1. **`404 relay: no community is configured for this host`** — the relay routes by HTTP `Host` header; the community was provisioned as `buzz.example.com` but the client connected by IP. Fix: `update communities set host = '<what clients actually use>'`.
-2. **Client refuses plain HTTP to a remote host** — the community handshake never left the app. Fix: real TLS. `tailscale cert <magicdns-name>` + `tailscale serve --bg http://127.0.0.1:8787` gives a valid Let's Encrypt cert, tailnet-only, no tunnel to babysit. Requires **HTTPS Certificates** enabled in the Tailscale admin (DNS page) first.
-3. **CORS — the hard one.** `BUZZ_CORS_ORIGINS` was left at the `.env.example` default (`https://buzz.example.com`), so the relay returned **no** `access-control-allow-origin` and WebKit silently killed the fetch with a generic "Load failed". Nothing appeared in the app log *or* the relay log, because the request never left the webview. Diagnostic tell: preflight returns `allow-headers: *` and `allow-methods: *` but no `allow-origin`.
+1. **`404 relay: no community is configured for this host`**. The relay routes by HTTP `Host` header; the community was provisioned as `buzz.example.com` but the client connected by IP. Fix: `update communities set host = '<what clients actually use>'`.
+2. **Client refuses plain HTTP to a remote host.** The community handshake never left the app. Fix: real TLS. `tailscale cert <magicdns-name>` + `tailscale serve --bg http://127.0.0.1:8787` gives a valid Let's Encrypt cert, tailnet-only, no tunnel to babysit. Requires **HTTPS Certificates** enabled in the Tailscale admin (DNS page) first.
+3. **CORS, the hard one.** `BUZZ_CORS_ORIGINS` was left at the `.env.example` default (`https://buzz.example.com`), so the relay returned **no** `access-control-allow-origin` and WebKit silently killed the fetch with a generic "Load failed". Nothing appeared in the app log *or* the relay log, because the request never left the webview. Diagnostic tell: preflight returns `allow-headers: *` and `allow-methods: *` but no `allow-origin`.
 
 **Probe gap to fix:** P3 only asserted `grep -c CHANGE_ME == 0`. That passes while `example.com` defaults remain in `BUZZ_DOMAIN`, `BUZZ_CORS_ORIGINS`, and `BUZZ_MEDIA_SERVER_DOMAIN`. Strengthen P3 to also assert no `example.com` remains, and add a probe asserting the preflight returns `access-control-allow-origin` for the client's origin.
 
