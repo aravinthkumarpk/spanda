@@ -128,14 +128,38 @@ Create a channel, post a message (verify it persists and appears in Cmd+K search
 
 | Item | Target | Status | Notes |
 |---|---|---|---|
-| Docker on hermes-ec2 | installed | [ ] | dev toolkit skipped it |
-| Relay stack up | `./run.sh status` green | [ ] | |
-| Owner keypair | `RELAY_OWNER_PUBKEY` set | [ ] | closed-relay mode |
+| Docker on hermes-ec2 | installed | [x] | Compose v5.3.1 |
+| Relay stack up | `./run.sh status` green | [x] | relay + Postgres + Redis + MinIO, `restart: unless-stopped` |
+| Owner keypair | `RELAY_OWNER_PUBKEY` set | [x] | `508163fa…37a3`, closed-relay mode, sole member role=owner |
+| HTTPS | valid cert, tailnet-only | [x] | `tailscale serve` → `https://hermes-ec2.tail9f6b4e.ts.net` |
+| Desktop app | connects to relay | [x] | v0.4.26, `/query` traffic flowing, 0 non-200 |
 | Agent keypairs | one per RegisteredAgent | [ ] | maps Agent Pool |
-| Desktop app | connects to relay | [ ] | tailnet ws://100.84.240.65:3000 |
-| Channels | repo + operational (#cashflow, #settlements, #receivables, #rto, #feedback) | [ ] | |
+| Channels | repo + operational (#cashflow, #settlements, #receivables, #rto, #feedback) | [ ] | 4 channels exist (incl. `buzz-tdd-check`) |
 | Workflow YAML | 6-step + go-live profiles | [ ] | port from MemoryWorkflowDescriptor |
 | Crons | 8am / weekly / 15d / daily | [ ] | cashflow, settlement, rto, feedback, receivables |
+
+### 7.1 Working configuration (as deployed)
+
+```
+Relay URL (app + clients):  https://hermes-ec2.tail9f6b4e.ts.net
+Community host (DB):        hermes-ec2.tail9f6b4e.ts.net
+BUZZ_HTTP_PORT:             8787  (fronted by tailscale serve on 443)
+BUZZ_CORS_ORIGINS:          tauri://localhost,https://tauri.localhost,
+                            https://hermes-ec2.tail9f6b4e.ts.net,http://localhost:3000
+Owner key file:             ~/.buzz-owner.nsec (600) — hex + npub/nsec forms
+```
+
+The community keeps a stable id (`28df2a91-…`) across host changes: change `communities.host`, never recreate the row, or you lose channels/data.
+
+### 7.2 Blockers hit during first setup (and fixes)
+
+Three separate issues blocked the desktop client. All three are config, not code:
+
+1. **`404 relay: no community is configured for this host`** — the relay routes by HTTP `Host` header; the community was provisioned as `buzz.example.com` but the client connected by IP. Fix: `update communities set host = '<what clients actually use>'`.
+2. **Client refuses plain HTTP to a remote host** — the community handshake never left the app. Fix: real TLS. `tailscale cert <magicdns-name>` + `tailscale serve --bg http://127.0.0.1:8787` gives a valid Let's Encrypt cert, tailnet-only, no tunnel to babysit. Requires **HTTPS Certificates** enabled in the Tailscale admin (DNS page) first.
+3. **CORS — the hard one.** `BUZZ_CORS_ORIGINS` was left at the `.env.example` default (`https://buzz.example.com`), so the relay returned **no** `access-control-allow-origin` and WebKit silently killed the fetch with a generic "Load failed". Nothing appeared in the app log *or* the relay log, because the request never left the webview. Diagnostic tell: preflight returns `allow-headers: *` and `allow-methods: *` but no `allow-origin`.
+
+**Probe gap to fix:** P3 only asserted `grep -c CHANGE_ME == 0`. That passes while `example.com` defaults remain in `BUZZ_DOMAIN`, `BUZZ_CORS_ORIGINS`, and `BUZZ_MEDIA_SERVER_DOMAIN`. Strengthen P3 to also assert no `example.com` remains, and add a probe asserting the preflight returns `access-control-allow-origin` for the client's origin.
 
 ## 8. Gaps / open items
 - **Canvases**: no spanda or merchant-board primitive maps cleanly. Net-new; Setlist/Gantt is the closest surface.
