@@ -174,6 +174,22 @@ So the personal backlog does not feed spanda, and spanda tracking is unstarted. 
 
 **Buzz nest is Mac-local.** `~/.buzz` exists only on the Mac (the desktop app scaffolds it); there is no server-side copy. Repos are **symlinked**, not cloned, per `AGENTS.md` ("work in an existing local checkout when one exists"), so agents operate on the real working trees.
 
+### 7.4 The architecture (decided 28 Jul 2026)
+
+Two research findings rule out the obvious answers, so record them:
+
+1. **Buzz is not a project manager.** No projects table, no assignees, labels, milestones, priorities, due dates, sprints, or board (`grep kanban|board|swimlane` returns zero hits). A "project" is one NIP-34 kind:30617 repo-announcement event; the canvas is a freeform markdown blob. Its real strengths are the **YAML workflow engine** (triggers: `message_posted`, `reaction_added`, `diff_posted`, `schedule` cron/interval, `webhook`; actions: send_message, send_dm, set_channel_topic, add_reaction, call_webhook, request_approval, delay) and **git hosting** with branch protection. Approval gates **do** work; `ARCHITECTURE.md:552` claims they fail, but the relay completes the loop in `handlers/command_executor.rs:1029+`. The docs are stale.
+2. **Buzz cannot hold integrations.** Exactly **one** MCP server per agent, no args, set via `BUZZ_ACP_MCP_COMMAND` and hardcoded in the desktop runtime table (`crates/buzz-acp/src/lib.rs:4142`, `desktop/src-tauri/src/managed_agents/runtime.rs:527`). Zero third-party connectors exist. Agents reach the world by **shelling out** through `buzz-dev-mcp`'s `shell` tool.
+
+**The resulting design:**
+
+- **Spine: beads.** `~/my-personal-os/.beads`, git-backed. `bd` is a full tracker (epics, `--parent` hierarchy, labels, typed `--deps`, due/defer, assignees, acceptance criteria, `ready`/`stale` views). Six epics now exist, one per job area. DevRev stays the org system of record; Hermes kanban and Buzz channels are surfaces, not stores.
+- **EC2 is the always-on hub.** Trino, Slack, DevRev, GitHub, Google Workspace (`gws`), Telegram, Langfuse. All crons and background work.
+- **Mac is the corp-network workstation.** The only machine reaching ClickHouse, DataHub, Tableau, AMS concierge, devstack. Interactive only.
+- **Buzz is the room plus the scheduler.** Conversation with agents as real members, and workflows for scheduled or approval-gated work. Anything heavier than a message `call_webhook`s out to the EC2.
+
+Routing map lives at `~/.buzz/GUIDES/INTEGRATION_ROUTING.md` (Mac), including the 14 known duplicate integrations, documented but not yet consolidated.
+
 ## 8. Gaps / open items
 - **Canvases**: no spanda or merchant-board primitive maps cleanly. Net-new; Setlist/Gantt is the closest surface.
 - **Public/TLS**: deliberately skipped; add Caddy/TLS + DNS only if off-tailnet access is needed.
